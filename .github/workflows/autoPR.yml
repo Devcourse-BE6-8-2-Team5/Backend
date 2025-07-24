@@ -65,5 +65,5 @@ jobs:
       - name: GitHub 프로젝트에 추가
         uses: actions/add-to-project@v1.0.2
         with:
-          project-url: "https://github.com/orgs/Devcourse-BE6-test/projects/1"
+          project-url: "https://github.com/orgs/Devcourse-BE6-8-2-Team5/projects/1"
           github-token: ${{ secrets.PROJECT_ACCESS_TOKEN }}

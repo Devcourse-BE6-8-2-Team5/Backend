@@ -59,6 +59,6 @@ jobs:
         uses: jinhokim98/project-flow-add-issue-to-project@v1
         with:
           github_token: ${{ secrets.PROJECT_ACCESS_TOKEN }}
-          project_owner: Devcourse-BE6-test
+          project_owner: Devcourse-BE6-8-2-Team5
           project_number: 1
           target_column: 'Backlog'
