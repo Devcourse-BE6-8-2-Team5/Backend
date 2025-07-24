@@ -30,5 +30,8 @@ server:
       force: true
 
 naver:
-    client-id: ${NAVER_CLIENT_ID}
-    client-secret: ${NAVER_CLIENT_SECRET}
+  client-id: ${NAVER_CLIENT_ID}
+  client-secret: ${NAVER_CLIENT_SECRET}
+  news:
+    display: 3
+    sort: sim

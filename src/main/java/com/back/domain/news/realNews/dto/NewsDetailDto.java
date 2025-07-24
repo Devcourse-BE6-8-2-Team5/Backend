@@ -12,8 +12,8 @@ public record NewsDetailDto(
         String mediaName     // 언론사명
 ) {
 
-    public static NewsDetailDto of(String journalist, String content, String imgUrl, String mediaName) {
-        return new NewsDetailDto(journalist, content, imgUrl, mediaName);
+    public static NewsDetailDto of(String content, String imgUrl, String journalist, String mediaName) {
+        return new NewsDetailDto(content, imgUrl, journalist, mediaName);
     }
 
     public static NewsDetailDto from(JsonNode item) {
