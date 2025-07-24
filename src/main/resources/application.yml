@@ -28,3 +28,7 @@ server:
       charset: UTF-8
       enabled: true
       force: true
+
+naver:
+    client-id: ${NAVER_CLIENT_ID}
+    client-secret: ${NAVER_CLIENT_SECRET}
