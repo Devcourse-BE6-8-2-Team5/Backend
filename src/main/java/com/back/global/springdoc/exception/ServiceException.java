@@ -1,6 +1,8 @@
 package com.back.global.springdoc.exception;
 
 
+import com.back.global.rsData.RsData;
+
 /**
  * 서비스 예외를 나타내는 클래스
  * 서비스 계층에서 발생하는 오류를 처리하기 위해 사용
@@ -16,5 +18,8 @@ public class ServiceException extends RuntimeException {
         super(code + " : " + msg);
         this.code = code;
         this.msg = msg;
+    }
+    public RsData<Void> getRsData()  {
+        return RsData.of(code,msg);
     }
 }
