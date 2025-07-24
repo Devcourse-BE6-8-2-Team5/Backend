@@ -34,6 +34,7 @@ public class RealNews {
     private String source;  // 뉴스 출처 (언론사 이름 등)
     private String author; // 뉴스 작성자 (기자)
 
+    // 상세 퀴즈와 1:N 관계 설정 (RealNews 하나 당 3개의 DetailQuiz가 생성됩니다.)
     @OneToMany(mappedBy = "realNews", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<DetailQuiz> detailQuizzes = new ArrayList<>();
 
