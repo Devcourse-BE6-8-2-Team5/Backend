@@ -1,14 +1,15 @@
 package com.back.domain.news.realNews.entity;
 
+
 import com.back.domain.quiz.detail.entity.DetailQuiz;
 import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+
 
 import static jakarta.persistence.GenerationType.IDENTITY;
 
@@ -41,7 +42,7 @@ public class RealNews {
     // boolean is_fake    < 가짜 뉴스랑 1 대 1 매핑이면 필요없을 것 같음
     // 카테고리id나 가짜테이블 연관설정은 테이블 추가될때 같이 수정할 예정
 
-    @Builder
+
     public RealNews(String title, String content, String description, String link, String imgUrl, LocalDateTime originCreatedDate, String source, String author) {
         this.title = title;
         this.content = content;
@@ -52,6 +53,5 @@ public class RealNews {
         this.source = source;
         this.author = author;
     }
-
 
 }
