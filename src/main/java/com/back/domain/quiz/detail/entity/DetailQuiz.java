@@ -2,6 +2,8 @@ package com.back.domain.quiz.detail.entity;
 
 import com.back.domain.news.realNews.entity.RealNews;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -15,13 +17,18 @@ public class DetailQuiz {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @NotBlank(message = "Question can not be blank")
     private String question;
 
+    @NotBlank(message = "Option1 can not be blank")
     private String option1;
+    @NotBlank(message = "Option2 can not be blank")
     private String option2;
+    @NotBlank(message = "Option3 can not be blank")
     private String option3;
 
     @Enumerated(EnumType.STRING)
+    @NotNull(message = "Correct option must be specified")
     private Option correctOption;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -30,6 +37,9 @@ public class DetailQuiz {
 
     // 정답 선택지 텍스트 반환
     public String getCorrectAnswerText() {
+        if (correctOption == null) {
+            return null; // global exception handler 추가되면 적절한 예외 던지게 수정
+        }
         return switch (correctOption) {
             case OPTION1 -> option1;
             case OPTION2 -> option2;
