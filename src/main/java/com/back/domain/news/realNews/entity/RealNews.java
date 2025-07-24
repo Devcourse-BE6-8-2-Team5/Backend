@@ -11,6 +11,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 
+import java.time.LocalDateTime;
+
 import static jakarta.persistence.GenerationType.IDENTITY;
 
 @Entity
@@ -41,7 +43,6 @@ public class RealNews {
 
     // boolean is_fake    < 가짜 뉴스랑 1 대 1 매핑이면 필요없을 것 같음
     // 카테고리id나 가짜테이블 연관설정은 테이블 추가될때 같이 수정할 예정
-
 
     public RealNews(String title, String content, String description, String link, String imgUrl, LocalDateTime originCreatedDate, String source, String author) {
         this.title = title;
