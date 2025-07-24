@@ -1,16 +1,18 @@
 package com.back.domain.news.realNews.controller;
 
 import com.back.domain.news.realNews.dto.NaverNewsDto;
+import com.back.domain.news.realNews.dto.RealNewsDto;
+import com.back.domain.news.realNews.entity.RealNews;
 import com.back.domain.news.realNews.service.RealNewsService;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.io.IOException;
 import java.util.List;
 
 @RestController
@@ -37,6 +39,7 @@ public class ApiV1RealNewsController {
     }
 
 
+    //추후 삭제예정
     //http://localhost:8080/api/v1/real-news/fetch?query="삼성전자" << 이런 식으로 뉴스 추출 가능
     @GetMapping("/fetch")
     public RsData<List<NaverNewsDto>> fetchNewsByQuery(@RequestParam String query) throws JsonProcessingException {
@@ -46,4 +49,14 @@ public class ApiV1RealNewsController {
         }
         return new RsData<>("200", "뉴스 패치 완료", newsList);
     }
+
+
+    //exceptionhandler로 예외처리 예정
+    @GetMapping("/create")
+    public RsData<List<RealNewsDto>> createNewsList(@RequestParam String query) throws IOException {
+        List<RealNewsDto> realNewsList = realNewsService.createRealNews(query);
+
+        return new RsData<>("200", "뉴스 생성 완료", realNewsList);
+    }
+
 }
