@@ -4,6 +4,7 @@ package com.back.global.springdoc.globalExceptionHandler;
 import com.back.global.rsData.RsData;
 import com.back.global.springdoc.exception.ServiceException;
 import jakarta.validation.ConstraintViolationException;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.FieldError;
@@ -36,7 +37,11 @@ public class GlobalExceptionHandler {
         RsData<Void> rsData = ex.getRsData();
         int statusCode = rsData.code();
 
-        return ResponseEntity.status(statusCode).body(rsData);
+        HttpStatus status = HttpStatus.resolve(statusCode);
+        if( status == null) {
+            status = HttpStatus.INTERNAL_SERVER_ERROR; // 기본값 설정
+        }
+        return ResponseEntity.status(status).body(rsData);
 
     }
 
@@ -64,7 +69,9 @@ public class GlobalExceptionHandler {
                             String field = path.contains(".") ? path.split("\\.",2)[1]: path;
                             String[] messageTemplateBits = violation.getMessageTemplate()
                                     .split("\\.");
-                            String code = messageTemplateBits[messageTemplateBits.length -2];
+                            String code = messageTemplateBits.length >= 2
+                            ? messageTemplateBits[messageTemplateBits.length -2] : "Unknown";
+
                             String _message = violation.getMessage();
 
                             return "%s-%s-%s".formatted(field, code, _message);
