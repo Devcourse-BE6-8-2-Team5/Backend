@@ -147,13 +147,13 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(JsonProcessingException.class)
     public ResponseEntity<RsData<Void>> handleJsonProcessingException(JsonProcessingException e) {
         return ResponseEntity.badRequest()
-                .body(RsData.of(400, "JSON 파싱 오류: " + e.getMessage(), null));
+                .body(RsData.of(400, "JSON 파싱 오류가 발생했습니다.", null));
     }
 
     @ExceptionHandler(IOException.class)
     public ResponseEntity<RsData<Void>> handleIOException(IOException e) {
         return ResponseEntity.internalServerError()
-                .body(RsData.of(500, "I/O 오류: " + e.getMessage(), null));
+                .body(RsData.of(500, "서버 내부 오류가 발생했습니다.", null));
     }
 
 }

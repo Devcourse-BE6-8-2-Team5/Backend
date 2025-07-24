@@ -33,7 +33,6 @@ public class HtmlEntityDecoder {
         HTML_ENTITIES.put("&rsquo;", "'");
         HTML_ENTITIES.put("&ldquo;", "\"");
         HTML_ENTITIES.put("&rdquo;", "\"");
-        HTML_ENTITIES.put("&rdquo;", "\"");
         HTML_ENTITIES.put("&hellip;", "…");
     }
 

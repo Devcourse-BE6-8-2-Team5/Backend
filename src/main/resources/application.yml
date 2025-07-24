@@ -35,3 +35,5 @@ naver:
   news:
     display: 3
     sort: sim
+  crawling:
+    delay: 1000 # 줄이지 말아주세요
