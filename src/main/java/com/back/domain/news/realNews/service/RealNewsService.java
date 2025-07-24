@@ -34,7 +34,6 @@ public class RealNewsService {
     // HTTP 요청을 보내기 위한 Spring의 HTTP 클라이언트(외부 API 호출 시 사용)
     private final RestTemplate restTemplate = new RestTemplate();
 
-    // application.yml에서 인증정보 가져옴
     @Value("${NAVER_CLIENT_ID}")
     private String clientId;
 
@@ -47,7 +46,7 @@ public class RealNewsService {
     @Value("${naver.news.sort:sim}")
     private String newsSortOrder;
 
-    @Value("${naver.crawling.delay}") // 크롤링 딜레이, 기본값 1000ms
+    @Value("${naver.crawling.delay}")
     private int crawlingDelay;
 
     // 서비스 초기화 시 설정값 검증
@@ -73,7 +72,7 @@ public class RealNewsService {
 
             for(NaverNewsDto naverMetaData : naverMetaDataList) {
                 NewsDetailDto newsDetailData = crawlAddtionalInfo(naverMetaData.link());
-                RealNewsDto realNewsDto = MakeRealNewsDtoFromInf(naverMetaData, newsDetailData);
+                RealNewsDto realNewsDto = MakeRealNewsFromInf(naverMetaData, newsDetailData);
                 realNewsDtoList.add(realNewsDto);
 
                 Thread.sleep(crawlingDelay);
@@ -146,16 +145,16 @@ public class RealNewsService {
                     .map(element -> element.attr("data-src"))
                     .orElse("");
 
-            String journalist = Optional.of(doc.selectFirst("em.media_end_head_journalist_name"))
+            String journalist = Optional.ofNullable(doc.selectFirst("em.media_end_head_journalist_name"))
                     .map(Element::text)
                     .orElse("");
             String mediaName = Optional.ofNullable(doc.selectFirst("img.media_end_head_top_logo_img"))
                     .map(elem -> elem.attr("alt"))
                     .orElse("");
-
-            if(content.isEmpty() || imgUrl.isEmpty() || journalist.isEmpty() || mediaName.isEmpty()) {
-                throw new RuntimeException("크롤링된 정보가 불완전합니다.");
-            }
+//
+//            if(content.isEmpty() || imgUrl.isEmpty() || journalist.isEmpty() || mediaName.isEmpty()) {
+//                return null;
+//            }
 
             return NewsDetailDto.of(content, imgUrl, journalist, mediaName);
 
@@ -166,7 +165,7 @@ public class RealNewsService {
     }
 
     // 네이버 api에서 받아온 정보와 크롤링한 상세 정보를 바탕으로 RealNewsDto 생성
-    public RealNewsDto MakeRealNewsDtoFromInf(NaverNewsDto naverNewsDto, NewsDetailDto newsDetailDto) {
+    public RealNewsDto MakeRealNewsFromInf(NaverNewsDto naverNewsDto, NewsDetailDto newsDetailDto) {
         return RealNewsDto.of(
                 naverNewsDto.title(),
                 newsDetailDto.content(),
@@ -182,7 +181,6 @@ public class RealNewsService {
     // 뉴스 생성 메서드
     // fetchNews 메서드로 네이버 API에서 뉴스 목록을 가져오고
     // 링크 정보를 바탕으로 상세 정보를 crawlAddtionalInfo 메서드로 크롤링하여 RealNews 객체를 생성
-
     private List<NaverNewsDto> getNewsMetaDataFromNaverApi(JsonNode items){
         List<NaverNewsDto> newsMetaDataList = new ArrayList<>();
 
