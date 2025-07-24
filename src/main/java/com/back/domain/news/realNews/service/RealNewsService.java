@@ -5,6 +5,7 @@ import com.back.domain.news.realNews.dto.NewsDetailDto;
 import com.back.domain.news.realNews.dto.RealNewsDto;
 import com.back.domain.news.realNews.entity.RealNews;
 import com.back.domain.news.realNews.repository.RealNewsRepository;
+import com.back.global.util.HtmlEntityDecoder;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -85,14 +86,20 @@ public class RealNewsService {
                 List<NaverNewsDto> newsList = new ArrayList<>();
                 if (items != null) {
                     for (JsonNode item : items) {
-                        String title = item.get("title").asText("");
+                        String rawTitle = item.get("title").asText("");
                         String originallink = item.get("originallink").asText("");
                         String link = item.get("link").asText("");
-                        String description = item.get("description").asText("");
+                        String rawDdscription = item.get("description").asText("");
                         String pubDate = item.get("pubDate").asText("");
 
+                        String cleanedTitle = HtmlEntityDecoder.decode(rawTitle); // HTML 태그 제거
+                        String cleanDescription = HtmlEntityDecoder.decode(rawDdscription); // HTML 태그 제거
+
+                        //한 필드라도 비어있으면 건너뜀
+                        if(cleanedTitle.isEmpty()|| originallink.isEmpty() || link.isEmpty() || cleanDescription.isEmpty() || pubDate.isEmpty())
+                            continue;
                         //팩토리 메서드 사용
-                        NaverNewsDto newsDto = NaverNewsDto.of(title, originallink, link, description, pubDate);
+                        NaverNewsDto newsDto = NaverNewsDto.of(cleanedTitle, originallink, link, cleanDescription, pubDate);
                         newsList.add(newsDto);
                     }
                 }
@@ -127,8 +134,12 @@ public class RealNewsService {
                     .map(elem -> elem.attr("alt"))
                     .orElse("");
 
+            if(content.isEmpty() || imgUrl.isEmpty() || journalist.isEmpty() || mediaName.isEmpty()) {
+                throw new RuntimeException("크롤링된 정보가 불완전합니다.");
+            }
 
             return NewsDetailDto.of(content, imgUrl, journalist, mediaName);
+
         } catch (IOException e) {
             //  Jsoup 연결 실패 시
             throw new RuntimeException("크롤링 실패: " + e.getMessage(), e);
@@ -208,7 +219,7 @@ public class RealNewsService {
     // 네이버 API에서 받아온 날짜 문자열을 LocalDateTime으로 변환
     private LocalDateTime parseNaverDate(String naverDate) {
         try {
-            String dateTimeFormat = naverDate.replaceAll("\\s[+-]\\d{4}$", "");
+            String dateTimeFormat = HtmlEntityDecoder.decode(naverDate);
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("EEE, dd MMM yyyy HH:mm", Locale.ENGLISH);
             return LocalDateTime.parse(dateTimeFormat , formatter);
         } catch (Exception e) {
