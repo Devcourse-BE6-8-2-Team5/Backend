@@ -25,6 +25,7 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.stream.Collectors;
 
 
 @Service
@@ -83,11 +84,11 @@ public class RealNewsService {
                 Thread.sleep(crawlingDelay);
             }
             // DTO → Entity 변환 후 저장
-            List<RealNews> realNewsList = convertRealNewsDtoToEntity(realNewsDtoList);
+            List<RealNews> realNewsList = convertRealNewsDtoToEntities(realNewsDtoList);
             List<RealNews> savedEntities = realNewsRepository.saveAll(realNewsList); // 저장된 결과 받기
 
             // Entity → DTO 변환해서 반환
-            return convertRealNewsEntityToDto(savedEntities);
+            return convertRealNewsEntityToDtos(savedEntities);
 
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
@@ -222,19 +223,10 @@ public class RealNewsService {
         }
     }
 
-    private List<RealNews> convertRealNewsDtoToEntity(List<RealNewsDto> realNewsDtoList) {
+    private List<RealNews> convertRealNewsDtoToEntities (List<RealNewsDto> realNewsDtoList) {
         return realNewsDtoList.stream()
-                .map(realNewsDto -> new RealNews(
-                        realNewsDto.title(),
-                        realNewsDto.content(),
-                        realNewsDto.description(),
-                        realNewsDto.link(),
-                        realNewsDto.imgUrl(),
-                        realNewsDto.originCreatedDate(),
-                        realNewsDto.mediaName(),
-                        realNewsDto.journalist(),
-                        realNewsDto.originalNewsUrl()
-                )).toList();
+                .map(this::convertRealNewsDtoToEntity)
+                .collect(Collectors.toList());
     }
 
     private RealNews convertRealNewsDtoToEntity(RealNewsDto realNewsDto) {
@@ -251,19 +243,10 @@ public class RealNewsService {
         );
     }
 
-    private List<RealNewsDto> convertRealNewsEntityToDto(List<RealNews> realNewsList) {
+    private List<RealNewsDto> convertRealNewsEntityToDtos(List<RealNews> realNewsList) {
         return realNewsList.stream()
-                .map(realNews -> RealNewsDto.of(
-                        realNews.getTitle(),
-                        realNews.getContent(),
-                        realNews.getDescription(),
-                        realNews.getLink(),
-                        realNews.getImgUrl(),
-                        realNews.getOriginCreatedDate(),
-                        realNews.getMediaName(),
-                        realNews.getJournalist(),
-                        realNews.getOriginalNewsUrl()
-                )).toList();
+                .map(this::convertRealNewsEntityToDto)
+                .collect(Collectors.toList());
     }
 
     private RealNewsDto convertRealNewsEntityToDto(RealNews realNews) {

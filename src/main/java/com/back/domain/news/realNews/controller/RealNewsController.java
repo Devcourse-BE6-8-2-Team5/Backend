@@ -33,7 +33,7 @@ public class RealNewsController {
         List<RealNewsDto> realNewsList = realNewsService.createRealNews(query);
 
         if (realNewsList.isEmpty()) {
-            return RsData.of(404,  String.format("%d번의 뉴스를 찾을 수 없습니다", realNewsList.size()), realNewsList);
+            return RsData.of(404, String.format("'%s' 검색어로 뉴스를 찾을 수 없습니다", query));
         }
 
         return RsData.of(200, "뉴스 생성 완료", realNewsList);
