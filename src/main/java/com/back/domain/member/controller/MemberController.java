@@ -61,4 +61,43 @@ public class MemberController {
 
     }
 
+    // 요청할때 (이름,비밀번호보냄)
+    record LoginReqBody(@NotBlank String name, @NotBlank String password) {}
+    //응답할때 (MemberDto, apiKey, accessToken)
+    record LoginResBody(MemberDto member, String apiKey, String accessToken) {}
+
+    @PostMapping("/login")
+    @Transactional(readOnly = true)
+    @Operation(summary = "회원 로그인", description = "로그인 성공 시 APIKey와 AccessToken을 반환합니다. 쿠키로도 반환됩니다.")
+    public RsData<LoginResBody> login(@RequestBody @Valid LoginReqBody reqBody) {
+
+        Member member = memberService.findByName(reqBody.name()).orElseThrow(
+                () -> new ServiceException(401,"잘못된 아이디입니다.")
+        );
+
+        if(!member.getPassword().equals(reqBody.password())) {
+            throw new ServiceException(401,"비밀번호가 일치하지 않습니다.");
+        }
+
+        //나중에 인증,인가(시큐리티에서)
+        //String accessToken = memberService.genAccessToken(member);
+
+        //임시로 accessToken을 생성 , 시큐리티 부분에서는 지우고 진짜 생성하세요
+        String accessToken = "";
+
+        //rq.addCookie("accessToken",accessToken);
+        //rq.addCookie("apiKey",member.getApiKey());
+
+        return new RsData<> (
+                200,
+                "%s님 환영합니다.".formatted(member.getName()),
+                new LoginResBody(
+                        new MemberDto(member),
+                        member.getApiKey(),
+                        accessToken
+                )
+        );
+
+    }
+
 }
