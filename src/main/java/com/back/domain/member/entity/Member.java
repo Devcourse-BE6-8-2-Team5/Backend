@@ -71,6 +71,7 @@ public class Member {
                 .map(auth -> new SimpleGrantedAuthority("ROLE_" + auth))
                 .toList();
     }
+
     private List<String> getAuthoritiesAsStringList() {
         List<String> authorities = new ArrayList<>();
         // 관리자면 ROLE_ADMIN, 아니면 ROLE_USER

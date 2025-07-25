@@ -27,6 +27,11 @@ logging:
     org.hibernate.orm.jdbc.extract: TRACE
     org.springframework.transaction.interceptor: TRACE
     com.back: DEBUG
+custom:
+  jwt:
+    secretKey: 9f8d7s6a5!@#QWERTYuiopZXCVBNM123456
+  accessToken:
+    expirationSeconds: "#{60*20}"
 
 springdoc:
   default-produces-media-type: application/json;charset=UTF-8
@@ -47,3 +52,5 @@ naver:
     sort: sim
   crawling:
     delay: 1000 # 줄이지 말아주세요
+
+

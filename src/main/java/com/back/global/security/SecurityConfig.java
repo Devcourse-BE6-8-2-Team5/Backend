@@ -28,19 +28,19 @@ public class SecurityConfig {
                                 .requestMatchers("/favicon.ico").permitAll()
                                 .requestMatchers("/h2-console/**").permitAll()
 
-                                // 모두 접근 가능한 API
-                                .requestMatchers(HttpMethod.GET,  "/", "/main", "/news", "/news/{id}", "/today-news", "/quiz/ox").permitAll()
-                                .requestMatchers(HttpMethod.POST, "api/members/login", "api/members/join", "api/members/logout").permitAll()
+                                //모두 접근 가능한 API
+                                .requestMatchers(HttpMethod.GET,  "/메인페이지/뉴스목록", "/뉴스상세페이지", "/오늘의뉴스페이지", "/ox퀴즈페이지").permitAll()
+                                .requestMatchers(HttpMethod.POST, "/api/members/login", "/api/members/join", "/api/members/logout").permitAll()
 
                                 // 회원만 접근 가능한 API
-                                .requestMatchers(HttpMethod.GET,  "/quiz/detail/**", "/today-quiz", "/quiz/ox/detail/**", "/mypage").authenticated()
-                                .requestMatchers(HttpMethod.POST, "/quiz/detail/**/submit", "/today-quiz/submit", "/quiz/ox/detail/**/submit").authenticated()
-                                .requestMatchers(HttpMethod.PUT,  "/mypage").authenticated()
-                                .requestMatchers(HttpMethod.DELETE, "/mypage").authenticated()
+                                .requestMatchers(HttpMethod.GET,  "/상세퀴즈페이지", "/오늘의퀴즈페이지", "/ox퀴즈상세페이지", "/마이페이지").authenticated()
+                                .requestMatchers(HttpMethod.POST, "/상세퀴즈제출", "/오늘의퀴즈제출", "/ox퀴즈제출").authenticated()
+                                .requestMatchers(HttpMethod.PUT,  "/마이페이지내정보수정").authenticated()
+                                .requestMatchers(HttpMethod.DELETE, "/마이페이지회원탈퇴").authenticated()
 
                                 // 관리자만 접근 가능한 API
-                                .requestMatchers(HttpMethod.GET, "/admin").hasRole("ADMIN")
-                                .requestMatchers(HttpMethod.DELETE, "/admin/news/**").hasRole("ADMIN")
+                                .requestMatchers(HttpMethod.GET, "/관리자페이지").hasRole("ADMIN")
+                                .requestMatchers(HttpMethod.DELETE, "/관리자페이지뉴스삭제").hasRole("ADMIN")
 
                                 // 그 외는 모두 인증 필요
                                 .requestMatchers("/api/*/**").authenticated()
@@ -92,10 +92,8 @@ public class SecurityConfig {
 //                                        }
 //                                )
 //                );
-
         return http.build();
     }
-
 
 
     @Bean
@@ -103,7 +101,7 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
 
         // 허용할 오리진 설정
-        configuration.setAllowedOrigins(List.of("https://cdpn.io", "http://localhost:3000"));
+        configuration.setAllowedOrigins(List.of("http://localhost:3000"));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE"));
 
         // 자격 증명 허용 설정
@@ -115,7 +113,7 @@ public class SecurityConfig {
         // CORS 설정을 소스에 등록
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/api/**", configuration);
-        source.registerCorsConfiguration("/grid/**", configuration);
+        source.registerCorsConfiguration("/admin/**", configuration);
         return source;
     }
 }

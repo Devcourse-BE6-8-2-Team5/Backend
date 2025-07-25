@@ -38,13 +38,10 @@ public class CustomAuthenticationFilter extends OncePerRequestFilter {
             RsData<Void> rsData = e.getRsData();
             response.setContentType("application/json;charset=UTF-8");
             response.setStatus(rsData.code());
-
             String jsonResponse = Ut.json.toString(rsData);
             if (jsonResponse == null) {
-                // Ut.json.toString()이 null을 반환할 경우를 대비한 폴백(Fallback) 로직
                 jsonResponse = "{\"resultCode\":\"" + rsData.code() + "\",\"msg\":\"" + rsData.message() + "\"}";
             }
-
             response.getWriter().write(jsonResponse);
         } catch (Exception e) {
             throw e;
@@ -52,18 +49,32 @@ public class CustomAuthenticationFilter extends OncePerRequestFilter {
     }
 
     private void work(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        // API 요청이 아니라면 패스
+        String uri = request.getRequestURI();
 
-        if (!request.getRequestURI().startsWith("/grid/admin/") &&
-                !request.getRequestURI().startsWith("/grid/shoppingbasket")&&
-                !request.getRequestURI().startsWith("/grid/orders")) { // /grid/shoppingbasket/도 인증 처리를 하도록 조건을 수정
+        // 아래 API 요청이 아니라면 인증 패스 (추후 진짜 api로 변경 예정)
+        if (
+                !uri.startsWith("/상세퀴즈페이지") &&
+                !uri.startsWith("/오늘의퀴즈페이지") &&
+                !uri.startsWith("/ox퀴즈상세페이지") &&
+                !uri.startsWith("/상세퀴즈제출") &&
+                !uri.startsWith("/오늘의퀴즈제출") &&
+                !uri.startsWith("/ox퀴즈제출") &&
+                !uri.startsWith("/마이페이지") &&
+                !uri.startsWith("/마이페이지내정보수정") &&
+                !uri.startsWith("/마이페이지회원탈퇴") &&
+                !uri.startsWith("/관리자페이지") &&
+                !uri.startsWith("/관리자페이지뉴스삭제")
+        ) {
             filterChain.doFilter(request, response);
             return;
         }
 
-
-        // 인증, 인가가 필요없는 API 요청이라면 패스
-        if (List.of("/api/v1/members/login", "/api/v1/members/logout", "/api/v1/members/join").contains(request.getRequestURI())) {
+        // 아래 API 요청이라면 인증하지 않고 패스
+        if (List.of(
+                "/api/members/login",
+                "/api/members/logout",
+                "/api/members/join"
+        ).contains(uri)) {
             filterChain.doFilter(request, response);
             return;
         }
@@ -140,7 +151,6 @@ public class CustomAuthenticationFilter extends OncePerRequestFilter {
                 user.getAuthorities()
         );
 
-        // 이 시점 이후부터는 시큐리티가 이 요청을 인증된 사용자의 요청이다.
         SecurityContextHolder
                 .getContext()
                 .setAuthentication(authentication);
