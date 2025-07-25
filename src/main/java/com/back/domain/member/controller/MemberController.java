@@ -8,6 +8,7 @@ import com.back.global.rsData.RsData;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
@@ -36,6 +37,7 @@ public class MemberController {
             String password,
 
             @NotBlank
+            @Email
             String email
     )  {}
 
