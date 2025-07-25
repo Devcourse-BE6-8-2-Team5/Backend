@@ -109,7 +109,7 @@ public class RealNewsController {
             return RsData.of(404, String.format("ID %d에 해당하는 뉴스가 존재하지 않습니다", id));
         }
 
-        return RsData.of(200, "뉴스 삭제 완료");
+        return RsData.of(200, String.format("%d번 뉴스 삭제 완료", id));
     }
 
     private boolean isValidPageParam(int page, int size, String direction) {
