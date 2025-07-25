@@ -4,6 +4,7 @@ import com.back.domain.member.entity.Member;
 import com.back.domain.member.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -35,5 +36,13 @@ public class MemberService {
 
     public Optional<Member> findById(long id) {
         return memberRepository.findById(id);
+    }
+
+    @Transactional
+    public void modify(Member member, String name, String password, String email) {
+        member.setName(name);
+        member.setPassword(password);
+        member.setEmail(email);
+        memberRepository.save(member);
     }
 }
