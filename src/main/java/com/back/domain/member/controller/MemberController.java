@@ -128,7 +128,7 @@ public class MemberController {
 //                .orElseThrow(() -> new ServiceException(404, "존재하지 않는 회원입니다."));
 
         //임의로 생성한 Member 객체 (지우고 위에 member 사용하세요)
-        Member member = new Member(1L, "임의","1234","test@example", 0,1,"",false);
+        Member member = new Member(1L, "임의", "1234", "test@example", 0, 1, "", false);
 
         return new RsData<>(
                 200,
@@ -137,5 +137,30 @@ public class MemberController {
         );
     }
 
+    record ModifyReqBody(@NotBlank String name,
+                         @NotBlank String password,
+                         @Email String email) {
+    }
 
+    @Operation(summary = "회원 정보 수정 (이름,비밀번호,메일)")
+    @PutMapping("/info")
+    public RsData<MemberWithAuthDto> modifyInfo(@RequestBody @Valid ModifyReqBody reqBody) {
+
+        //인증,인가
+        //Member actor = rq.getActor();
+        //Member member = memberService.findById(actor.getId())
+        //        .orElseThrow(() -> new ServiceException(404, "존재하지 않는 회원입니다."));
+
+        //임의로 생성함
+        Member member = new Member(2L, "임의1", "1234", "test@example", 0, 1, "", false);
+        memberService.modify(member, reqBody.name(), reqBody.password(), reqBody.email());
+
+        return new RsData<>(
+                200,
+                "회원 정보 수정이 완료되었습니다.",
+                new MemberWithAuthDto(member)
+        );
+
+
+    }
 }

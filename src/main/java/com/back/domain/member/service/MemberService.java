@@ -36,4 +36,10 @@ public class MemberService {
     public Optional<Member> findById(long id) {
         return memberRepository.findById(id);
     }
+
+    public void modify(Member member, String name, String password, String email) {
+        member.setName(name);
+        member.setPassword(password);
+        member.setEmail(email);
+    }
 }
