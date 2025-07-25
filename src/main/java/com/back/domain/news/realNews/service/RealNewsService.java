@@ -16,6 +16,8 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -266,5 +268,15 @@ public class RealNewsService {
     public Optional<RealNewsDto> getRealNewsDtoById(Long id) {
         return realNewsRepository.findById(id)
                 .map(this::convertEntityToDto);
+    }
+
+    public Page<RealNewsDto> getRealNewsList(Pageable paggeable) {
+        Page<RealNews> realNewsPage = realNewsRepository.findAll(paggeable);
+        return realNewsPage.map(this::convertEntityToDto);
+    }
+
+    public Page<RealNewsDto> searchRealNewsByTitle(String title, Pageable pageable) {
+        Page<RealNews> realNewsPage = realNewsRepository.findByTitleContaining(title, pageable);
+        return realNewsPage.map(this::convertEntityToDto);
     }
 }
