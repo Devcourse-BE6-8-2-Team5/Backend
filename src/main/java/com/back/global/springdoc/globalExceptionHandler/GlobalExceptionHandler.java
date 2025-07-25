@@ -3,6 +3,7 @@ package com.back.global.springdoc.globalExceptionHandler;
 
 import com.back.global.rsData.RsData;
 import com.back.global.springdoc.exception.ServiceException;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.MissingRequestHeaderException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import java.io.IOException;
 import java.util.Comparator;
 import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
@@ -141,4 +143,17 @@ public class GlobalExceptionHandler {
                 BAD_REQUEST
         );
     }
+
+    @ExceptionHandler(JsonProcessingException.class)
+    public ResponseEntity<RsData<Void>> handleJsonProcessingException(JsonProcessingException e) {
+        return ResponseEntity.badRequest()
+                .body(RsData.of(400, "JSON 파싱 오류가 발생했습니다.", null));
+    }
+
+    @ExceptionHandler(IOException.class)
+    public ResponseEntity<RsData<Void>> handleIOException(IOException e) {
+        return ResponseEntity.internalServerError()
+                .body(RsData.of(500, "서버 내부 오류가 발생했습니다.", null));
+    }
+
 }

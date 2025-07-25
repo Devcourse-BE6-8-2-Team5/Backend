@@ -18,4 +18,9 @@ public record RsData<T>(int code, String message, T data) {
     public static <T> RsData<T> failOf(T data) {
         return of(500,"fail",data);
     }
+
+    // 실패 편의 메소드 (메시지 포함)
+    public static <T> RsData<T> failOf(String message) {
+        return of(500, message, null);
+    }
 }

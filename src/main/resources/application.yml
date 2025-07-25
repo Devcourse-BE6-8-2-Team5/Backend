@@ -28,3 +28,12 @@ server:
       charset: UTF-8
       enabled: true
       force: true
+
+naver:
+  client-id: ${NAVER_CLIENT_ID}
+  client-secret: ${NAVER_CLIENT_SECRET}
+  news:
+    display: 3
+    sort: sim
+  crawling:
+    delay: 1000 # 줄이지 말아주세요
