@@ -1,8 +1,8 @@
-package com.back.global.springdoc.globalExceptionHandler;
+package com.back.global.globalExceptionHandler;
 
 
 import com.back.global.rsData.RsData;
-import com.back.global.springdoc.exception.ServiceException;
+import com.back.global.exception.ServiceException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
