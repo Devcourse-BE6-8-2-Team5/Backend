@@ -7,4 +7,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface RealNewsRepository extends JpaRepository<RealNews, Long> {
     Page<RealNews> findByTitleContaining(String title, Pageable pageable);
+
+    boolean existsByTitle(String title);
 }
