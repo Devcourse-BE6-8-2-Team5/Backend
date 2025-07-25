@@ -99,6 +99,19 @@ public class RealNewsController {
         return newsPageService.getPagedNews(RealNewsPage, NewsType.REAL);
     }
 
+    //뉴스 삭제
+    @Operation(summary = "뉴스 삭제", description = "ID로 뉴스를 삭제합니다.")
+    @DeleteMapping("/{id}")
+    public RsData<Void> deleteRealNews(@PathVariable Long id) {
+        boolean deleted = realNewsService.deleteRealNews(id);
+
+        if(!deleted){
+            return RsData.of(404, String.format("ID %d에 해당하는 뉴스가 존재하지 않습니다", id));
+        }
+
+        return RsData.of(200, String.format("%d번 뉴스 삭제 완료", id));
+    }
+
     private boolean isValidPageParam(int page, int size, String direction) {
         return (direction.equals("asc") || direction.equals("desc"))
                 && page > 0

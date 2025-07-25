@@ -47,6 +47,7 @@ public class RealNews {
 
     @Builder
     public RealNews(
+            //제목 유니크처리
             String title,
             String content,
             String description,
