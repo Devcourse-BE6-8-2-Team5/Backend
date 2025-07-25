@@ -65,7 +65,7 @@ public class RealNewsService {
     }
 
     // RealNewsDto를 생성하는 메서드
-    public List<RealNewsDto> createRealNews(String query) {
+    public List<RealNewsDto> createRealNewsDto(String query) {
 
         try{
             List<NaverNewsDto> naverMetaDataList = fetchNews(query);
@@ -84,11 +84,11 @@ public class RealNewsService {
                 Thread.sleep(crawlingDelay);
             }
             // DTO → Entity 변환 후 저장
-            List<RealNews> realNewsList = convertRealNewsDtoToEntities(realNewsDtoList);
+            List<RealNews> realNewsList = convertDtosToEntities(realNewsDtoList);
             List<RealNews> savedEntities = realNewsRepository.saveAll(realNewsList); // 저장된 결과 받기
 
             // Entity → DTO 변환해서 반환
-            return convertRealNewsEntityToDtos(savedEntities);
+            return convertEntitiesToDtos(savedEntities);
 
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
@@ -223,13 +223,13 @@ public class RealNewsService {
         }
     }
 
-    private List<RealNews> convertRealNewsDtoToEntities (List<RealNewsDto> realNewsDtoList) {
+    private List<RealNews> convertDtosToEntities(List<RealNewsDto> realNewsDtoList) {
         return realNewsDtoList.stream()
-                .map(this::convertRealNewsDtoToEntity)
+                .map(this::convertDtoToEntity)
                 .collect(Collectors.toList());
     }
 
-    private RealNews convertRealNewsDtoToEntity(RealNewsDto realNewsDto) {
+    private RealNews convertDtoToEntity(RealNewsDto realNewsDto) {
         return new RealNews(
                 realNewsDto.title(),
                 realNewsDto.content(),
@@ -243,13 +243,13 @@ public class RealNewsService {
         );
     }
 
-    private List<RealNewsDto> convertRealNewsEntityToDtos(List<RealNews> realNewsList) {
+    private List<RealNewsDto> convertEntitiesToDtos(List<RealNews> realNewsList) {
         return realNewsList.stream()
-                .map(this::convertRealNewsEntityToDto)
+                .map(this::convertEntityToDto)
                 .collect(Collectors.toList());
     }
 
-    private RealNewsDto convertRealNewsEntityToDto(RealNews realNews) {
+    private RealNewsDto convertEntityToDto(RealNews realNews) {
         return RealNewsDto.of(
                 realNews.getTitle(),
                 realNews.getContent(),
@@ -263,11 +263,8 @@ public class RealNewsService {
         );
     }
 
-
-
-
     public Optional<RealNewsDto> getRealNewsDtoById(Long id) {
         return realNewsRepository.findById(id)
-                .map(this::convertRealNewsEntityToDto);
+                .map(this::convertEntityToDto);
     }
 }

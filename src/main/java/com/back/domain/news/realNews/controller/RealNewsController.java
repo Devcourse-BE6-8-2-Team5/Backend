@@ -2,7 +2,6 @@ package com.back.domain.news.realNews.controller;
 
 import com.back.domain.news.realNews.dto.NaverNewsDto;
 import com.back.domain.news.realNews.dto.RealNewsDto;
-import com.back.domain.news.realNews.entity.RealNews;
 import com.back.domain.news.realNews.service.RealNewsService;
 import com.back.global.rsData.RsData;
 import lombok.RequiredArgsConstructor;
@@ -19,7 +18,7 @@ public class RealNewsController {
 
     //추후 삭제예정 fetch 테스트
     @GetMapping("/fetch")
-    public RsData<List<NaverNewsDto>> fetchNewsByQuery(@RequestParam String query) {
+    public RsData<List<NaverNewsDto>> fetchMetaDataByQuery(@RequestParam String query) {
         List<NaverNewsDto> newsList = realNewsService.fetchNews(query);
         if (newsList.isEmpty()) {
             return RsData.of(404, "뉴스가 없습니다");
@@ -29,24 +28,27 @@ public class RealNewsController {
 
     //뉴스 생성
     @PostMapping("/create")
-    public RsData<List<RealNewsDto>> createNewsList(@RequestParam String query) {
-        List<RealNewsDto> realNewsList = realNewsService.createRealNews(query);
+    public RsData<List<RealNewsDto>> createRealNews(@RequestParam String query) {
+        List<RealNewsDto> realNewsList = realNewsService.createRealNewsDto(query);
 
         if (realNewsList.isEmpty()) {
             return RsData.of(404, String.format("'%s' 검색어로 뉴스를 찾을 수 없습니다", query));
         }
 
-        return RsData.of(200, "뉴스 생성 완료", realNewsList);
+        return RsData.of(200, String.format("뉴스 %d건 생성 완료",realNewsList.size()), realNewsList);
     }
 
     //단건조회
-    @GetMapping("{id}")
-    public RsData<RealNewsDto> getNewsDetail(@PathVariable Long id) {
+    @GetMapping("/{id}")
+    public RsData<RealNewsDto> getRealNewsById(@PathVariable Long id) {
         Optional<RealNewsDto> realNewsDto = realNewsService.getRealNewsDtoById(id);
 
         return realNewsDto
                 .map(dto -> RsData.of(200, "조회 성공", dto))
                 .orElse(RsData.of(404, String.format("%d번의 뉴스를 찾을 수 없습니다", id)));
     }
+
+
+
 
 }
