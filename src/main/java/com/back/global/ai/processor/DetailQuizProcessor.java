@@ -10,7 +10,6 @@ import java.util.List;
 
 /**
  * 뉴스 제목과 본문을 기반 상세 퀴즈 3개를 생성하는 AI 요청 Processor 입니다.
- *
  */
 public class DetailQuizProcessor implements AiRequestProcessor<List<DetailQuizResDto>> {
     private final DetailQuizReqDto req;
@@ -74,30 +73,34 @@ public class DetailQuizProcessor implements AiRequestProcessor<List<DetailQuizRe
     // AI 응답을 파싱하여 DetailQuizResDto 리스트로 변환
     @Override
     public List<DetailQuizResDto> parseResponse(ChatResponse response) {
+
+        String text = response.getResult().getOutput().getText();
+        if (text == null || text.trim().isEmpty()) {
+            throw new ServiceException(500, "AI 응답이 비어있습니다");
+        }
+
+        List<DetailQuizResDto> result;
+
+        // JSON 형식의 응답에서 ```json ... ``` 부분을 제거하여 순수 JSON 문자열로 변환
+        String cleanedJson = text.replaceAll("(?s)```json\\s*(.*?)\\s*```", "$1").trim();
+
         try {
-            String text = response.getResult().getOutput().getText();
-            if(text==null || text.trim().isEmpty()){
-                throw new ServiceException(500, "AI 응답이 비어있습니다");
-            }
-
-            // JSON 형식의 응답에서 ```json ... ``` 부분을 제거하여 순수 JSON 문자열로 변환
-            String cleanedJson = text.replaceAll("(?s)```json\\s*(.*?)\\s*```", "$1").trim();
-
             // JSON 문자열을 DetailQuizResDto 객체 리스트로 변환
             // JSON의 키 이름과 변환하려는 객체(DetailQuizResDto)의 필드 이름이 일치해야 합니다.
-            List<DetailQuizResDto> result = objectMapper.readValue(
+            result = objectMapper.readValue(
                     cleanedJson,
                     objectMapper.getTypeFactory().constructCollectionType(List.class, DetailQuizResDto.class)
             );
-
-            if(result.size() != 3) {
-                throw new ServiceException(500, "뉴스 하나당 3개의 퀴즈가 생성되어야 합니다. 생성된 수: " + result.size());
-            }
-
-            return result;
-
         } catch (Exception e) {
-            throw new ServiceException(500, "AI 응답 파싱 중 오류가 발생했습니다.");
+            throw new ServiceException(500, "AI 응답이 JSON 형식이 아닙니다. 응답: " + cleanedJson);
         }
+
+
+        if (result.size() != 3) {
+            throw new ServiceException(500, "뉴스 하나당 3개의 퀴즈가 생성되어야 합니다. 생성된 수: " + result.size());
+        }
+
+        return result;
+
     }
 }
