@@ -72,6 +72,10 @@ public class RealNewsService {
 
             for(NaverNewsDto naverMetaData : naverMetaDataList) {
                 NewsDetailDto newsDetailData = crawlAddtionalInfo(naverMetaData.link());
+
+                if(newsDetailData == null) { // 크롤링 실패 시(네이버 본문 기사 아니면) 해당 뉴스는 건너뜀
+                    continue;
+                }
                 RealNewsDto realNewsDto = MakeRealNewsFromInf(naverMetaData, newsDetailData);
                 realNewsDtoList.add(realNewsDto);
 
@@ -151,10 +155,10 @@ public class RealNewsService {
             String mediaName = Optional.ofNullable(doc.selectFirst("img.media_end_head_top_logo_img"))
                     .map(elem -> elem.attr("alt"))
                     .orElse("");
-//
-//            if(content.isEmpty() || imgUrl.isEmpty() || journalist.isEmpty() || mediaName.isEmpty()) {
-//                return null;
-//            }
+
+            if(content.isEmpty() || imgUrl.isEmpty() || journalist.isEmpty() || mediaName.isEmpty()) {
+                return null;
+            }
 
             return NewsDetailDto.of(content, imgUrl, journalist, mediaName);
 
