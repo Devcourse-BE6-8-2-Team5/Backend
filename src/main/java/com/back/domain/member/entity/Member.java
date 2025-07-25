@@ -4,6 +4,12 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.Min;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 @Entity
 @Getter
@@ -41,10 +47,40 @@ public class Member {
     @Column(nullable = false)
     private boolean isAdmin;
 
+    String role;
     // 유저가 푼 퀴즈 기록을 저장하는 리스트 일단 엔티티 없어서 주석
    //@OneToMany(mappedBy ="member", cascade = CascadeType.ALL, orphanRemoval = true)
     // private List<memberQuizAnswer> memberQuizAnswers = new ArrayList<>(); //유저가 퀴즈를 푼 기록
 
+    public Member(int id, String email, String name) {
+        setId(id);
+        this.email = email;
+        setName(name);
+    }
+
+    public Member(int id, String email, String name, String role) {
+        setId(id);
+        this.email = email;
+        setName(name);
+        this.role = role;
+    }
+
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return getAuthoritiesAsStringList()
+                .stream()
+                .map(auth -> new SimpleGrantedAuthority("ROLE_" + auth))
+                .toList();
+    }
+    private List<String> getAuthoritiesAsStringList() {
+        List<String> authorities = new ArrayList<>();
+        // 관리자면 ROLE_ADMIN, 아니면 ROLE_USER
+        if (isAdmin()) {
+            authorities.add("ADMIN");
+        } else {
+            authorities.add("USER");
+        }
+        return authorities;
+    }
 
     public boolean isAdmin() {
         return isAdmin;
