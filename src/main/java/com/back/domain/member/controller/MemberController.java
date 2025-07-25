@@ -137,13 +137,19 @@ public class MemberController {
         );
     }
 
-    record ModifyReqBody(@NotBlank String name,
-                         @NotBlank String password,
+    record ModifyReqBody(@NotBlank
+                         @Size(min = 5, max = 25)
+                         String name,
+                         @NotBlank
+                         @Size(min = 5, max = 25)
+                         String password,
+                         @NotBlank
                          @Email String email) {
     }
 
     @Operation(summary = "회원 정보 수정 (이름,비밀번호,메일)")
     @PutMapping("/info")
+    @Transactional
     public RsData<MemberWithAuthDto> modifyInfo(@RequestBody @Valid ModifyReqBody reqBody) {
 
         //인증,인가
