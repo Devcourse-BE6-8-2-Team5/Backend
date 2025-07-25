@@ -24,6 +24,7 @@ public class RealNews {
     @GeneratedValue(strategy = IDENTITY)
     private long id;
 
+    @Column(unique = true)
     private String title;
 
     @Lob

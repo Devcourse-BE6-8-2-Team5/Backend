@@ -82,8 +82,14 @@ public class RealNewsService {
                     // 크롤링 실패 시 해당 뉴스는 건너뜀
                     continue;
                 }
+
                 RealNewsDto realNewsDto = MakeRealNewsFromInf(naverMetaData, newsDetailData);
-                realNewsDtoList.add(realNewsDto);
+
+                // 중복된 뉴스 제목이 있는지 확인
+                if(!realNewsRepository.existsByTitle(realNewsDto.title())){
+                    realNewsDtoList.add(realNewsDto);
+                }
+
 
                 Thread.sleep(crawlingDelay);
             }
