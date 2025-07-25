@@ -72,6 +72,11 @@ public class RealNewsService {
 
             for(NaverNewsDto naverMetaData : naverMetaDataList) {
                 NewsDetailDto newsDetailData = crawlAddtionalInfo(naverMetaData.link());
+
+                if(newsDetailData == null) {
+                    // 크롤링 실패 시 해당 뉴스는 건너뜀
+                    continue;
+                }
                 RealNewsDto realNewsDto = MakeRealNewsFromInf(naverMetaData, newsDetailData);
                 realNewsDtoList.add(realNewsDto);
 
@@ -151,10 +156,11 @@ public class RealNewsService {
             String mediaName = Optional.ofNullable(doc.selectFirst("img.media_end_head_top_logo_img"))
                     .map(elem -> elem.attr("alt"))
                     .orElse("");
-//
-//            if(content.isEmpty() || imgUrl.isEmpty() || journalist.isEmpty() || mediaName.isEmpty()) {
-//                return null;
-//            }
+
+            // 크롤링한 정보가 비어있으면 null 반환
+            if(content.isEmpty() || imgUrl.isEmpty() || journalist.isEmpty() || mediaName.isEmpty()) {
+                return null;
+            }
 
             return NewsDetailDto.of(content, imgUrl, journalist, mediaName);
 
@@ -178,7 +184,7 @@ public class RealNewsService {
                 naverNewsDto.originallink()
         );
     }
-    // 뉴스 생성 메서드
+
     // fetchNews 메서드로 네이버 API에서 뉴스 목록을 가져오고
     // 링크 정보를 바탕으로 상세 정보를 crawlAddtionalInfo 메서드로 크롤링하여 RealNews 객체를 생성
     private List<NaverNewsDto> getNewsMetaDataFromNaverApi(JsonNode items){
