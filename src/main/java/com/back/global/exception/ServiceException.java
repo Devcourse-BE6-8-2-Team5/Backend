@@ -1,4 +1,4 @@
-package com.back.global.springdoc.exception;
+package com.back.global.exception;
 
 
 import com.back.global.rsData.RsData;
