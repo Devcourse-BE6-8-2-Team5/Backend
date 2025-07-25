@@ -270,8 +270,8 @@ public class RealNewsService {
                 .map(this::convertEntityToDto);
     }
 
-    public Page<RealNewsDto> getRealNewsList(Pageable paggeable) {
-        Page<RealNews> realNewsPage = realNewsRepository.findAll(paggeable);
+    public Page<RealNewsDto> getRealNewsList(Pageable pageable) {
+        Page<RealNews> realNewsPage = realNewsRepository.findAll(pageable);
         return realNewsPage.map(this::convertEntityToDto);
     }
 

@@ -101,7 +101,7 @@ public class RealNewsController {
     }
 
     private boolean isValidPageParam(int page, int size, String direction) {
-        return direction.equals("asc") || direction.equals("desc")
+        return (direction.equals("asc") || direction.equals("desc"))
                 && page > 0
                 && size >= 1 && size <= 100;
     }
