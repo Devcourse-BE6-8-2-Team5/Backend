@@ -52,13 +52,13 @@ public class Member {
    //@OneToMany(mappedBy ="member", cascade = CascadeType.ALL, orphanRemoval = true)
     // private List<memberQuizAnswer> memberQuizAnswers = new ArrayList<>(); //유저가 퀴즈를 푼 기록
 
-    public Member(int id, String email, String name) {
+    public Member(long id, String email, String name) {
         setId(id);
         this.email = email;
         setName(name);
     }
 
-    public Member(int id, String email, String name, String role) {
+    public Member(long id, String email, String name, String role) {
         setId(id);
         this.email = email;
         setName(name);
