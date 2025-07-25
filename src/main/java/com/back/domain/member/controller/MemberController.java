@@ -1,11 +1,10 @@
-package com.back.domain.user.controller;
+package com.back.domain.member.controller;
 
-
-import com.back.domain.user.dto.UserDto;
-import com.back.domain.user.entity.User;
-import com.back.domain.user.service.UserService;
+import com.back.domain.member.dto.MemberDto;
+import com.back.domain.member.entity.Member;
+import com.back.domain.member.service.MemberService;
+import com.back.global.exception.ServiceException;
 import com.back.global.rsData.RsData;
-import com.back.global.springdoc.exception.ServiceException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -20,12 +19,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/users")
+@RequestMapping("/api/members")
 @RequiredArgsConstructor
 @Slf4j
-@Tag(name = "UserController", description = "회원 관련 컨트롤러 엔드 포인트")
-public class UserController {
-    private final UserService userService;
+@Tag(name = "MemberController", description = "회원 관련 컨트롤러 엔드 포인트")
+public class MemberController {
+    private final MemberService memberService;
 
     record JoinReqBody (
             @NotBlank
@@ -43,19 +42,19 @@ public class UserController {
     @PostMapping(value = "/join", produces = "application/json;charset=UTF-8")
     @Transactional
     @Operation(summary = "회원 가입")
-    public RsData<UserDto> join(@RequestBody @Valid JoinReqBody reqBody) {
+    public RsData<MemberDto> join(@RequestBody @Valid JoinReqBody reqBody) {
 
-        userService.findByName(reqBody.name())
+        memberService.findByName(reqBody.name())
                 .ifPresent(_ -> {
                     throw new ServiceException(409, "이미 사용중인 아이디입니다.");
                 });
 
-        User user = userService.join(reqBody.name(),reqBody.password(), reqBody.email());
+        Member member = memberService.join(reqBody.name(),reqBody.password(), reqBody.email());
 
         return new RsData<> (
                 201,
-                "%s님 환영합니다. 회원 가입이 완료되었습니다.".formatted(user.getName()),
-                new UserDto(user)
+                "%s님 환영합니다. 회원 가입이 완료되었습니다.".formatted(member.getName()),
+                new MemberDto(member)
         );
 
     }
