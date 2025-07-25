@@ -237,6 +237,20 @@ public class RealNewsService {
                 )).toList();
     }
 
+    private RealNews convertRealNewsDtoToEntity(RealNewsDto realNewsDto) {
+        return new RealNews(
+                realNewsDto.title(),
+                realNewsDto.content(),
+                realNewsDto.description(),
+                realNewsDto.link(),
+                realNewsDto.imgUrl(),
+                realNewsDto.originCreatedDate(),
+                realNewsDto.mediaName(),
+                realNewsDto.journalist(),
+                realNewsDto.originalNewsUrl()
+        );
+    }
+
     private List<RealNewsDto> convertRealNewsEntityToDto(List<RealNews> realNewsList) {
         return realNewsList.stream()
                 .map(realNews -> RealNewsDto.of(
@@ -252,4 +266,25 @@ public class RealNewsService {
                 )).toList();
     }
 
+    private RealNewsDto convertRealNewsEntityToDto(RealNews realNews) {
+        return RealNewsDto.of(
+                realNews.getTitle(),
+                realNews.getContent(),
+                realNews.getDescription(),
+                realNews.getLink(),
+                realNews.getImgUrl(),
+                realNews.getOriginCreatedDate(),
+                realNews.getMediaName(),
+                realNews.getJournalist(),
+                realNews.getOriginalNewsUrl()
+        );
+    }
+
+
+
+
+    public Optional<RealNewsDto> getRealNewsDtoById(Long id) {
+        return realNewsRepository.findById(id)
+                .map(this::convertRealNewsEntityToDto);
+    }
 }
