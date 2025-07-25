@@ -1,4 +1,4 @@
-package com.back.domain.user.entity;
+package com.back.domain.member.entity;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Min;
@@ -12,7 +12,7 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 @SuperBuilder
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
-public class User {
+public class Member {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -42,8 +42,8 @@ public class User {
     private boolean isAdmin;
 
     // 유저가 푼 퀴즈 기록을 저장하는 리스트 일단 엔티티 없어서 주석
-   //@OneToMany(mappedBy ="user", cascade = CascadeType.ALL, orphanRemoval = true)
-    // private List<UserQuizAnswer> userQuizAnswers = new ArrayList<>(); //유저가 퀴즈를 푼 기록
+   //@OneToMany(mappedBy ="member", cascade = CascadeType.ALL, orphanRemoval = true)
+    // private List<memberQuizAnswer> memberQuizAnswers = new ArrayList<>(); //유저가 퀴즈를 푼 기록
 
 
     public boolean isAdmin() {
