@@ -2,6 +2,7 @@ package com.back.global.ai.processor;
 
 import com.back.domain.quiz.detail.dto.DetailQuizReqDto;
 import com.back.domain.quiz.detail.dto.DetailQuizResDto;
+import com.back.global.exception.ServiceException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.ai.chat.model.ChatResponse;
 
@@ -75,17 +76,28 @@ public class DetailQuizProcessor implements AiRequestProcessor<List<DetailQuizRe
     public List<DetailQuizResDto> parseResponse(ChatResponse response) {
         try {
             String text = response.getResult().getOutput().getText();
+            if(text==null || text.trim().isEmpty()){
+                throw new ServiceException(500, "AI 응답이 비어있습니다");
+            }
+
             // JSON 형식의 응답에서 ```json ... ``` 부분을 제거하여 순수 JSON 문자열로 변환
             String cleanedJson = text.replaceAll("(?s)```json\\s*(.*?)\\s*```", "$1").trim();
 
             // JSON 문자열을 DetailQuizResDto 객체 리스트로 변환
             // JSON의 키 이름과 변환하려는 객체(DetailQuizResDto)의 필드 이름이 일치해야 합니다.
-            return objectMapper.readValue(
+            List<DetailQuizResDto> result = objectMapper.readValue(
                     cleanedJson,
                     objectMapper.getTypeFactory().constructCollectionType(List.class, DetailQuizResDto.class)
             );
+
+            if(result.size() != 3) {
+                throw new ServiceException(500, "뉴스 하나당 3개의 퀴즈가 생성되어야 합니다. 생성된 수: " + result.size());
+            }
+
+            return result;
+
         } catch (Exception e) {
-            throw new RuntimeException("AI 응답 파싱 실패: " + e.getMessage(), e);
+            throw new ServiceException(500, "AI 응답 파싱 중 오류가 발생했습니다.");
         }
     }
 }
