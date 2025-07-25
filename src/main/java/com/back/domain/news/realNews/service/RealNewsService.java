@@ -20,6 +20,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
@@ -67,6 +68,7 @@ public class RealNewsService {
     }
 
     // RealNewsDto를 생성하는 메서드
+    @Transactional
     public List<RealNewsDto> createRealNewsDto(String query) {
 
         try{
@@ -265,16 +267,19 @@ public class RealNewsService {
         );
     }
 
+    @Transactional(readOnly = true)
     public Optional<RealNewsDto> getRealNewsDtoById(Long id) {
         return realNewsRepository.findById(id)
                 .map(this::convertEntityToDto);
     }
 
+    @Transactional(readOnly = true)
     public Page<RealNewsDto> getRealNewsList(Pageable pageable) {
         Page<RealNews> realNewsPage = realNewsRepository.findAll(pageable);
         return realNewsPage.map(this::convertEntityToDto);
     }
 
+    @Transactional(readOnly = true)
     public Page<RealNewsDto> searchRealNewsByTitle(String title, Pageable pageable) {
         Page<RealNews> realNewsPage = realNewsRepository.findByTitleContaining(title, pageable);
         return realNewsPage.map(this::convertEntityToDto);

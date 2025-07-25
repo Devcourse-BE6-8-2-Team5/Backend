@@ -11,10 +11,11 @@ public class NewsPageService {
 
     public <T> RsData<Page<T>> getPagedNews(
             Page<T> newsPage,
-            String newsType
+            NewsType newsType
     ) {
+        String newsTypeDescription = newsType.getDescription();
         if(newsPage.getTotalPages() == 0){
-            return RsData.of(404, String.format("%s 뉴스가 없습니다", newsType));
+            return RsData.of(404, String.format("%s 뉴스가 없습니다", newsTypeDescription));
         }
         if(newsPage.isEmpty()) {
             return RsData.of(
@@ -37,12 +38,14 @@ public class NewsPageService {
 
     public <T> RsData<T> getSingleNews(
             Optional<T> news,
-            String newsType,
+            NewsType newsType,
             Long id
     ) {
+        String newsTypeDescription = newsType.getDescription();
+
         return news
                 .map(dto -> RsData.of(200, "조회 성공", dto))
                 .orElse(RsData.of(404,
-                        String.format("%d 번의 %s 뉴스가 존재하지 않습니다", id, newsType)));
+                        String.format("%d 번의 %s 뉴스가 존재하지 않습니다", id, newsTypeDescription)));
     }
 }
