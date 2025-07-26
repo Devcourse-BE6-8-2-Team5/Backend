@@ -1,7 +1,7 @@
 package com.back.global.ai;
 
 import com.back.domain.quiz.detail.dto.DetailQuizReqDto;
-import com.back.domain.quiz.detail.dto.DetailQuizResDto;
+import com.back.domain.quiz.detail.dto.DetailQuizDto;
 import com.back.global.ai.processor.AiRequestProcessor;
 import com.back.global.ai.processor.DetailQuizProcessor;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -66,8 +66,8 @@ public class AiService {
         // 프롬프트 생성 및 응답 파싱을 담당하는 Processor 객체 생성
         DetailQuizProcessor processor = new DetailQuizProcessor(req, objectMapper);
         // AI 호출 후 결과 출력
-        List<DetailQuizResDto> resDtoList =  process(processor);
-        for( DetailQuizResDto resDto : resDtoList) {
+        List<DetailQuizDto> resDtoList =  process(processor);
+        for( DetailQuizDto resDto : resDtoList) {
             System.out.println(resDto);
         }
     }

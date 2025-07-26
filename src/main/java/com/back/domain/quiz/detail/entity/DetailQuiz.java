@@ -1,6 +1,7 @@
 package com.back.domain.quiz.detail.entity;
 
 import com.back.domain.news.realNews.entity.RealNews;
+import com.back.domain.quiz.detail.dto.DetailQuizDto;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -53,6 +54,14 @@ public class DetailQuiz {
         this.option2 = option2;
         this.option3 = option3;
         this.correctOption = correctOption;
+    }
+
+    public DetailQuiz(DetailQuizDto detailQuizDto) {
+        this.question = detailQuizDto.question();
+        this.option1 = detailQuizDto.option1();
+        this.option2 = detailQuizDto.option2();
+        this.option3 = detailQuizDto.option3();
+        this.correctOption = detailQuizDto.correctOption();
     }
 
 }
