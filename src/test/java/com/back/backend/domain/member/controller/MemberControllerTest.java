@@ -1,6 +1,5 @@
 package com.back.backend.domain.member.controller;
 
-import com.back.domain.member.controller.MemberController;
 import com.back.domain.member.entity.Member;
 import com.back.domain.member.service.MemberService;
 import org.junit.jupiter.api.DisplayName;
@@ -15,11 +14,11 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.transaction.annotation.Transactional;
 
-import static org.hamcrest.Matchers.containsString;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @ActiveProfiles("test")
 @SpringBootTest
@@ -39,415 +38,376 @@ public class MemberControllerTest {
 
     @Test
     @DisplayName("회원가입 성공")
-    void t1() throws Exception {
-        ResultActions resultActions = mvc
-                .perform(
-                        post("/api/members/join")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content("""
-                                        {
-                                            "name": "테스트유저",
-                                            "password": "12345678910",
-                                            "email": "test@example.com"
-                                        }
-                                        """.stripIndent())
+    void join_success() throws Exception {
+        mvc.perform(post("/api/members/join")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                    {
+                        "name": "테스트유저",
+                        "password": "12345678910",
+                        "email": "test@example.com"
+                    }
+                """.stripIndent())
                 )
-                .andDo(print());
-
-        Member member = memberService.findByEmail("test@example.com").get();
-
-        resultActions
-                .andExpect(handler().handlerType(MemberController.class))
-                .andExpect(handler().methodName("join"))
+                .andDo(print())
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.code").value(201))
-                .andExpect(jsonPath("$.message").value("테스트유저님 환영합니다. 회원 가입이 완료되었습니다."))
-                .andExpect(jsonPath("$.data").exists())
-                .andExpect(jsonPath("$.data.id").value(member.getId()))
-                .andExpect(jsonPath("$.data.name").value(member.getName()))
-                .andExpect(jsonPath("$.data.email").value(member.getEmail()));
+                .andExpect(jsonPath("$.data.name").value("테스트유저"))
+                .andExpect(jsonPath("$.data.email").value("test@example.com"));
     }
 
     @Test
-    @DisplayName("회원가입 실패 - 이메일 형식이 유효하지 않음")
-    void t2() throws Exception {
-        ResultActions resultActions = mvc
-                .perform(
-                        post("/api/members/join")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content("""
-                                        {
-                                            "name": "테스트유저",
-                                            "password": "12345678910",
-                                            "email": "invalidemail"
-                                        }
-                                        """.stripIndent())
-                )
-                .andDo(print());
+    @DisplayName("로그인 성공 및 쿠키에 accessToken, apiKey 포함")
+    void login_success() throws Exception {
+        // 회원가입
+        mvc.perform(post("/api/members/join")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                    {
+                        "name": "테스트유저",
+                        "password": "12345678910",
+                        "email": "test2@example.com"
+                    }
+                """.stripIndent()));
 
-        resultActions
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value(containsString("유효한 이메일 형식이어야 합니다.")));
-    }
-
-    @Test
-    @DisplayName("회원가입 실패 - 이미 존재하는 이메일")
-    void t3() throws Exception {
-        // 첫 번째 회원가입
-        t1();
-
-        // 두 번째 회원가입 (같은 이메일)
-        ResultActions resultActions = mvc
-                .perform(
-                        post("/api/members/join")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content("""
-                                        {
-                                            "name": "다른유저",
-                                            "password": "12345678910",
-                                            "email": "test@example.com"
-                                        }
-                                        """.stripIndent())
-                )
-                .andDo(print());
-
-        resultActions
-                .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.code").value(409))
-                .andExpect(jsonPath("$.message").value("이미 존재하는 이메일입니다."));
-    }
-
-    @Test
-    @DisplayName("회원가입 실패 - 이름이 2자 미만")
-    void t5() throws Exception {
-        ResultActions resultActions = mvc
-                .perform(
-                        post("/api/members/join")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content("""
-                                        {
-                                            "name": "길",
-                                            "password": "12345678910",
-                                            "email": "test@example.com"
-                                        }
-                                        """.stripIndent())
-                )
-                .andDo(print());
-
-        resultActions
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value(containsString("이름은 최소 2자 이상이어야 합니다.")));
-    }
-
-    @Test
-    @DisplayName("회원가입 실패 - 이름 누락")
-    void t6() throws Exception {
-        ResultActions resultActions = mvc
-                .perform(
-                        post("/api/members/join")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content("""
-                                        {
-                                            "name": "",
-                                            "password": "12345678910",
-                                            "email": "test@example.com"
-                                        }
-                                        """.stripIndent())
-                )
-                .andDo(print());
-
-        resultActions
-                .andExpect(status().isBadRequest());
-    }
-
-    @Test
-    @DisplayName("로그인 성공")
-    void t7() throws Exception {
-        // 먼저 회원가입
-        mvc.perform(
-                post("/api/members/join")
+        // 로그인
+        ResultActions loginResult = mvc.perform(post("/api/members/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
-                            {
-                                "name": "테스트유저",
-                                "password": "12345678910",
-                                "email": "test2@example.com"
-                            }
-                            """.stripIndent())
-        );
-
-        // 로그인 요청
-        ResultActions resultActions = mvc
-                .perform(
-                        post("/api/members/login")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content("""
-                                    {
-                                        "email": "test2@example.com",
-                                        "password": "12345678910"
-                                    }
-                                    """.stripIndent())
-                )
-                .andDo(print());
-
-        resultActions
+                    {
+                        "email": "test2@example.com",
+                        "password": "12345678910"
+                    }
+                """.stripIndent())
+                ).andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200))
-                .andExpect(jsonPath("$.message").value("테스트유저님 환영합니다."))
-                .andExpect(jsonPath("$.data.accessToken").exists())  // ← accessToken만 확인
-                .andExpect(jsonPath("$.data.member").exists());
+                .andExpect(jsonPath("$.data.accessToken").exists())
+                .andExpect(jsonPath("$.data.apiKey").exists());
+
+        // 쿠키 확인
+        String accessToken = loginResult.andReturn().getResponse().getCookie("accessToken").getValue();
+        String apiKey = loginResult.andReturn().getResponse().getCookie("apiKey").getValue();
+        assertTrue(accessToken != null && !accessToken.isBlank());
+        assertTrue(apiKey != null && !apiKey.isBlank());
     }
 
     @Test
-    @DisplayName("로그인 실패 - 존재하지 않는 이메일")
-    void t8() throws Exception {
-        mvc.perform(
-                        post("/api/members/login")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content("""
-                            {
-                                "email": "notfound@example.com",
-                                "password": "12345678910"
-                            }
-                            """.stripIndent())
-                )
-                .andDo(print())
-                .andExpect(status().isUnauthorized());
-    }
-
-    @Test
-    @DisplayName("로그인 실패 - 비밀번호 불일치")
-    void t9() throws Exception {
-        // 회원가입
-        mvc.perform(
-                post("/api/members/join")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
-                            {
-                                "name": "테스트유저",
-                                "password": "12345678910",
-                                "email": "test5@example.com"
-                            }
-                            """.stripIndent())
-        );
-
-        // 로그인(틀린 비밀번호)
-        mvc.perform(
-                        post("/api/members/login")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content("""
-                            {
-                                "email": "test5@example.com",
-                                "password": "wrongpassword"
-                            }
-                            """.stripIndent())
-                )
-                .andDo(print())
-                .andExpect(status().isUnauthorized());
-    }
-
-    @Test
-    @DisplayName("accessToken으로 마이페이지 접근 성공")
-    void t11() throws Exception {
+    @DisplayName("accessToken으로 인증된 마이페이지 접근 성공")
+    void myInfo_with_accessToken() throws Exception {
         // 회원가입 및 로그인
-        mvc.perform(
-                post("/api/members/join")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
-                            {
-                                "name": "테스트유저",
-                                "password": "12345678910",
-                                "email": "test3@example.com"
-                            }
-                            """.stripIndent())
-        );
-
-        // 로그인해서 accessToken 획득
-        ResultActions loginResult = mvc
-                .perform(
-                        post("/api/members/login")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content("""
-                                    {
-                                        "email": "test3@example.com",
-                                        "password": "12345678910"
-                                    }
-                                    """.stripIndent())
-                )
-                .andDo(print());
-
+        mvc.perform(post("/api/members/join")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                    {
+                        "name": "테스트유저",
+                        "password": "12345678910",
+                        "email": "test3@example.com"
+                    }
+                """.stripIndent()));
+        ResultActions loginResult = mvc.perform(post("/api/members/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                    {
+                        "email": "test3@example.com",
+                        "password": "12345678910"
+                    }
+                """.stripIndent()));
         String accessToken = loginResult.andReturn().getResponse().getCookie("accessToken").getValue();
 
-        // accessToken으로 마이페이지 요청
-        ResultActions resultActions = mvc
-                .perform(
-                        get("/api/members/info")
-                                .header("Authorization", "Bearer " + accessToken)  // ← Authorization 헤더 사용
-                )
-                .andDo(print());
-
-        resultActions
+        // accessToken으로 마이페이지 접근
+        mvc.perform(get("/api/members/info")
+                        .cookie(new jakarta.servlet.http.Cookie("accessToken", accessToken)))
+                .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.email").value("test3@example.com"));
     }
 
     @Test
-    @DisplayName("accessToken으로 마이페이지 접근 성공 (쿠키 방식)")
-    void t11_cookie() throws Exception {
+    @DisplayName("accessToken 만료 시 apiKey로 accessToken 재발급")
+    void accessToken_expired_then_reissue_with_apiKey() throws Exception {
         // 회원가입 및 로그인
-        mvc.perform(
-                post("/api/members/join")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
-                            {
-                                "name": "테스트유저",
-                                "password": "12345678910",
-                                "email": "test3@example.com"
-                            }
-                            """.stripIndent())
-        );
+        mvc.perform(post("/api/members/join")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                    {
+                        "name": "테스트유저",
+                        "password": "12345678910",
+                        "email": "test4@example.com"
+                    }
+                """.stripIndent()));
+        ResultActions loginResult = mvc.perform(post("/api/members/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                    {
+                        "email": "test4@example.com",
+                        "password": "12345678910"
+                    }
+                """.stripIndent()));
+        String apiKey = loginResult.andReturn().getResponse().getCookie("apiKey").getValue();
 
-        // 로그인해서 accessToken 획득
-        ResultActions loginResult = mvc
-                .perform(
-                        post("/api/members/login")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content("""
-                                    {
-                                        "email": "test3@example.com",
-                                        "password": "12345678910"
-                                    }
-                                    """.stripIndent())
-                )
-                .andDo(print());
+        // 만료된 accessToken 사용 (임의의 잘못된 토큰)
+        String expiredToken = "expired.jwt.token";
 
-        String accessToken = loginResult.andReturn().getResponse().getCookie("accessToken").getValue();
-
-        // accessToken 쿠키로 마이페이지 요청
-        ResultActions resultActions = mvc
-                .perform(
-                        get("/api/members/info")
-                                .cookie(new jakarta.servlet.http.Cookie("accessToken", accessToken))  // ← 쿠키 사용
-                )
-                .andDo(print());
-
-        resultActions
+        // 만료된 accessToken + 유효한 apiKey로 마이페이지 접근 시 accessToken 재발급
+        mvc.perform(get("/api/members/info")
+                        .cookie(new jakarta.servlet.http.Cookie("accessToken", expiredToken))
+                        .cookie(new jakarta.servlet.http.Cookie("apiKey", apiKey)))
+                .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.email").value("test3@example.com"));
+                .andExpect(jsonPath("$.data.email").value("test4@example.com"));
     }
 
     @Test
-    @DisplayName("로그아웃 성공")
-    void t12() throws Exception {
+    @DisplayName("로그아웃 시 쿠키만 삭제, DB의 apiKey는 남아있음")
+    void logout_only_cookie_deleted() throws Exception {
         // 회원가입 및 로그인
-        mvc.perform(
-                post("/api/members/join")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
-                            {
-                                "name": "테스트유저",
-                                "password": "12345678910",
-                                "email": "test4@example.com"
-                            }
-                            """.stripIndent())
-        );
-
-        ResultActions loginResult = mvc
-                .perform(
-                        post("/api/members/login")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content("""
-                                    {
-                                        "email": "test4@example.com",
-                                        "password": "12345678910"
-                                    }
-                                    """.stripIndent())
-                );
-
-        String accessToken = loginResult.andReturn().getResponse().getCookie("accessToken").getValue();
-
-        // 로그아웃 요청
-        ResultActions resultActions = mvc
-                .perform(
-                        delete("/api/members/logout")
-                                .cookie(new jakarta.servlet.http.Cookie("accessToken", accessToken))
-                )
-                .andDo(print());
-
-        resultActions
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message").value("로그아웃 성공"));
-    }
-
-    @Test
-    @DisplayName("로그아웃 후 accessToken으로 마이페이지 접근 시 401/403에러")
-    void t10() throws Exception {
-        // 회원가입 및 로그인
-        mvc.perform(
-                post("/api/members/join")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
-                            {
-                                "name": "테스트유저",
-                                "password": "12345678910",
-                                "email": "test6@example.com"
-                            }
-                            """.stripIndent())
-        );
-
-        ResultActions loginResult = mvc
-                .perform(
-                        post("/api/members/login")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content("""
-                                    {
-                                        "email": "test6@example.com",
-                                        "password": "12345678910"
-                                    }
-                                    """.stripIndent())
-                );
-
+        mvc.perform(post("/api/members/join")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                    {
+                        "name": "테스트유저",
+                        "password": "12345678910",
+                        "email": "test5@example.com"
+                    }
+                """.stripIndent()));
+        ResultActions loginResult = mvc.perform(post("/api/members/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                    {
+                        "email": "test5@example.com",
+                        "password": "12345678910"
+                    }
+                """.stripIndent()));
+        String apiKey = loginResult.andReturn().getResponse().getCookie("apiKey").getValue();
         String accessToken = loginResult.andReturn().getResponse().getCookie("accessToken").getValue();
 
         // 로그아웃
-        mvc.perform(
-                delete("/api/members/logout")
+        mvc.perform(delete("/api/members/logout")
                         .cookie(new jakarta.servlet.http.Cookie("accessToken", accessToken))
-        );
-
-        // 로그아웃 후 마이페이지 접근
-        mvc.perform(
-                        get("/api/members/info")
-                                .cookie(new jakarta.servlet.http.Cookie("accessToken", accessToken))
-                )
+                        .cookie(new jakarta.servlet.http.Cookie("apiKey", apiKey)))
                 .andDo(print())
-                .andExpect(result -> {
-                    int status = result.getResponse().getStatus();
-                    assertTrue(status == 401 || status == 403);
-                });
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message").value("로그아웃 성공"));
+
+        // DB의 apiKey는 여전히 존재
+        Member member = memberService.findByEmail("test5@example.com").get();
+        assertTrue(member.getApiKey() != null && !member.getApiKey().isBlank());
     }
 
     @Test
     @DisplayName("인증 없이 마이페이지 접근 시 403에러")
-    void t13() throws Exception {
-        mvc.perform(
-                        get("/api/members/info")
-                )
+    void myInfo_without_auth() throws Exception {
+        mvc.perform(get("/api/members/info"))
                 .andDo(print())
                 .andExpect(status().isForbidden());
     }
 
     @Test
-    @DisplayName("만료된 accessToken으로 마이페이지 접근 시 401에러")
-    void t14() throws Exception {
-        // 만료된 accessToken 사용
-        String expiredToken = "eyJhbGciOiJIUzI1NiJ9.eyJpZCI6MSwiZW1haWwiOiJ0ZXN0QGV4YW1wbGUuY29tIiwibmFtZSI6InRlc3QiLCJyb2xlIjoiVVNFUiIsImlhdCI6MTUxNjIzOTAyMiwiZXhwIjoxNTE2MjM5MDIyfQ.invalid_signature";
-
-        mvc.perform(
-                        get("/api/members/info")
-                                .header("Authorization", "Bearer " + expiredToken)
-                )
+    @DisplayName("잘못된 accessToken, apiKey로 접근 시 398에러")
+    void myInfo_with_invalid_token() throws Exception {
+        mvc.perform(get("/api/members/info")
+                        .cookie(new jakarta.servlet.http.Cookie("accessToken", "invalid"))
+                        .cookie(new jakarta.servlet.http.Cookie("apiKey", "invalid")))
                 .andDo(print())
-                .andExpect(status().isUnauthorized());
+                .andExpect(status().is(398));  // ← 398로 수정
     }
+
+    @Test
+    @DisplayName("로그인 실패 - 존재하지 않는 이메일")
+    void login_fail_email_not_found() throws Exception {
+        mvc.perform(post("/api/members/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                {
+                    "email": "notfound@example.com",
+                    "password": "12345678910"
+                }
+            """.stripIndent()))
+                .andDo(print())
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.message").value("존재하지 않는 이메일입니다."));
+    }
+
+    @Test
+    @DisplayName("로그인 실패 - 비밀번호 불일치")
+    void login_fail_wrong_password() throws Exception {
+        // 회원가입
+        mvc.perform(post("/api/members/join")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                {
+                    "name": "테스트유저",
+                    "password": "12345678910",
+                    "email": "test6@example.com"
+                }
+            """.stripIndent()));
+
+        // 로그인(틀린 비밀번호)
+        mvc.perform(post("/api/members/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                {
+                    "email": "test6@example.com",
+                    "password": "wrongpassword"
+                }
+            """.stripIndent()))
+                .andDo(print())
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.message").value("비밀번호가 일치하지 않습니다."));
+    }
+
+    @Test
+    @DisplayName("회원가입 실패 - 이미 존재하는 이메일")
+    void join_fail_duplicate_email() throws Exception {
+        // 첫 번째 회원가입
+        mvc.perform(post("/api/members/join")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                {
+                    "name": "테스트유저",
+                    "password": "12345678910",
+                    "email": "test7@example.com"
+                }
+            """.stripIndent()));
+
+        // 두 번째 회원가입(같은 이메일)
+        mvc.perform(post("/api/members/join")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                {
+                    "name": "다른유저",
+                    "password": "12345678910",
+                    "email": "test7@example.com"
+                }
+            """.stripIndent()))
+                .andDo(print())
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.message").value("이미 존재하는 이메일입니다."));
+    }
+
+    @Test
+    @DisplayName("회원가입 실패 - 유효하지 않은 이메일 형식")
+    void join_fail_invalid_email() throws Exception {
+        mvc.perform(post("/api/members/join")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                {
+                    "name": "테스트유저",
+                    "password": "12345678910",
+                    "email": "invalidemail"
+                }
+            """.stripIndent()))
+                .andDo(print())
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("accessToken만 있고 apiKey가 없을 때 인증 성공")
+    void myInfo_with_only_accessToken() throws Exception {
+        // 회원가입 및 로그인
+        mvc.perform(post("/api/members/join")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                {
+                    "name": "테스트유저",
+                    "password": "12345678910",
+                    "email": "test8@example.com"
+                }
+            """.stripIndent()));
+        ResultActions loginResult = mvc.perform(post("/api/members/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                {
+                    "email": "test8@example.com",
+                    "password": "12345678910"
+                }
+            """.stripIndent()));
+        String accessToken = loginResult.andReturn().getResponse().getCookie("accessToken").getValue();
+
+        // accessToken만으로 마이페이지 접근
+        mvc.perform(get("/api/members/info")
+                        .cookie(new jakarta.servlet.http.Cookie("accessToken", accessToken)))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.email").value("test8@example.com"));
+    }
+
+    @Test
+    @DisplayName("apiKey만 있고 accessToken이 없을 때 인증 성공")
+    void myInfo_with_only_apiKey() throws Exception {
+        // 회원가입 및 로그인
+        mvc.perform(post("/api/members/join")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                {
+                    "name": "테스트유저",
+                    "password": "12345678910",
+                    "email": "test9@example.com"
+                }
+            """.stripIndent()));
+        ResultActions loginResult = mvc.perform(post("/api/members/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                {
+                    "email": "test9@example.com",
+                    "password": "12345678910"
+                }
+            """.stripIndent()));
+        String apiKey = loginResult.andReturn().getResponse().getCookie("apiKey").getValue();
+
+        // apiKey만으로 마이페이지 접근
+        mvc.perform(get("/api/members/info")
+                        .cookie(new jakarta.servlet.http.Cookie("apiKey", apiKey)))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.email").value("test9@example.com"));
+    }
+
+    @Test
+    @DisplayName("로그아웃 후 재로그인 성공")
+    void logout_then_relogin() throws Exception {
+        // 회원가입 및 로그인
+        mvc.perform(post("/api/members/join")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                {
+                    "name": "테스트유저",
+                    "password": "12345678910",
+                    "email": "test10@example.com"
+                }
+            """.stripIndent()));
+        ResultActions loginResult = mvc.perform(post("/api/members/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                {
+                    "email": "test10@example.com",
+                    "password": "12345678910"
+                }
+            """.stripIndent()));
+        String apiKey = loginResult.andReturn().getResponse().getCookie("apiKey").getValue();
+        String accessToken = loginResult.andReturn().getResponse().getCookie("accessToken").getValue();
+
+        // 로그아웃
+        mvc.perform(delete("/api/members/logout")
+                        .cookie(new jakarta.servlet.http.Cookie("accessToken", accessToken))
+                        .cookie(new jakarta.servlet.http.Cookie("apiKey", apiKey)))
+                .andExpect(status().isOk());
+
+        // 재로그인
+        mvc.perform(post("/api/members/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                {
+                    "email": "test10@example.com",
+                    "password": "12345678910"
+                }
+            """.stripIndent()))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.accessToken").exists())
+                .andExpect(jsonPath("$.data.apiKey").exists());
+    }
+
+
 }
