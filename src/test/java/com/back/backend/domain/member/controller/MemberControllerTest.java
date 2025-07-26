@@ -1,6 +1,7 @@
 package com.back.backend.domain.member.controller;
 
 import com.back.domain.member.entity.Member;
+import com.back.domain.member.repository.MemberRepository;
 import com.back.domain.member.service.MemberService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -13,6 +14,8 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -32,7 +35,8 @@ public class MemberControllerTest {
 
     @Autowired
     private MemberService memberService;
-
+    @Autowired
+    private MemberRepository memberRepository;
     @Autowired
     private MockMvc mvc;
 
@@ -409,5 +413,145 @@ public class MemberControllerTest {
                 .andExpect(jsonPath("$.data.apiKey").exists());
     }
 
+    @Test
+    @DisplayName("일반 유저가 마이페이지 접근 성공")
+    void user_access_myInfo_success() throws Exception {
+        // 일반 유저 회원가입 및 로그인
+        mvc.perform(post("/api/members/join")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                {
+                    "name": "일반유저",
+                    "password": "12345678910",
+                    "email": "user@example.com"
+                }
+            """.stripIndent()));
+
+        ResultActions loginResult = mvc.perform(post("/api/members/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                {
+                    "email": "user@example.com",
+                    "password": "12345678910"
+                }
+            """.stripIndent()));
+
+        String accessToken = loginResult.andReturn().getResponse().getCookie("accessToken").getValue();
+
+        // 일반 유저가 마이페이지 접근 (성공해야 함)
+        mvc.perform(get("/api/members/info")
+                        .cookie(new jakarta.servlet.http.Cookie("accessToken", accessToken)))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.role").value("USER"));
+    }
+
+    @Test
+    @DisplayName("일반 유저가 관리자 페이지 접근 시 403에러")
+    void user_access_admin_page_forbidden() throws Exception {
+        // 일반 유저 회원가입 및 로그인
+        mvc.perform(post("/api/members/join")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                {
+                    "name": "일반유저",
+                    "password": "12345678910",
+                    "email": "user2@example.com"
+                }
+            """.stripIndent()));
+
+        ResultActions loginResult = mvc.perform(post("/api/members/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                {
+                    "email": "user2@example.com",
+                    "password": "12345678910"
+                }
+            """.stripIndent()));
+
+        String accessToken = loginResult.andReturn().getResponse().getCookie("accessToken").getValue();
+
+        // 일반 유저가 관리자 페이지 접근 (403 에러)
+        mvc.perform(get("/관리자페이지")
+                        .cookie(new jakarta.servlet.http.Cookie("accessToken", accessToken)))
+                .andDo(print())
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @DisplayName("관리자가 마이페이지 접근 성공")
+    void admin_access_myInfo_success() throws Exception {
+        // 관리자 회원 생성
+        Member adminMember = Member.builder()
+                .name("관리자2")
+                .email("admin2@example.com")
+                .password("$2a$10$uLw2UPuzvGo5IebUw4pV9uetx9re5IBiedKPAmJkF/X6puaajxuA2")
+                .role("ADMIN")
+                .apiKey(UUID.randomUUID().toString())
+                .exp(0)
+                .level(1)
+                .build();
+        memberRepository.save(adminMember);
+
+        // 관리자 로그인
+        ResultActions loginResult = mvc.perform(post("/api/members/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                {
+                    "email": "admin2@example.com",
+                    "password": "12345678910"
+                }
+            """.stripIndent()));
+
+        String accessToken = loginResult.andReturn().getResponse().getCookie("accessToken").getValue();
+
+        // 관리자가 마이페이지 접근 (성공해야 함)
+        mvc.perform(get("/api/members/info")
+                        .cookie(new jakarta.servlet.http.Cookie("accessToken", accessToken)))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.role").value("ADMIN"));
+    }
+
+    @Test
+    @DisplayName("인증 없이 관리자 페이지 접근 시 403에러")
+    void no_auth_access_admin_page_forbidden() throws Exception {
+        // 인증 없이 관리자 페이지 접근
+        mvc.perform(get("/관리자페이지"))
+                .andDo(print())
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @DisplayName("일반 유저가 관리자 전용 API 접근 시 403에러")
+    void user_access_admin_api_forbidden() throws Exception {
+        // 일반 유저 회원가입 및 로그인
+        mvc.perform(post("/api/members/join")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                {
+                    "name": "일반유저3",
+                    "password": "12345678910",
+                    "email": "user3@example.com"
+                }
+            """.stripIndent()));
+
+        ResultActions loginResult = mvc.perform(post("/api/members/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                {
+                    "email": "user3@example.com",
+                    "password": "12345678910"
+                }
+            """.stripIndent()));
+
+        String accessToken = loginResult.andReturn().getResponse().getCookie("accessToken").getValue();
+
+        // 일반 유저가 관리자 전용 API 접근 (403 에러)
+        mvc.perform(delete("/관리자페이지뉴스삭제")
+                        .cookie(new jakarta.servlet.http.Cookie("accessToken", accessToken)))
+                .andDo(print())
+                .andExpect(status().isForbidden());
+    }
 
 }
