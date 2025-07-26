@@ -17,6 +17,8 @@ public class AsyncConfig {
         executor.setMaxPoolSize(10);  // 최대 스레드 수
         executor.setQueueCapacity(100); // 대기 큐 크기
         executor.setThreadNamePrefix("QuizGen-");
+        executor.setWaitForTasksToCompleteOnShutdown(true); // 종료 시 모든 작업이 완료될 때까지 대기
+        executor.setAwaitTerminationSeconds(30); // 종료 대기 시간
         executor.initialize();
         return executor;
     }
