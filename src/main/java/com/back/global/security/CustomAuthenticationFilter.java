@@ -54,16 +54,16 @@ public class CustomAuthenticationFilter extends OncePerRequestFilter {
         // 아래 API 요청이 아니라면 인증 패스 (추후 진짜 api로 변경 예정)
         if (
                 !uri.startsWith("/상세퀴즈페이지") &&
-                !uri.startsWith("/오늘의퀴즈페이지") &&
-                !uri.startsWith("/ox퀴즈상세페이지") &&
-                !uri.startsWith("/상세퀴즈제출") &&
-                !uri.startsWith("/오늘의퀴즈제출") &&
-                !uri.startsWith("/ox퀴즈제출") &&
-                !uri.startsWith("/마이페이지") &&
-                !uri.startsWith("/마이페이지내정보수정") &&
-                !uri.startsWith("/마이페이지회원탈퇴") &&
-                !uri.startsWith("/관리자페이지") &&
-                !uri.startsWith("/관리자페이지뉴스삭제")
+                        !uri.startsWith("/오늘의퀴즈페이지") &&
+                        !uri.startsWith("/ox퀴즈상세페이지") &&
+                        !uri.startsWith("/상세퀴즈제출") &&
+                        !uri.startsWith("/오늘의퀴즈제출") &&
+                        !uri.startsWith("/ox퀴즈제출") &&
+                        !uri.startsWith("/api/members/info") &&
+                        !uri.startsWith("/마이페이지내정보수정") &&
+                        !uri.startsWith("/마이페이지회원탈퇴") &&
+                        !uri.startsWith("/관리자페이지") &&
+                        !uri.startsWith("/관리자페이지뉴스삭제")
         ) {
             filterChain.doFilter(request, response);
             return;
@@ -111,6 +111,7 @@ public class CustomAuthenticationFilter extends OncePerRequestFilter {
         Member member = null;
         boolean isAccessTokenValid = false;
 
+        // accessToken이 있으면 우선 검증
         if (isAccessTokenExists) {
             Map<String, Object> payload = memberService.payload(accessToken);
 
@@ -124,12 +125,14 @@ public class CustomAuthenticationFilter extends OncePerRequestFilter {
             }
         }
 
+        // accessToken이 없으면, apiKey로 member 조회
         if (member == null) {
             member = memberService
                     .findByApiKey(apiKey)
                     .orElseThrow(() -> new ServiceException(401-3, "API 키가 유효하지 않습니다."));
         }
 
+        // accessToken이 만료됐으면 새로 발급
         if (isAccessTokenExists && !isAccessTokenValid) {
             String actorAccessToken = memberService.genAccessToken(member);
 
@@ -137,6 +140,7 @@ public class CustomAuthenticationFilter extends OncePerRequestFilter {
             rq.setHeader("Authorization", actorAccessToken);
         }
 
+        // SecurityContext에 인증 정보 저장
         UserDetails user = new SecurityUser(
                 member.getId(),
                 member.getEmail(),
@@ -144,13 +148,11 @@ public class CustomAuthenticationFilter extends OncePerRequestFilter {
                 "",
                 member.getAuthorities()
         );
-
         Authentication authentication = new UsernamePasswordAuthenticationToken(
                 user,
                 user.getPassword(),
                 user.getAuthorities()
         );
-
         SecurityContextHolder
                 .getContext()
                 .setAuthentication(authentication);
@@ -158,4 +160,3 @@ public class CustomAuthenticationFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 }
-

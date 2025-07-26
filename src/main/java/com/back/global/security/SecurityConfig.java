@@ -30,12 +30,13 @@ public class SecurityConfig {
 
                                 //모두 접근 가능한 API
                                 .requestMatchers(HttpMethod.GET,  "/메인페이지/뉴스목록", "/뉴스상세페이지", "/오늘의뉴스페이지", "/ox퀴즈페이지").permitAll()
-                                .requestMatchers(HttpMethod.POST, "/api/members/login", "/api/members/join", "/api/members/logout").permitAll()
+                                .requestMatchers(HttpMethod.POST, "/api/members/login", "/api/members/join").permitAll()
+                                .requestMatchers(HttpMethod.DELETE, "/api/members/logout").permitAll()
 
                                 // 회원만 접근 가능한 API
-                                .requestMatchers(HttpMethod.GET,  "/상세퀴즈페이지", "/오늘의퀴즈페이지", "/ox퀴즈상세페이지", "/마이페이지").authenticated()
+                                .requestMatchers(HttpMethod.GET,  "/상세퀴즈페이지", "/오늘의퀴즈페이지", "/ox퀴즈상세페이지", "/api/members/info").authenticated()
                                 .requestMatchers(HttpMethod.POST, "/상세퀴즈제출", "/오늘의퀴즈제출", "/ox퀴즈제출").authenticated()
-                                .requestMatchers(HttpMethod.PUT,  "/마이페이지내정보수정").authenticated()
+                                .requestMatchers(HttpMethod.PUT,  "/api/members/info").authenticated()
                                 .requestMatchers(HttpMethod.DELETE, "/마이페이지회원탈퇴").authenticated()
 
                                 // 관리자만 접근 가능한 API

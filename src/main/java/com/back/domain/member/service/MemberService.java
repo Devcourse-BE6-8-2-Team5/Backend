@@ -56,13 +56,6 @@ public class MemberService {
         return authTokenService.genAccessToken(member);
     }
 
-    public void clearApiKey(long memberId) {
-        memberRepository.findById(memberId).ifPresent(member -> {
-            member.setApiKey(null);
-            memberRepository.save(member);
-        });
-    }
-
     public Member save(Member member) {
         return memberRepository.save(member);
     }

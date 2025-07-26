@@ -45,7 +45,7 @@ public class Member {
     private String role; // "USER" 또는 "ADMIN"
 
     @Column(nullable = false, unique = true)
-    private String apiKey; //리프레시 토큰
+    private String apiKey; // 리프레시 토큰
 
     // 유저가 푼 퀴즈 기록을 저장하는 리스트 일단 엔티티 없어서 주석
     //@OneToMany(mappedBy ="member", cascade = CascadeType.ALL, orphanRemoval = true)

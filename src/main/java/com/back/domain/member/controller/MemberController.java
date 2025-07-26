@@ -20,8 +20,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.UUID;
-
 @RestController
 @RequestMapping("/api/members")
 @RequiredArgsConstructor
@@ -105,11 +103,6 @@ public class MemberController {
             throw new ServiceException(401, "비밀번호가 일치하지 않습니다.");
         }
 
-        // 로그인 시 새로운 apiKey 생성 후 DB에 저장
-        String newApiKey = UUID.randomUUID().toString();
-        member.setApiKey(newApiKey);
-        memberService.save(member);
-
         // JWT 토큰 생성
         String accessToken = memberService.genAccessToken(member);
 
@@ -131,12 +124,6 @@ public class MemberController {
     @Operation(summary = "회원 로그아웃")
     @DeleteMapping("/logout")
     public RsData<Void> logout() {
-
-        Member actor = rq.getActor();
-        // 로그아웃 시 DB의 apiKey를 null로 변경
-        if (actor != null) {
-            memberService.clearApiKey(actor.getId());
-        }
 
         rq.deleteCookie("accessToken");
         rq.deleteCookie("apiKey");
