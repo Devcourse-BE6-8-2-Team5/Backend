@@ -41,13 +41,14 @@ public class Member {
     @Min(1)
     private int level; //레벨
 
-    @Column(nullable = false, unique = true)
-    private String apiKey; //리프레시 토큰
-
     @Column(nullable = false)
     private boolean isAdmin;
 
+    @Column(nullable = false, unique = true)
+    private String apiKey; //리프레시 토큰
+
     String role;
+
     // 유저가 푼 퀴즈 기록을 저장하는 리스트 일단 엔티티 없어서 주석
    //@OneToMany(mappedBy ="member", cascade = CascadeType.ALL, orphanRemoval = true)
     // private List<memberQuizAnswer> memberQuizAnswers = new ArrayList<>(); //유저가 퀴즈를 푼 기록
