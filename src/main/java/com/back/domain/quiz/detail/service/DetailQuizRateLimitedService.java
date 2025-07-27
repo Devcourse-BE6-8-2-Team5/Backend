@@ -33,8 +33,8 @@ public class DetailQuizRateLimitedService {
                 Thread.sleep(2000);
             }
         }
-        log.error("Rate limit 초과로 퀴즈 생성 실패. 뉴스 ID: " + newsId);
-        throw new ServiceException(500, "AI 호출 실패 또는 Rate limit 초과로 퀴즈 생성 실패. 뉴스 ID: " + newsId);
+        log.error("퀴즈 생성 최종 실패. 뉴스 ID: {}", newsId);
+        throw new ServiceException(500, "퀴즈 생성 최종 실패. 뉴스 ID: " + newsId);
 
     }
 }
