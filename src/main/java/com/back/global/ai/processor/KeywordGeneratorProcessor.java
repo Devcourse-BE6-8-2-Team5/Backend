@@ -2,13 +2,9 @@ package com.back.global.ai.processor;
 
 import com.back.domain.news.common.entity.KeywordGenerationReqDto;
 import com.back.domain.news.common.entity.KeywordGenerationResDto;
-import com.back.domain.quiz.detail.dto.DetailQuizReqDto;
-import com.back.domain.quiz.detail.dto.DetailQuizResDto;
 import com.back.global.exception.ServiceException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.ai.chat.model.ChatResponse;
-
-import java.util.List;
 
 /**
  * 뉴스 제목과 본문을 기반 상세 퀴즈 3개를 생성하는 AI 요청 Processor 입니다.
@@ -26,7 +22,7 @@ public class KeywordGeneratorProcessor implements AiRequestProcessor<KeywordGene
     @Override
     public String buildPrompt() {
         return String.format("""
-                Task: 오늘 뉴스 수집을 위한 카테고리별 키워드를 생성하세요.
+                 Task: 오늘 뉴스 수집을 위한 카테고리별 키워드를 생성하세요.
                 
                 목적:
                 - 질 높은 뉴스를 수집하기 위한 효과적인 검색 키워드 생성
@@ -54,7 +50,7 @@ public class KeywordGeneratorProcessor implements AiRequestProcessor<KeywordGene
                 - SOCIETY: 사회 이슈, 사건사고, 사회 정책, 사회 현상 관련
                   * 우선순위: 최근 사회적 관심사, 새로운 사회 문제, 정책 변화
                 
-                - ECONOMY: 경제 정책, 시장 동향, 기업 활동, 경제 지표 관련  
+                - ECONOMY: 경제 정책, 시장 동향, 기업 활동, 경제 지표 관련
                   * 우선순위: 경제 정책 변화, 시장 이슈, 산업 동향
                 
                 - POLITICS: 정치적 사건, 정책 발표, 정치 이슈, 선거 관련
@@ -85,7 +81,7 @@ public class KeywordGeneratorProcessor implements AiRequestProcessor<KeywordGene
                 ```json
                 {
                   "society": ["키워드1", "키워드2"],
-                  "economy": ["키워드1", "키워드2"], 
+                  "economy": ["키워드1", "키워드2"],
                   "politics": ["키워드1", "키워드2"],
                   "culture": ["키워드1", "키워드2"],
                   "it": ["키워드1", "키워드2"]
@@ -114,12 +110,13 @@ public class KeywordGeneratorProcessor implements AiRequestProcessor<KeywordGene
                     KeywordGenerationResDto.class
             );
         } catch (Exception e) {
-            throw new ServiceException(500, "AI 응답이 JSON 형식이 아닙니다. 응답: " + cleanedJson);
+            throw new ServiceException(500, "AI 응답이 JSON 형식이 아닙니다. 응답 : " + cleanedJson);
         }
 
         validatekeywords(result);
 
         return result;
+
     }
 
     private void validatekeywords(KeywordGenerationResDto result) {
