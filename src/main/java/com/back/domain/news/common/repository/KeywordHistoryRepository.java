@@ -1,0 +1,41 @@
+package com.back.domain.news.common.repository;
+
+import com.back.domain.news.common.entity.KeywordHistory;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
+import java.time.LocalDate;
+import java.util.List;
+import java.util.Optional;
+
+public interface KeywordHistoryRepository extends JpaRepository<KeywordHistory,Long> {
+
+    Optional<KeywordHistory> findByKeywordAndUsedDate(String keyword, LocalDate usedDate);
+
+    /**
+     * 최근 N일간 M회 이상 사용된 키워드 조회 (과도 사용 키워드)
+     */
+    @Query("""
+        SELECT kh.keyword 
+        FROM KeywordHistory kh 
+        WHERE kh.usedDate >= :startDate 
+        GROUP BY kh.keyword 
+        HAVING COUNT(kh.keyword) >= :threshold
+        """)
+    List<String> findOverusedKeywords(@Param("startDate") LocalDate startDate,
+                                      @Param("threshold") int threshold);
+
+
+
+    /**
+     * 특정 날짜 이후 사용된 키워드들 조회
+     */
+    @Query("""
+        SELECT DISTINCT kh.keyword 
+        FROM KeywordHistory kh 
+        WHERE kh.usedDate >= :startDate 
+        ORDER BY kh.usedDate DESC
+        """)
+    List<String> findKeywordsByUsedDateAfter(@Param("startDate") LocalDate startDate);
+}

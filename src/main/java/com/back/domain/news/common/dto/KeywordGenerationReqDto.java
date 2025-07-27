@@ -1,4 +1,4 @@
-package com.back.domain.news.common.entity;
+package com.back.domain.news.common.dto;
 
 import java.time.LocalDate;
 import java.util.List;

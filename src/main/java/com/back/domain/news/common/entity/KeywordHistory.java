@@ -1,14 +1,18 @@
 package com.back.domain.news.common.entity;
 
+import com.back.domain.news.common.enums.KeywordType;
 import jakarta.persistence.*;
 import lombok.Builder;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 import static jakarta.persistence.GenerationType.*;
 
+@Getter
 @Entity
 @NoArgsConstructor
 public class KeywordHistory {
@@ -25,22 +29,21 @@ public class KeywordHistory {
 
     private LocalDateTime createAt; // 키워드가 생성된 시간
 
-    private Integer usageCount=1; // 키워드 사용 횟수
-
-    private Integer collectedNewsCount =0 ; // 해당 키워드로 수집된 뉴스 개수
-
-    private Double efficiencyScore; // 효율성 점수 (0.0 ~ 1.0)
+    @Enumerated(EnumType.STRING)
+    private KeywordType keywordType;
 
     @Builder
     public KeywordHistory(
             String keyword,
             //NewsCategory category,
-            LocalDate usedDate
+            LocalDate usedDate,
+            KeywordType keywordType
             ){
         this.keyword = keyword;
 //        this.category = category;
         this.usedDate = usedDate;
         this.createAt = LocalDateTime.now();
+        this.keywordType = keywordType;
     }
 
 }

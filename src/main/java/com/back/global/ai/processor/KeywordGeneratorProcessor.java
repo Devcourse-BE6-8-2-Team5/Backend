@@ -1,7 +1,7 @@
 package com.back.global.ai.processor;
 
-import com.back.domain.news.common.entity.KeywordGenerationReqDto;
-import com.back.domain.news.common.entity.KeywordGenerationResDto;
+import com.back.domain.news.common.dto.KeywordGenerationReqDto;
+import com.back.domain.news.common.dto.KeywordGenerationResDto;
 import com.back.global.exception.ServiceException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.ai.chat.model.ChatResponse;
@@ -22,45 +22,43 @@ public class KeywordGeneratorProcessor implements AiRequestProcessor<KeywordGene
     @Override
     public String buildPrompt() {
         return String.format("""
-                 Task: 오늘 뉴스 수집을 위한 카테고리별 키워드를 생성하세요.
+                Task: 오늘 뉴스 수집을 위한 카테고리별 키워드를 생성하세요.
                 
                 목적:
-                - 질 높은 뉴스를 수집하기 위한 효과적인 검색 키워드 생성
+                - 네이버 뉴스 검색 API에서 효과적으로 검색되는 키워드 생성
+                - 실제 뉴스 제목에 자주 사용되는 실용적인 키워드 선택
                 - 카테고리별 균형 잡힌 키워드 배분
-                - 시의성과 대중 관심도를 반영한 키워드 선택
-                - 중요한 진행형 이슈와 새로운 사건을 놓치지 않는 키워드 선택
+                
+                ⚠️ 중요한 제약사항:
+                - 키워드는 뉴스 제목에 실제로 포함될 수 있는 단어여야 합니다
+                - 너무 길거나 복잡한 구문은 피해주세요 (2-4글자 권장)
+                - 실제 기자들이 제목에 사용할 법한 키워드를 선택하세요
+                - 추상적 개념보다는 구체적이고 검색 가능한 단어 우선
                 
                 현재 상황 분석 및 고려사항:
                 현재 날짜: %s
                 
-                [상황 인식 기반 키워드 우선순위]
-                1. 긴급/속보성 이슈: 최근 발생한 중요 사건의 후속 전개
-                2. 진행형 주요 이슈: 지속적으로 관심받는 사회적 이슈들
-                3. 정책/제도 변화: 새로운 정책 발표나 제도 개편
-                4. 국제적 관심사: 글로벌 이슈 중 국내 영향이 있는 것들
-                5. 교육적 가치: 국민들이 알아야 할 중요한 정보
-                
                 [키워드 생성 전략]
                 - 각 카테고리당 정확히 2개의 키워드를 생성합니다
-                - 키워드는 구체적이고 검색 효율성이 높아야 합니다
-                - 단순 반복보다는 새로운 관점이나 전개를 다룰 수 있는 키워드 우선
-                - 클릭베이트성 키워드보다는 실질적 정보가 있는 뉴스를 찾을 수 있는 키워드
+                - 키워드는 단순하고 명확해야 합니다 (예: "AI", "부동산", "선거")
+                - 뉴스 제목에 자주 등장하는 핵심 단어 위주로 선택
+                - 검색 효율성이 높은 키워드 우선
                 
-                [카테고리별 세부 요구사항]
-                - SOCIETY: 사회 이슈, 사건사고, 사회 정책, 사회 현상 관련
-                  * 우선순위: 최근 사회적 관심사, 새로운 사회 문제, 정책 변화
+                [카테고리별 키워드 예시 및 요구사항]
+                - SOCIETY: 사회 이슈 관련 (예: "교육", "복지", "안전", "범죄")
+                  * 사회 뉴스 제목에 자주 나오는 핵심 단어
                 
-                - ECONOMY: 경제 정책, 시장 동향, 기업 활동, 경제 지표 관련
-                  * 우선순위: 경제 정책 변화, 시장 이슈, 산업 동향
+                - ECONOMY: 경제 관련 (예: "금리", "부동산", "주식", "물가")  
+                  * 경제 뉴스 제목의 필수 키워드들
                 
-                - POLITICS: 정치적 사건, 정책 발표, 정치 이슈, 선거 관련
-                  * 우선순위: 정책 발표, 정치적 쟁점, 제도 개편
+                - POLITICS: 정치 관련 (예: "국회", "선거", "정책", "여야")
+                  * 정치 뉴스에서 빈번히 사용되는 용어
                 
-                - CULTURE: 문화 트렌드, 예술, 엔터테인먼트, 교육, 라이프스타일 관련
-                  * 우선순위: 새로운 문화 현상, 교육 이슈, 사회적 트렌드
+                - CULTURE: 문화/생활 관련 (예: "K팝", "영화", "스포츠", "축제")
+                  * 문화 뉴스 제목에 등장하는 친숙한 단어
                 
-                - IT: 기술 혁신, IT 산업, 디지털 트렌드, 과학 기술 관련
-                  * 우선순위: 기술 혁신, 디지털 정책, IT 산업 동향
+                - IT: IT/과학기술 (예: "AI", "반도체", "게임", "5G")
+                  * IT 뉴스에서 자주 보이는 기술 용어
                 
                 [제외 키워드 및 중복 방지]
                 다음 키워드들은 최근 과도하게 사용되어 제외해주세요: %s
@@ -72,19 +70,41 @@ public class KeywordGeneratorProcessor implements AiRequestProcessor<KeywordGene
                 
                 [시즌/시기별 고려사항]
                 현재 시기의 특성을 반영하여 다음을 고려해주세요:
-                - 계절적 이슈 (겨울철: 난방, 에너지 / 봄철: 신학기, 취업 등)
-                - 연중 주요 일정 (예산 심의, 정기국회, 주요 행사 등)
+                - 계절적 이슈 (겨울: 난방, 에너지 / 여름: 휴가, 폭염 등)
+                - 연중 주요 일정 (예산, 국정감사, 주요 행사 등)
                 - 최근 사회적 관심 급상승 주제들
                 
                 응답 형식:
-                응답은 반드시 아래 필드들을 포함한 JSON 형식으로만 작성하세요. 설명 없이 JSON만 응답하세요.
+                응답은 반드시 아래 필드들을 포함한 JSON 형식으로만 작성하세요. 각 키워드마다 타입도 함께 지정해주세요.
+                키워드 타입:
+                - BREAKING: 속보성 (긴급한 이슈, 사건사고)
+                - ONGOING: 진행형 (지속적인 관심사, 정책 이슈)  
+                - GENERAL: 일반적 (꾸준한 관심사)
+                - SEASONAL: 계절성 (시기적 특성)
+                
+                설명 없이 JSON만 응답하세요.
                 ```json
                 {
-                  "society": ["키워드1", "키워드2"],
-                  "economy": ["키워드1", "키워드2"],
-                  "politics": ["키워드1", "키워드2"],
-                  "culture": ["키워드1", "키워드2"],
-                  "it": ["키워드1", "키워드2"]
+                  "society": [
+                    {"keyword": "키워드1", "type": "ONGOING"},
+                    {"keyword": "키워드2", "type": "GENERAL"}
+                  ],
+                  "economy": [
+                    {"keyword": "키워드1", "type": "BREAKING"},
+                    {"keyword": "키워드2", "type": "ONGOING"}
+                  ],
+                  "politics": [
+                    {"keyword": "키워드1", "type": "ONGOING"},
+                    {"keyword": "키워드2", "type": "GENERAL"}
+                  ],
+                  "culture": [
+                    {"keyword": "키워드1", "type": "SEASONAL"},
+                    {"keyword": "키워드2", "type": "GENERAL"}
+                  ],
+                  "it": [
+                    {"keyword": "키워드1", "type": "BREAKING"},
+                    {"keyword": "키워드2", "type": "ONGOING"}
+                  ]
                 }
                 ```
                 """,
