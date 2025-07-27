@@ -43,7 +43,7 @@ public class DetailQuizService {
     }
 
 
-    // newsId로 뉴스 조회 후 퀴즈 생성
+    // newsId로 뉴스 조회 후 AI api 호출해 퀴즈 생성
     public List<DetailQuizDto> generateQuizzes(Long newsId) {
         RealNews news = realNewsRepository.findById(newsId)
                 .orElseThrow(() -> new ServiceException(400, "해당 id의 뉴스가 존재하지 않습니다. id: " + newsId));
@@ -58,7 +58,7 @@ public class DetailQuizService {
         return aiService.process(processor);
     }
 
-    // 생성한 퀴즈 저장
+    // 생성한 퀴즈 DB에 저장
     @Transactional
     public List<DetailQuiz> saveQuizzes(Long newsId, List<DetailQuizDto> quizzes) {
         RealNews news = realNewsRepository.findById(newsId)

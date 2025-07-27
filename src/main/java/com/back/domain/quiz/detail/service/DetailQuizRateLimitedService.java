@@ -1,0 +1,40 @@
+package com.back.domain.quiz.detail.service;
+
+import com.back.domain.quiz.detail.dto.DetailQuizDto;
+import com.back.global.exception.ServiceException;
+import io.github.bucket4j.Bucket;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+
+@Service
+@RequiredArgsConstructor
+@Slf4j
+public class DetailQuizRateLimitedService {
+    private final DetailQuizService detailQuizService;
+    private final Bucket bucket;
+
+    public List<DetailQuizDto> generatedQuizzesWithRateLimit(Long newsId) throws InterruptedException {
+        int maxRetries = 3; // 최대 재시도 횟수
+
+        for(int i=0; i<maxRetries; i++){
+            if (!bucket.tryConsume(1)) {
+                log.warn("Rate limit 제한으로 재시도 대기중... 시도 횟수: {} - newsId: {} ", i+1, newsId);
+                Thread.sleep(2000);
+                continue;
+            }
+            try {
+                // Rate limit이 허용되면 AI 호출해 퀴즈 생성
+                return detailQuizService.generateQuizzes(newsId);
+            } catch (Exception e) {
+                log.warn("AI 호출 중 오류 발생. 재시도합니다. 시도 횟수: {} - newsId: {}, error: {}", i+1, newsId, e.getMessage());
+                Thread.sleep(2000);
+            }
+        }
+        log.error("Rate limit 초과로 퀴즈 생성 실패. 뉴스 ID: " + newsId);
+        throw new ServiceException(500, "AI 호출 실패 또는 Rate limit 초과로 퀴즈 생성 실패. 뉴스 ID: " + newsId);
+
+    }
+}
