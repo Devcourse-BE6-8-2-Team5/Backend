@@ -4,6 +4,7 @@ import com.back.domain.quiz.detail.dto.DetailQuizDto;
 import com.back.domain.quiz.detail.entity.DetailQuiz;
 import com.back.domain.quiz.detail.service.DetailQuizService;
 import com.back.global.rsData.RsData;
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -16,6 +17,7 @@ public class DetailQuizController {
     private final DetailQuizService detailQuizService;
 
     // 상세 퀴즈 목록 조회(전체 조회)
+    @Operation(summary = "전체 조회", description = "상세 퀴즈 목록을 조회합니다.")
     @GetMapping
     public RsData<List<DetailQuizDto>> getDetailQuizzes() {
         List<DetailQuiz> detailQuizzes = detailQuizService.findAll();
@@ -30,6 +32,7 @@ public class DetailQuizController {
     }
 
     // 상세 퀴즈 단건 조회(퀴즈 ID로 조회)
+    @Operation(summary = "단건 조회", description = "퀴즈 ID로 상세 퀴즈를 조회합니다.")
     @GetMapping("/{id}")
     public RsData<DetailQuizDto> getDetailQuiz(@PathVariable Long id) {
         DetailQuiz detailQuiz = detailQuizService.findById(id);
@@ -42,6 +45,7 @@ public class DetailQuizController {
     }
 
     // 상세 퀴즈 다건 조회(뉴스 ID로 조회)
+    @Operation(summary = "뉴스 ID 기반 다건 조회", description = "뉴스 ID로 해당 뉴스의 상세 퀴즈 목록(3개)을 조회합니다.")
     @GetMapping("/news/{newsId}")
     public RsData<List<DetailQuizDto>> getDetailQuizzesByNewsId(@PathVariable Long newsId) {
         List<DetailQuiz> detailQuizzes = detailQuizService.findByNewsId(newsId);
@@ -57,6 +61,7 @@ public class DetailQuizController {
 
 
     // 상세 퀴즈 생성(뉴스 ID로 찾은 뉴스의 퀴즈 모두 삭제 후 새로 생성해서 저장)
+    @Operation(summary = "뉴스 ID 기반 상세 퀴즈 생성", description = "뉴스 ID로 해당 뉴스의 상세 퀴즈를 3개 생성합니다. 기존 퀴즈는 삭제 후 새로 생성합니다.")
     @PostMapping("news/{newsId}/regenerate")
     public RsData<List<DetailQuizDto>> generateDetailQuizzes(@PathVariable Long newsId) {
         List<DetailQuizDto> newQuizzes = detailQuizService.generateQuizzes(newsId);
