@@ -24,6 +24,7 @@ public class KeywordGenerationService {
     public KeywordGenerationResDto generateTodaysKeywords() {
         LocalDate today = LocalDate.now();
 
+        //실제 db조회
         List<String> excludeKeywords = getExcludeKeywords();
 
         KeywordGenerationReqDto req = new KeywordGenerationReqDto(today, excludeKeywords);
