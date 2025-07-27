@@ -29,13 +29,12 @@ public interface KeywordHistoryRepository extends JpaRepository<KeywordHistory,L
 
 
     /**
-     * 특정 날짜 이후 사용된 키워드들 조회
+     * 특정 날짜에 사용된 키워드들 조회(해당 날짜만)
      */
     @Query("""
         SELECT DISTINCT kh.keyword 
         FROM KeywordHistory kh 
-        WHERE kh.usedDate >= :startDate 
-        ORDER BY kh.usedDate DESC
+        WHERE kh.usedDate = :date 
         """)
-    List<String> findKeywordsByUsedDateAfter(@Param("startDate") LocalDate startDate);
+    List<String> findKeywordsByUsedDate(@Param("date") LocalDate date);
 }

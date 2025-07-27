@@ -1,7 +1,6 @@
 package com.back.domain.news.common.service;
 
 
-import com.back.domain.news.common.entity.KeywordHistory;
 import com.back.domain.news.common.repository.KeywordHistoryRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -54,9 +53,9 @@ public class KeywordHistoryService {
 
         // 2. 어제 사용된 키워드 중 일반적인 것들 (긴급 뉴스 제외)
     @Transactional(readOnly = true)
-    public List<String> getYesterdayCommonKeywords() {
+    public List<String> getYesterdayKeywords() {
         LocalDate yesterday = LocalDate.now().minusDays(1);
-        return keywordHistoryRepository.findKeywordsByUsedDateAfter(yesterday);
+        return keywordHistoryRepository.findKeywordsByUsedDate(yesterday);
     }
 
 }
