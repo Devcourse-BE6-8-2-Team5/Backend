@@ -16,6 +16,7 @@ import java.util.List;
 import java.time.LocalDateTime;
 
 import static jakarta.persistence.CascadeType.*;
+import static jakarta.persistence.FetchType.*;
 import static jakarta.persistence.GenerationType.IDENTITY;
 
 @Entity
@@ -45,7 +46,7 @@ public class RealNews {
     @OneToMany(mappedBy = "realNews", cascade = ALL, orphanRemoval = true)
     private List<DetailQuiz> detailQuizzes = new ArrayList<>();
 
-    @OneToOne(mappedBy = "realNews", cascade = ALL)
+    @OneToOne(mappedBy = "realNews", cascade = ALL, fetch = LAZY)
     private FakeNews fakeNews;
 
     @Enumerated(EnumType.STRING)
