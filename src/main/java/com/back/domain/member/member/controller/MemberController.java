@@ -137,48 +137,6 @@ public class MemberController {
         );
     }
 
-
-    @Operation(summary = "(다건)전제 회원 정보 조회-관리자 전용")
-    @GetMapping("/admin/members")
-    @Transactional(readOnly = true)
-    public RsData<List<MemberWithInfoDto>> listMembers() {
-        Member actor = rq.getActor();
-        if (actor == null || !actor.isAdmin()) {
-            throw new ServiceException(403, "관리자 권한이 필요합니다.");
-        }
-
-        List<Member> members = memberService.findAll();
-
-        return new RsData<>(
-                200,
-                "전체 회원 정보 조회 완료",
-                members.stream()
-                        .map(MemberWithInfoDto::new)
-                        .toList()
-        );
-
-    }
-
-    @Operation(summary = "(단건)회원 정보 조회- 관리자 전용 (아이디로 조회)")
-    @GetMapping("/admin/members/{id}")
-    @Transactional
-    public RsData<MemberWithInfoDto> getMemberById(@PathVariable Long id) {
-        Member actor = rq.getActor();
-        if( actor == null || !actor.isAdmin()) {
-            throw new ServiceException(403, "관리자 권한이 필요합니다.");
-        }
-
-        Member member = memberService.findById(id)
-                .orElseThrow(() -> new ServiceException(404, "존재하지 않는 회원입니다."));
-
-        return new RsData<>(
-                200,
-                "단건 회원 정보 조회 완료",
-                new MemberWithInfoDto(member)
-        );
-    }
-
-
     @Operation(summary = "회원 정보 조회 = 마이페이지")
     @GetMapping("/info")
     @Transactional(readOnly = true)
