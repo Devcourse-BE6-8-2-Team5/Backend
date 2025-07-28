@@ -200,13 +200,13 @@ public class MemberController {
     }
 
     record ModifyReqBody(@NotBlank
-                         @Size(min = 5, max = 25)
+                         @Size(min = 5, max = 30, message = "이름은 최소 5자 이상이어야 합니다.")
                          String name,
                          @NotBlank
-                         @Size(min = 5, max = 25)
+                         @Size(min = 5, max = 50, message = "비밀번호는 최소 5자 이상이어야 합니다.")
                          String password,
                          @NotBlank
-                         @Email
+                         @Email(message = "유효한 이메일 형식이어야 합니다.")
                          String email) {
     }
 
@@ -221,6 +221,14 @@ public class MemberController {
 
         Member member = memberService.findById(actor.getId())
                 .orElseThrow(() -> new ServiceException(404, "존재하지 않는 회원입니다."));
+
+        // 이메일 중복 체크
+        if(!member.getEmail().equals(reqBody.email())) {
+            memberService.findByEmail(reqBody.email())
+                    .ifPresent(_member -> {
+                        throw new ServiceException(409, "이미 존재하는 이메일입니다.");
+                    });
+        }
 
         memberService.modify(member, reqBody.name(), reqBody.password(), reqBody.email());
 

@@ -66,7 +66,7 @@ public class MemberService {
     @Transactional
     public void modify(Member member, String name,  String password, String email) {
         member.setName(name);
-        member.setPassword(password);
+        member.setPassword(passwordEncoder.encode(password));
         member.setEmail(email);
         memberRepository.save(member);
     }
