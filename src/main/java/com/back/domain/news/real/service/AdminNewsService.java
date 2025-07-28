@@ -41,7 +41,7 @@ public class AdminNewsService {
     private final RealNewsMapper realNewsMapper;
 
     // HTTP 요청을 보내기 위한 Spring의 HTTP 클라이언트(외부 API 호출 시 사용)
-    private final RestTemplate restTemplate = new RestTemplate();
+    private final RestTemplate restTemplate;
 
     @Value("${NAVER_CLIENT_ID}")
     private String clientId;
@@ -79,39 +79,43 @@ public class AdminNewsService {
     @Transactional
     public List<RealNewsDto> createRealNewsDto(String query) {
 
-        try{
+        try {
             List<NaverNewsDto> naverMetaDataList = fetchNews(query);
             List<RealNewsDto> realNewsDtoList = new ArrayList<>();
 
-            for(NaverNewsDto naverMetaData : naverMetaDataList) {
-                NewsDetailDto newsDetailData = crawlAddtionalInfo(naverMetaData.link());
+            for (NaverNewsDto naverMetaData : naverMetaDataList) {
+                Optional<NewsDetailDto> newsDetailData = crawlAddtionalInfo(naverMetaData.link());
 
-                if(newsDetailData == null) {
+                if (newsDetailData.isEmpty()) {
                     // 크롤링 실패 시 해당 뉴스는 건너뜀
                     continue;
                 }
 
-                RealNewsDto realNewsDto = MakeRealNewsFromInf(naverMetaData, newsDetailData);
+                RealNewsDto realNewsDto = makeRealNewsFromInfo(naverMetaData, newsDetailData.get());
 
                 // 중복된 뉴스 제목이 있는지 확인
-                if(!realNewsRepository.existsByTitle(realNewsDto.title())){
+                if (!realNewsRepository.existsByTitle(realNewsDto.title())) {
                     realNewsDtoList.add(realNewsDto);
                 }
 
 
                 Thread.sleep(crawlingDelay);
             }
+            return saveRealNews(realNewsDtoList);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException("런타임 인터럽트 발생");
+        }
+    }
+
+    @Transactional
+    public List<RealNewsDto> saveRealNews(List<RealNewsDto> realNewsDtoList) {
             // DTO → Entity 변환 후 저장
             List<RealNews> realNewsList = realNewsMapper.toEntityList(realNewsDtoList);
             List<RealNews> savedEntities = realNewsRepository.saveAll(realNewsList); // 저장된 결과 받기
 
             // Entity → DTO 변환해서 반환
             return realNewsMapper.toDtoList(savedEntities);
-
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw new RuntimeException("스레드 인터럽트 발생" );
-        }
     }
 
     //N건 패치
@@ -156,7 +160,7 @@ public class AdminNewsService {
     }
 
     // 단건 크롤링
-    public NewsDetailDto crawlAddtionalInfo(String naverNewsUrl) {
+    public Optional<NewsDetailDto> crawlAddtionalInfo(String naverNewsUrl) {
         try{
             Document doc = Jsoup.connect(naverNewsUrl)
                     .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64)")  // 브라우저인 척
@@ -178,10 +182,10 @@ public class AdminNewsService {
 
             // 크롤링한 정보가 비어있으면 null 반환
             if(content.isEmpty() || imgUrl.isEmpty() || journalist.isEmpty() || mediaName.isEmpty()) {
-                return null;
+                return Optional.empty();
             }
 
-            return NewsDetailDto.of(content, imgUrl, journalist, mediaName);
+            return Optional.of(NewsDetailDto.of(content, imgUrl, journalist, mediaName));
 
         } catch (IOException e) {
             //  Jsoup 연결 실패 시
@@ -190,7 +194,7 @@ public class AdminNewsService {
     }
 
     // 네이버 api에서 받아온 정보와 크롤링한 상세 정보를 바탕으로 RealNewsDto 생성
-    public RealNewsDto MakeRealNewsFromInf(NaverNewsDto naverNewsDto, NewsDetailDto newsDetailDto) {
+    public RealNewsDto makeRealNewsFromInfo(NaverNewsDto naverNewsDto, NewsDetailDto newsDetailDto) {
         return RealNewsDto.of(
                 naverNewsDto.title(),
                 newsDetailDto.content(),

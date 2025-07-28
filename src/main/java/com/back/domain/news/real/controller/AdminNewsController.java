@@ -72,9 +72,9 @@ public class AdminNewsController {
             return RsData.of(200, "오늘의 뉴스가 설정되었습니다.", realNewsDto.get());
 
         } catch (IllegalArgumentException e) {
-            return RsData.of(400, "잘못된 요청입니다. POST 요청이 맞는지 확인하세요");
+            return RsData.of(400, e.getMessage());
         } catch (Exception e) {
-            return RsData.of(500, "오늘의 뉴스 설정 중 오류가 발생했습니다.");
+            return RsData.of(500, "오늘의 뉴스 설정 중 오류가 발생했습니다: " + e.getMessage());
         }
     }
 }
