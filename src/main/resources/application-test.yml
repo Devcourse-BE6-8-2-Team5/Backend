@@ -4,3 +4,9 @@ spring:
     username: sa
     password:
     driver-class-name: org.h2.Driver
+
+custom:
+  jwt:
+    secretKey: test_jwt_secret_key_for_testing_only_do_not_use_in_production
+  accessToken:
+    expirationSeconds: "#{60*20}"

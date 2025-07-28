@@ -12,7 +12,7 @@ public class MemberWithInfoDto {
     private String email;
     private int exp;
     private int level;
-    private boolean isAdmin;
+    private String role;
 
 
     public MemberWithInfoDto(Member member) {
@@ -21,6 +21,6 @@ public class MemberWithInfoDto {
         this.email = member.getEmail();
         this.exp = member.getExp();
         this.level = member.getLevel();
-        this.isAdmin = member.isAdmin();
+        this.role = member.getRole();
     }
 }
