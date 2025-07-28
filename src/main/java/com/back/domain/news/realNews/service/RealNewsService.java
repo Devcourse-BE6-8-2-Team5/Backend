@@ -284,4 +284,14 @@ public class RealNewsService {
         Page<RealNews> realNewsPage = realNewsRepository.findByTitleContaining(title, pageable);
         return realNewsPage.map(this::convertEntityToDto);
     }
+
+    @Transactional
+    public boolean deleteRealNews(Long id) {
+        if(!realNewsRepository.existsById(id)) {
+            return false;
+        }
+
+        realNewsRepository.deleteById(id);
+        return true;
+    }
 }
