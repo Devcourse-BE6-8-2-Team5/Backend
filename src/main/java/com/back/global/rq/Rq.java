@@ -1,6 +1,6 @@
 package com.back.global.rq;
 
-import com.back.domain.member.entity.Member;
+import com.back.domain.member.member.entity.Member;
 import com.back.global.security.SecurityUser;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
