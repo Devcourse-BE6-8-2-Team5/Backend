@@ -50,7 +50,7 @@ public class KeywordGenerationService {
 
         log.info("키워드 생성 결과 - {}", result);
 
-//        keywordHistoryService.saveKeywords(result, today);
+        keywordHistoryService.saveKeywords(result, today);
 
         return result;
     }

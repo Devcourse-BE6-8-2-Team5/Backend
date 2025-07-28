@@ -11,17 +11,15 @@ import java.util.Optional;
 
 public interface KeywordHistoryRepository extends JpaRepository<KeywordHistory,Long> {
 
-    Optional<KeywordHistory> findByKeywordAndUsedDate(String keyword, LocalDate usedDate);
-
     /**
      * 최근 N일간 M회 이상 사용된 키워드 조회 (과도 사용 키워드)
      */
     @Query("""
-        SELECT kh.keyword 
+        SELECT kh.keywordWithType.keyword 
         FROM KeywordHistory kh 
         WHERE kh.usedDate >= :startDate 
-        GROUP BY kh.keyword 
-        HAVING COUNT(kh.keyword) >= :threshold
+        GROUP BY kh.keywordWithType.keyword
+        HAVING COUNT(kh.keywordWithType.keyword) >= :threshold
         """)
     List<String> findOverusedKeywords(@Param("startDate") LocalDate startDate,
                                       @Param("threshold") int threshold);
@@ -32,7 +30,7 @@ public interface KeywordHistoryRepository extends JpaRepository<KeywordHistory,L
      * 특정 날짜에 사용된 키워드들 조회(해당 날짜만)
      */
     @Query("""
-        SELECT DISTINCT kh.keyword 
+        SELECT DISTINCT kh.keywordWithType.keyword 
         FROM KeywordHistory kh 
         WHERE kh.usedDate = :date 
         """)
