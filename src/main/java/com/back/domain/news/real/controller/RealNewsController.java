@@ -12,6 +12,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -22,33 +25,32 @@ import static org.springframework.data.domain.Sort.Direction.*;
 
 @Tag(name = "RealNewsController", description = "Real News API")
 @RestController
-@RequestMapping("api/real-news")
+@RequestMapping("api/news")
 @RequiredArgsConstructor
 public class RealNewsController {
     private final RealNewsService realNewsService;
     private final NewsPageService newsPageService;
 
 
-    //뉴스 생성
-    @Operation(summary = "뉴스 생성", description = "네이버 뉴스 API와 데이터 파싱을 통해 뉴스를 생성합니다.")
-    @PostMapping("/create")
-    public RsData<List<RealNewsDto>> createRealNews(@RequestParam String query) {
-        List<RealNewsDto> realNewsList = realNewsService.createRealNewsDto(query);
-
-        if (realNewsList.isEmpty()) {
-            return RsData.of(404, String.format("'%s' 검색어로 뉴스를 찾을 수 없습니다", query));
-        }
-
-        return RsData.of(200, String.format("뉴스 %d건 생성 완료",realNewsList.size()), realNewsList);
-    }
 
     //단건조회
     @Operation(summary = "단건 뉴스 조회", description = "ID로 단건 뉴스를 조회합니다.")
-    @GetMapping("/{id}")
-    public RsData<RealNewsDto> getRealNewsById(@PathVariable Long id) {
-        Optional<RealNewsDto> realNewsDto = realNewsService.getRealNewsDtoById(id);
+    @GetMapping("/{newsId}")
+    public RsData<RealNewsDto> getRealNewsById(@PathVariable Long newsId) {
 
-        return newsPageService.getSingleNews(realNewsDto, NewsType.REAL, id);
+        if (newsId == null || newsId <= 0) {
+            return RsData.of(400, "잘못된 뉴스 ID입니다. 1 이상의 숫자를 입력해주세요.");
+        }
+
+        Optional<RealNewsDto> realNewsDto = realNewsService.getRealNewsDtoById(newsId);
+
+        if (realNewsDto.isEmpty()) {
+            return RsData.of(404,
+                    String.format("ID %d에 해당하는 뉴스를 찾을 수 없습니다. 올바른 뉴스 ID인지 확인해주세요.", newsId));
+        }
+
+
+        return newsPageService.getSingleNews(realNewsDto, NewsType.REAL, newsId);
     }
 
     //다건조회(시간순)
@@ -96,19 +98,6 @@ public class RealNewsController {
         Page<RealNewsDto> RealNewsPage = realNewsService.searchRealNewsByTitle(title, pageable);
 
         return newsPageService.getPagedNews(RealNewsPage, NewsType.REAL);
-    }
-
-    //뉴스 삭제
-    @Operation(summary = "뉴스 삭제", description = "ID로 뉴스를 삭제합니다.")
-    @DeleteMapping("/{id}")
-    public RsData<Void> deleteRealNews(@PathVariable Long id) {
-        boolean deleted = realNewsService.deleteRealNews(id);
-
-        if(!deleted){
-            return RsData.of(404, String.format("ID %d에 해당하는 뉴스가 존재하지 않습니다", id));
-        }
-
-        return RsData.of(200, String.format("%d번 뉴스 삭제 완료", id));
     }
 
     private boolean isValidPageParam(int page, int size, String direction) {

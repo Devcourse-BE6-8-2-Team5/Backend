@@ -52,7 +52,7 @@ public record RealNewsDto(
         try {
             return NewsCategory.valueOf(categoryStr.toUpperCase());
         } catch (IllegalArgumentException e) {
-            return NewsCategory.SOCIETY;  // 기본값
+            return NewsCategory.NOT_FILTERED;
         }
     }
 }
