@@ -20,8 +20,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
 @RestController
 @RequestMapping("/api/members")
 @RequiredArgsConstructor
@@ -158,10 +156,10 @@ public class MemberController {
     }
 
     record ModifyReqBody(@NotBlank
-                         @Size(min = 5, max = 30, message = "이름은 최소 5자 이상이어야 합니다.")
+                         @Size(min = 2, max = 30, message = "이름은 최소 2자 이상이어야 합니다.")
                          String name,
                          @NotBlank
-                         @Size(min = 5, max = 50, message = "비밀번호는 최소 5자 이상이어야 합니다.")
+                         @Size(min = 10, max = 50)
                          String password,
                          @NotBlank
                          @Email(message = "유효한 이메일 형식이어야 합니다.")
