@@ -1,6 +1,6 @@
-package com.back.domain.news.realNews.repository;
+package com.back.domain.news.real.repository;
 
-import com.back.domain.news.realNews.entity.RealNews;
+import com.back.domain.news.real.entity.RealNews;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;

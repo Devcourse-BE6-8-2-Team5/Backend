@@ -1,7 +1,7 @@
 package com.back.domain.quiz.detail.service;
 
-import com.back.domain.news.realNews.entity.RealNews;
-import com.back.domain.news.realNews.repository.RealNewsRepository;
+import com.back.domain.news.real.entity.RealNews;
+import com.back.domain.news.real.repository.RealNewsRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;

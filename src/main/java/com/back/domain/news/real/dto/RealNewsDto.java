@@ -1,7 +1,7 @@
-package com.back.domain.news.realNews.dto;
+package com.back.domain.news.real.dto;
 
+import com.back.domain.news.common.enums.NewsCategory;
 import com.fasterxml.jackson.databind.JsonNode;
-import io.swagger.v3.core.util.Json;
 
 import java.time.LocalDateTime;
 
@@ -14,7 +14,8 @@ public record RealNewsDto(
         LocalDateTime originCreatedDate,
         String mediaName,
         String journalist,
-        String originalNewsUrl
+        String originalNewsUrl,
+        NewsCategory newsCategory
 ) {
     public static RealNewsDto of(
             String title,
@@ -25,10 +26,11 @@ public record RealNewsDto(
             LocalDateTime originCreatedDate,
             String mediaName,
             String journalist,
-            String originalNewsUrl
+            String originalNewsUrl,
+            NewsCategory newsCategory
     ) {
         return new RealNewsDto(
-                title, content, description, link, imgUrl, originCreatedDate, mediaName, journalist, originalNewsUrl
+                title, content, description, link, imgUrl, originCreatedDate, mediaName, journalist, originalNewsUrl, newsCategory
         );
     }
 
@@ -42,8 +44,16 @@ public record RealNewsDto(
                 LocalDateTime.parse(item.get("originCreatedDate").asText()),
                 item.get("mediaName").asText(),
                 item.get("journalist").asText(),
-                item.get("originalNewsUrl").asText()
+                item.get("originalNewsUrl").asText(),
+                parseNewsCategory(item.get("newsCategory").asText())
         );
+    }
+    private static NewsCategory parseNewsCategory(String categoryStr) {
+        try {
+            return NewsCategory.valueOf(categoryStr.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            return NewsCategory.SOCIETY;  // 기본값
+        }
     }
 }
 

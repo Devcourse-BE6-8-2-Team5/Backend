@@ -1,8 +1,6 @@
-package com.back.domain.news.realNews.dto;
+package com.back.domain.news.common.dto;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import lombok.Builder;
-import lombok.Getter;
 
 //네이버 API로 조회한 뉴스의 링크 정보를 바탕으로 원본 링크에서 추출할 정보들을 담은 DTO
 public record NewsDetailDto(

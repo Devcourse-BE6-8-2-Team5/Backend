@@ -1,4 +1,4 @@
-package com.back.domain.news.realNews.dto;
+package com.back.domain.news.common.dto;
 
 import com.fasterxml.jackson.databind.JsonNode;
 

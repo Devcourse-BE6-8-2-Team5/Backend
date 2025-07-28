@@ -1,6 +1,6 @@
-package com.back.domain.news.fakeNews.entity;
+package com.back.domain.news.fake.entity;
 
-import com.back.domain.news.realNews.entity.RealNews;
+import com.back.domain.news.real.entity.RealNews;
 import jakarta.persistence.*;
 import lombok.NoArgsConstructor;
 
@@ -12,7 +12,7 @@ public class FakeNews {
 
     @OneToOne
     @MapsId // 진짜뉴스의 ID를 이 엔티티의 PK로 사용
-    @JoinColumn(name = "id")
+    @JoinColumn(name = "real_news_id")
     private RealNews realNews;
 
     private String title;

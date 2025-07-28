@@ -1,10 +1,11 @@
-package com.back.domain.news.realNews.service;
+package com.back.domain.news.real.service;
 
-import com.back.domain.news.realNews.dto.NaverNewsDto;
-import com.back.domain.news.realNews.dto.NewsDetailDto;
-import com.back.domain.news.realNews.dto.RealNewsDto;
-import com.back.domain.news.realNews.entity.RealNews;
-import com.back.domain.news.realNews.repository.RealNewsRepository;
+import com.back.domain.news.common.dto.NaverNewsDto;
+import com.back.domain.news.common.dto.NewsDetailDto;
+import com.back.domain.news.common.enums.NewsCategory;
+import com.back.domain.news.real.dto.RealNewsDto;
+import com.back.domain.news.real.entity.RealNews;
+import com.back.domain.news.real.repository.RealNewsRepository;
 import com.back.global.util.HtmlEntityDecoder;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -195,7 +196,9 @@ public class RealNewsService {
                 parseNaverDate(naverNewsDto.pubDate()),
                 newsDetailDto.mediaName(),
                 newsDetailDto.journalist(),
-                naverNewsDto.originallink()
+                naverNewsDto.originallink(),
+                NewsCategory.NOT_FILTERED
+
         );
     }
 
@@ -252,7 +255,8 @@ public class RealNewsService {
                 realNewsDto.originCreatedDate(),
                 realNewsDto.mediaName(),
                 realNewsDto.journalist(),
-                realNewsDto.originalNewsUrl()
+                realNewsDto.originalNewsUrl(),
+                realNewsDto.newsCategory()
         );
     }
 
@@ -272,7 +276,8 @@ public class RealNewsService {
                 realNews.getOriginCreatedDate(),
                 realNews.getMediaName(),
                 realNews.getJournalist(),
-                realNews.getOriginalNewsUrl()
+                realNews.getOriginalNewsUrl(),
+                realNews.getNewsCategory()
         );
     }
 

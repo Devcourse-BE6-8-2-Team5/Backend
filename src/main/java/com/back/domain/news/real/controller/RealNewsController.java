@@ -1,10 +1,9 @@
-package com.back.domain.news.realNews.controller;
+package com.back.domain.news.real.controller;
 
-import com.back.domain.news.realNews.dto.NaverNewsDto;
-import com.back.domain.news.realNews.dto.RealNewsDto;
-import com.back.domain.news.realNews.service.RealNewsService;
-import com.back.domain.news.util.NewsPageService;
-import com.back.domain.news.util.NewsType;
+import com.back.domain.news.real.dto.RealNewsDto;
+import com.back.domain.news.real.service.RealNewsService;
+import com.back.domain.news.common.service.NewsPageService;
+import com.back.domain.news.common.enums.NewsType;
 import com.back.global.rsData.RsData;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -68,9 +67,9 @@ public class RealNewsController {
         Sort sortBy = Sort.by(sortDirection, "originCreatedDate");
 
         Pageable pageable = PageRequest.of(page-1, size, sortBy);
-        Page<RealNewsDto> RealNewsPage = realNewsService.getRealNewsList(pageable);
+        Page<RealNewsDto> realNewsPage = realNewsService.getRealNewsList(pageable);
 
-        return newsPageService.getPagedNews(RealNewsPage, NewsType.REAL);
+        return newsPageService.getPagedNews(realNewsPage, NewsType.REAL);
     }
 
     //다건조회(검색)
