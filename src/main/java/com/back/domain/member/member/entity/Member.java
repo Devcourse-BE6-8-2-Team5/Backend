@@ -1,6 +1,7 @@
 package com.back.domain.member.member.entity;
 
 import com.back.domain.member.quizhistory.entity.QuizHistory;
+import com.back.domain.quiz.QuizType;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Min;
 import lombok.*;
@@ -50,11 +51,21 @@ public class Member {
 
     // 유저가 푼 퀴즈 기록을 저장하는 리스트 일단 엔티티 없어서 주석
     @OneToMany(mappedBy = "member", fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.REMOVE}, orphanRemoval = true)
+    @Builder.Default
     private List<QuizHistory> quizHistories = new ArrayList<>(); //유저가 퀴즈를 푼 기록
 
-    public void addQuizHistory(QuizHistory quizHistory) {
-        quizHistories.add(quizHistory);
-        quizHistory.setMember(this);
+    public QuizHistory addQuizHistory(Long quizId, QuizType quizType, String answer, boolean isCorrect, int gainExp) {
+        QuizHistory history = QuizHistory.builder()
+                .quizId(quizId)
+                .quizType(quizType)
+                .answer(answer)
+                .isCorrect(isCorrect)
+                .gainExp(gainExp)
+                .build();
+
+        history.setMember(this);        // 연관관계 주인 설정
+        quizHistories.add(history);     // 정답 리스트에 추가
+        return history;
     }
 
     public Member(long id, String email, String name) {

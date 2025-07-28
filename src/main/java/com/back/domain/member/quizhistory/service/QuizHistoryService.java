@@ -50,24 +50,23 @@ public class QuizHistoryService {
         //경험치 적용
         actor.setExp(actor.getExp() + gainExp);
 
-        // 퀴즈 히스토리 생성
-        QuizHistory quizHistory = QuizHistory.builder()
-                .quizId(quizId)
-                .quizType(quizType)
-                .answer(answer)
-                .isCorrect(isCorrect)
-                .gainExp(gainExp)
-                .build();
+        // 퀴즈 히스토리 생성 , 연관관계 설정
+        QuizHistory quizHistory = actor.addQuizHistory(quizId, quizType, answer, isCorrect, gainExp);
 
-        // 양방향 연관관계 관리 및 저장
-        actor.addQuizHistory(quizHistory);
+
+        // 양방향 연관관계 관리 및 저장, actor저장하면 quizHistory도 저장됨
         memberRepository.save(actor);
 
         return quizHistory;
     }
 
+    @Transactional(readOnly = true)
     public List<QuizHistoryDto> getQuizHistoriesByMember(Member actor) {
-        List<QuizHistory> quizHistories = quizHistoryRepository.findAllByMemberOrderByCreatedDateDesc(actor); //푼 시간을 기준으로 내림차순 정렬(최신 풀이부터)
+        // Member의 quizHistories 리스트를 바로 가져오기 (Lazy라면 강제로 초기화 필요)
+        List<QuizHistory> quizHistories = actor.getQuizHistories();
+
+        // 필요하면 정렬 - createdDate 내림차순으로 정렬
+        quizHistories.sort((a, b) -> b.getCreatedDate().compareTo(a.getCreatedDate()));
 
         return quizHistories.stream()
                 .map(QuizHistoryDto::new)
