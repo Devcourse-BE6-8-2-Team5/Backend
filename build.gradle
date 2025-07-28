@@ -45,6 +45,8 @@ dependencies {
     implementation 'org.jsoup:jsoup:1.21.1'
     implementation 'org.springframework.ai:spring-ai-starter-model-openai:1.0.0'
 
+    implementation 'com.bucket4j:bucket4j_jdk17-core:8.14.0'
+
     compileOnly 'org.projectlombok:lombok'
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
 

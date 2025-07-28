@@ -1,7 +1,7 @@
 package com.back.global.ai.processor;
 
+import com.back.domain.quiz.detail.dto.DetailQuizDto;
 import com.back.domain.quiz.detail.dto.DetailQuizReqDto;
-import com.back.domain.quiz.detail.dto.DetailQuizResDto;
 import com.back.global.exception.ServiceException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.ai.chat.model.ChatResponse;
@@ -11,7 +11,7 @@ import java.util.List;
 /**
  * 뉴스 제목과 본문을 기반 상세 퀴즈 3개를 생성하는 AI 요청 Processor 입니다.
  */
-public class DetailQuizProcessor implements AiRequestProcessor<List<DetailQuizResDto>> {
+public class DetailQuizProcessor implements AiRequestProcessor<List<DetailQuizDto>> {
     private final DetailQuizReqDto req;
     private final ObjectMapper objectMapper;
 
@@ -72,14 +72,14 @@ public class DetailQuizProcessor implements AiRequestProcessor<List<DetailQuizRe
 
     // AI 응답을 파싱하여 DetailQuizResDto 리스트로 변환
     @Override
-    public List<DetailQuizResDto> parseResponse(ChatResponse response) {
+    public List<DetailQuizDto> parseResponse(ChatResponse response) {
 
         String text = response.getResult().getOutput().getText();
         if (text == null || text.trim().isEmpty()) {
             throw new ServiceException(500, "AI 응답이 비어있습니다");
         }
 
-        List<DetailQuizResDto> result;
+        List<DetailQuizDto> result;
 
         // JSON 형식의 응답에서 ```json ... ``` 부분을 제거하여 순수 JSON 문자열로 변환
         String cleanedJson = text.replaceAll("(?s)```json\\s*(.*?)\\s*```", "$1").trim();
@@ -89,12 +89,11 @@ public class DetailQuizProcessor implements AiRequestProcessor<List<DetailQuizRe
             // JSON의 키 이름과 변환하려는 객체(DetailQuizResDto)의 필드 이름이 일치해야 합니다.
             result = objectMapper.readValue(
                     cleanedJson,
-                    objectMapper.getTypeFactory().constructCollectionType(List.class, DetailQuizResDto.class)
+                    objectMapper.getTypeFactory().constructCollectionType(List.class, DetailQuizDto.class)
             );
         } catch (Exception e) {
-            throw new ServiceException(500, "AI 응답이 JSON 형식이 아닙니다. 응답: " + cleanedJson);
+            throw new ServiceException(500, "AI 응답이 JSON 형식이 아닙니다. 응답: " + text);
         }
-
 
         if (result.size() != 3) {
             throw new ServiceException(500, "뉴스 하나당 3개의 퀴즈가 생성되어야 합니다. 생성된 수: " + result.size());

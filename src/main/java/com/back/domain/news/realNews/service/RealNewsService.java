@@ -53,6 +53,9 @@ public class RealNewsService {
     @Value("${naver.crawling.delay}")
     private int crawlingDelay;
 
+    @Value("${naver.base-url}")
+    private String naverUrl;
+
     // 서비스 초기화 시 설정값 검증
     @PostConstruct
     public void validateConfig(){
@@ -82,8 +85,14 @@ public class RealNewsService {
                     // 크롤링 실패 시 해당 뉴스는 건너뜀
                     continue;
                 }
+
                 RealNewsDto realNewsDto = MakeRealNewsFromInf(naverMetaData, newsDetailData);
-                realNewsDtoList.add(realNewsDto);
+
+                // 중복된 뉴스 제목이 있는지 확인
+                if(!realNewsRepository.existsByTitle(realNewsDto.title())){
+                    realNewsDtoList.add(realNewsDto);
+                }
+
 
                 Thread.sleep(crawlingDelay);
             }
@@ -108,7 +117,7 @@ public class RealNewsService {
         try {
             //display는 한 번에 보여줄 뉴스의 개수, sort는 정렬 기준 (date: 최신순, sim: 정확도순)
             //일단 3건 패치하도록 해놨습니다. yml 에서 작성해서 사용하세요(10건 이상 x)
-            String url = "https://openapi.naver.com/v1/search/news?query={query}&display=" + newsDisplayCount + "&sort=" + newsSortOrder;
+            String url = naverUrl + query + "&display=" + newsDisplayCount + "&sort=" + newsSortOrder;
 
             // http 요청 헤더 설정 (아래는 네이버 디폴트 형식)
             HttpHeaders headers = new HttpHeaders();
@@ -283,5 +292,15 @@ public class RealNewsService {
     public Page<RealNewsDto> searchRealNewsByTitle(String title, Pageable pageable) {
         Page<RealNews> realNewsPage = realNewsRepository.findByTitleContaining(title, pageable);
         return realNewsPage.map(this::convertEntityToDto);
+    }
+
+    @Transactional
+    public boolean deleteRealNews(Long id) {
+        if(!realNewsRepository.existsById(id)) {
+            return false;
+        }
+
+        realNewsRepository.deleteById(id);
+        return true;
     }
 }
