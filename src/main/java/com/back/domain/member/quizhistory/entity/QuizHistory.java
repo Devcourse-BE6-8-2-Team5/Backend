@@ -27,6 +27,7 @@ public class QuizHistory {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id")
+    @Setter
     Member member; //member_id
 
     @Column(nullable = false)

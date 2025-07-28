@@ -1,6 +1,7 @@
 package com.back.domain.member.quizhistory.service;
 
 import com.back.domain.member.member.entity.Member;
+import com.back.domain.member.member.repository.MemberRepository;
 import com.back.domain.member.quizhistory.dto.QuizHistoryDto;
 import com.back.domain.member.quizhistory.entity.QuizHistory;
 import com.back.domain.member.quizhistory.repository.QuizHistoryRepository;
@@ -18,6 +19,7 @@ import java.util.List;
 public class QuizHistoryService {
 
     private final QuizHistoryRepository quizHistoryRepository;
+    private final MemberRepository memberRepository;
 
     // detail, fact, daily 퀴즈 도메인별
     private final DetailQuizRepository detailQuizRepository;
@@ -55,10 +57,11 @@ public class QuizHistoryService {
                 .answer(answer)
                 .isCorrect(isCorrect)
                 .gainExp(gainExp)
-                .member(actor)
                 .build();
 
-        quizHistoryRepository.save(quizHistory);
+        // 양방향 연관관계 관리 및 저장
+        actor.addQuizHistory(quizHistory);
+        memberRepository.save(actor);
 
         return quizHistory;
     }

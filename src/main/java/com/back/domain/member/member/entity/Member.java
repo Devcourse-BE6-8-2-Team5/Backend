@@ -49,8 +49,13 @@ public class Member {
     private String apiKey; // 리프레시 토큰
 
     // 유저가 푼 퀴즈 기록을 저장하는 리스트 일단 엔티티 없어서 주석
-    @OneToMany(mappedBy ="member", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "member", fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.REMOVE}, orphanRemoval = true)
     private List<QuizHistory> quizHistories = new ArrayList<>(); //유저가 퀴즈를 푼 기록
+
+    public void addQuizHistory(QuizHistory quizHistory) {
+        quizHistories.add(quizHistory);
+        quizHistory.setMember(this);
+    }
 
     public Member(long id, String email, String name) {
         setId(id);
