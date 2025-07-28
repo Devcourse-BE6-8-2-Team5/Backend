@@ -1,6 +1,7 @@
 package com.back.domain.quiz.detail.entity;
 
 import com.back.domain.news.realNews.entity.RealNews;
+import com.back.domain.quiz.QuizType;
 import com.back.domain.quiz.detail.dto.DetailQuizDto;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
@@ -35,6 +36,10 @@ public class DetailQuiz {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "real_news_id")
     private RealNews realNews;
+
+    @Enumerated(EnumType.STRING)
+    @NotNull
+    private QuizType quizType = QuizType.DETAIL;
 
     // 정답 선택지 텍스트 반환
     public String getCorrectAnswerText() {
