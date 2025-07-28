@@ -142,7 +142,7 @@ public class MemberController {
 
         Member actor = rq.getActor();
         if (actor == null) {
-            throw new ServiceException(401,"로그인이 필요합니다.");
+            throw new ServiceException(401, "로그인이 필요합니다.");
         }
 
         Member member = memberService.findById(actor.getId())
@@ -154,4 +154,69 @@ public class MemberController {
                 new MemberWithInfoDto(member)
         );
     }
+
+    record ModifyReqBody(@NotBlank
+                         @Size(min = 2, max = 30, message = "이름은 최소 2자 이상이어야 합니다.")
+                         String name,
+                         @NotBlank
+                         @Size(min = 10, max = 50)
+                         String password,
+                         @NotBlank
+                         @Email(message = "유효한 이메일 형식이어야 합니다.")
+                         String email) {
+    }
+
+    @Operation(summary = "회원 정보 수정 (이름,비밀번호,메일)")
+    @PutMapping("/info")
+    @Transactional
+    public RsData<MemberWithAuthDto> modifyInfo(@RequestBody @Valid ModifyReqBody reqBody) {
+        Member actor = rq.getActor();
+        if (actor == null) {
+            throw new ServiceException(401, "로그인이 필요합니다.");
+        }
+
+        Member member = memberService.findById(actor.getId())
+                .orElseThrow(() -> new ServiceException(404, "존재하지 않는 회원입니다."));
+
+        // 이메일 중복 체크
+        if(!member.getEmail().equals(reqBody.email())) {
+            memberService.findByEmail(reqBody.email())
+                    .ifPresent(_member -> {
+                        throw new ServiceException(409, "이미 존재하는 이메일입니다.");
+                    });
+        }
+
+        memberService.modify(member, reqBody.name(), reqBody.password(), reqBody.email());
+
+        return new RsData<>(
+                200,
+                "회원 정보 수정 완료",
+                new MemberWithAuthDto(member)
+        );
+
+    }
+
+    @Operation(summary = "회원 탈퇴")
+    @DeleteMapping("/withdraw")
+    @Transactional
+    public RsData<Void> withdraw() {
+        Member actor = rq.getActor();
+        if (actor == null) {
+            throw new ServiceException(401, "로그인이 필요합니다.");
+        }
+        Member member = memberService.findById(actor.getId())
+                .orElseThrow(() -> new ServiceException(404, "존재하지 않는 회원입니다."));
+
+        memberService.withdraw(member);
+
+        rq.deleteCookie("apiKey");
+        rq.deleteCookie("accessToken");
+
+        return new RsData<>(
+                200,
+                "회원 탈퇴가 완료되었습니다.",
+                null
+        );
+    }
+
 }

@@ -2,10 +2,13 @@ package com.back.domain.member.member.service;
 
 import com.back.domain.member.member.entity.Member;
 import com.back.domain.member.member.repository.MemberRepository;
+import com.back.global.exception.ServiceException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -58,5 +61,24 @@ public class MemberService {
 
     public Member save(Member member) {
         return memberRepository.save(member);
+    }
+
+    @Transactional
+    public void modify(Member member, String name,  String password, String email) {
+        member.setName(name);
+        member.setPassword(passwordEncoder.encode(password));
+        member.setEmail(email);
+        memberRepository.save(member);
+    }
+
+    public void withdraw(Member member) {
+        if(member.isAdmin())
+            throw new ServiceException(403,"관리자는 탈퇴할 수 없습니다.");
+
+        memberRepository.delete(member);
+    }
+
+    public List<Member> findAll() {
+        return memberRepository.findAll();
     }
 }
