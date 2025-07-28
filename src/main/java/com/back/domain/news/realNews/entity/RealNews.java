@@ -8,18 +8,19 @@ import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-
-import java.time.LocalDateTime;
-
-import static jakarta.persistence.CascadeType.*;
-import static jakarta.persistence.FetchType.*;
+import static jakarta.persistence.CascadeType.ALL;
+import static jakarta.persistence.FetchType.LAZY;
 import static jakarta.persistence.GenerationType.IDENTITY;
 
 @Entity
+@EntityListeners(AuditingEntityListener.class)
 @Getter
 @NoArgsConstructor
 public class RealNews {
@@ -52,6 +53,9 @@ public class RealNews {
 
     @Enumerated(EnumType.STRING)
     private NewsCategory newsCategory;
+
+    @CreatedDate
+    private LocalDateTime createdDate; // 생성 날짜(DB에 저장된 날짜)
 
     @Builder
     public RealNews(

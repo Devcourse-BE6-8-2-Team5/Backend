@@ -9,20 +9,20 @@ public class MemberWithAuthDto {
     private Long id;
     private String name;
     private String email;
-    private boolean isAdmin;
+    private String role;
 
     public MemberWithAuthDto(Long id, String email, String name) {
         this.id = id;
         this.email = email;
         this.name = name;
-        this.isAdmin = false;
+        this.role = "USER";
     }
 
     public MemberWithAuthDto(Member member) {
         this.id = member.getId();
         this.email = member.getEmail();
         this.name = member.getName();
-        this.isAdmin = member.isAdmin();
+        this.role = member.getRole();
     }
 }
 

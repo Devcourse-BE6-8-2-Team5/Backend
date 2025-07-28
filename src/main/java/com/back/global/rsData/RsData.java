@@ -23,4 +23,5 @@ public record RsData<T>(int code, String message, T data) {
     public static <T> RsData<T> failOf(String message) {
         return of(500, message, null);
     }
+
 }
