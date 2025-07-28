@@ -57,3 +57,5 @@ keyword:
   overuse:
     days: 5
     threshold: 3
+  cleanup:
+    retention-days: 0 # 키워드 history 삭제 기준
