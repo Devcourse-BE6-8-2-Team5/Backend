@@ -3,6 +3,7 @@ package com.back.domain.news.fake.entity;
 import com.back.domain.news.real.entity.RealNews;
 import com.back.domain.quiz.fact.entity.FactQuiz;
 import jakarta.persistence.*;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.util.ArrayList;
@@ -11,6 +12,7 @@ import java.util.List;
 import static jakarta.persistence.CascadeType.ALL;
 
 @Entity
+@Getter
 @NoArgsConstructor
 public class FakeNews {
     @Id
