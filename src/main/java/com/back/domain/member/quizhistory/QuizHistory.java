@@ -26,6 +26,7 @@ public class QuizHistory {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "member_id")
     Member member; //member_id
 
     @Column(nullable = false)
