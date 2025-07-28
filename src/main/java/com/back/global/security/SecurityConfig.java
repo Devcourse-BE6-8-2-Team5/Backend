@@ -30,6 +30,12 @@ public class SecurityConfig {
                                 .requestMatchers("/favicon.ico").permitAll()
                                 .requestMatchers("/h2-console/**").permitAll()
 
+                                .requestMatchers(HttpMethod.GET, "/api/admin/**").permitAll()
+                                .requestMatchers(HttpMethod.POST, "/api/admin/**").permitAll()
+                                .requestMatchers(HttpMethod.DELETE, "/api/admin/**").permitAll()
+                                .requestMatchers(HttpMethod.GET, "/api/real-news/**").permitAll()
+                                .requestMatchers(HttpMethod.POST, "/api/real-news/**").permitAll()
+                                .requestMatchers(HttpMethod.DELETE, "/api/real-news/**").permitAll()
                                 //모두 접근 가능한 API
                                 .requestMatchers(HttpMethod.GET,  "/메인페이지/뉴스목록", "/뉴스상세페이지", "/오늘의뉴스페이지", "/ox퀴즈페이지").permitAll()
                                 .requestMatchers(HttpMethod.POST, "/api/members/login", "/api/members/join").permitAll()

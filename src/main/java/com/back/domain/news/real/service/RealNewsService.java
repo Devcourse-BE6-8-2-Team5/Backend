@@ -299,13 +299,5 @@ public class RealNewsService {
         return realNewsPage.map(this::convertEntityToDto);
     }
 
-    @Transactional
-    public boolean deleteRealNews(Long id) {
-        if(!realNewsRepository.existsById(id)) {
-            return false;
-        }
 
-        realNewsRepository.deleteById(id);
-        return true;
-    }
 }
