@@ -76,4 +76,17 @@ public class DetailQuizController {
         );
     }
 
+
+    // 상세 퀴즈 수정(퀴즈 ID로 수정) - 퀴즈 품질 관리를 위한 api, admin 전용
+    @Operation(summary="퀴즈 ID 기반 상세 퀴즈 수정", description = "퀴즈 ID로 상세 퀴즈를 수정합니다.")
+    @PutMapping("/{id}")
+    public RsData<DetailQuizDto> updateDetailQuiz(@PathVariable Long id, @RequestBody DetailQuizDto detailQuizDto) {
+        DetailQuiz updatedQuiz = detailQuizService.updateDetailQuiz(id, detailQuizDto);
+        return new RsData<>(
+                200,
+                "상세 퀴즈 수정 성공",
+                new DetailQuizDto(updatedQuiz)
+        );
+    }
+
 }

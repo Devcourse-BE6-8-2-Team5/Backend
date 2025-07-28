@@ -79,4 +79,19 @@ public class DetailQuizService {
 
         return savedQuizzes;
     }
+
+
+    @Transactional
+    public DetailQuiz updateDetailQuiz(Long id, DetailQuizDto detailQuizDto) {
+        DetailQuiz quiz = detailQuizRepository.findById(id)
+                .orElseThrow(() -> new ServiceException(400, "해당 id의 상세 퀴즈가 존재하지 않습니다. id: " + id));
+
+        quiz.setQuestion(detailQuizDto.question());
+        quiz.setOption1(detailQuizDto.option1());
+        quiz.setOption2(detailQuizDto.option2());
+        quiz.setOption3(detailQuizDto.option3());
+        quiz.setCorrectOption(detailQuizDto.correctOption());
+
+        return detailQuizRepository.save(quiz);
+    }
 }
