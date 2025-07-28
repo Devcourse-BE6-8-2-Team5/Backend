@@ -12,7 +12,7 @@ public class FakeNews {
 
     @OneToOne
     @MapsId // 진짜뉴스의 ID를 이 엔티티의 PK로 사용
-    @JoinColumn(name = "id")
+    @JoinColumn(name = "real_news_id")
     private RealNews realNews;
 
     private String title;
