@@ -35,14 +35,16 @@ public class KeywordCleanupService {
 
     // 관리자 수동 삭제
     @Transactional
-    public void adminCleanup(int days) {
+    public int adminCleanup(int days) {
         LocalDate cutoffDate = LocalDate.now().minusDays(days);
 
         try{
             int deletedCount = keywordHistoryRepository.deleteByUsedDateBefore(cutoffDate);
             log.info("키워드 정리 완료 - {}일 이전 키워드 {}개 삭제", days, deletedCount);
+            return deletedCount;
         } catch (Exception e) {
             log.error("키워드 정리 중 오류 발생: {}", e.getMessage(), e);
+            throw new RuntimeException(e);
         }
     }
 }

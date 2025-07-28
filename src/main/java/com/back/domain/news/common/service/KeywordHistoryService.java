@@ -37,15 +37,15 @@ public class KeywordHistoryService {
             NewsCategory category,
             LocalDate usedDate) {
 
-        for (KeywordWithType keyword : keywords) {
-            KeywordHistory newKeyword = KeywordHistory.builder()
-                    .keywordWithType(keyword)
-                    .category(category)
-                    .usedDate(usedDate)
-                    .build();
-            keywordHistoryRepository.save(newKeyword);
-        }
+        List<KeywordHistory> keywordHistories = keywords.stream()
+                .map(keyword -> KeywordHistory.builder()
+                        .keywordWithType(keyword)
+                        .category(category)
+                        .usedDate(usedDate)
+                        .build())
+                .toList();
 
+        keywordHistoryRepository.saveAll(keywordHistories);
     }
 
         // 1. 최근 5일간 3회 이상 사용된 키워드 (과도한 반복 방지)
