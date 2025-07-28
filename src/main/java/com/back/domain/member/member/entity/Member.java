@@ -1,6 +1,6 @@
 package com.back.domain.member.member.entity;
 
-import com.back.domain.member.quizhistory.QuizHistory;
+import com.back.domain.member.quizhistory.entity.QuizHistory;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Min;
 import lombok.*;

@@ -1,4 +1,4 @@
-package com.back.domain.member.quizhistory;
+package com.back.domain.member.quizhistory.entity;
 
 import com.back.domain.member.member.entity.Member;
 import com.back.domain.quiz.QuizType;
