@@ -1,10 +1,10 @@
-package com.back.domain.member.controller;
+package com.back.domain.member.member.controller;
 
-import com.back.domain.member.dto.MemberDto;
-import com.back.domain.member.dto.MemberWithAuthDto;
-import com.back.domain.member.dto.MemberWithInfoDto;
-import com.back.domain.member.entity.Member;
-import com.back.domain.member.service.MemberService;
+import com.back.domain.member.member.dto.MemberDto;
+import com.back.domain.member.member.dto.MemberWithAuthDto;
+import com.back.domain.member.member.dto.MemberWithInfoDto;
+import com.back.domain.member.member.entity.Member;
+import com.back.domain.member.member.service.MemberService;
 import com.back.global.exception.ServiceException;
 import com.back.global.rq.Rq;
 import com.back.global.rsData.RsData;

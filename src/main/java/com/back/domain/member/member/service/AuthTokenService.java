@@ -1,6 +1,6 @@
-package com.back.domain.member.service;
+package com.back.domain.member.member.service;
 
-import com.back.domain.member.entity.Member;
+import com.back.domain.member.member.entity.Member;
 import com.back.global.standard.util.Ut;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
