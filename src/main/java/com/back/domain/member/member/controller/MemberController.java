@@ -159,7 +159,7 @@ public class MemberController {
 
     }
 
-    @Operation(summary = "(단건)회원 정보 조회- 관리자 전용")
+    @Operation(summary = "(단건)회원 정보 조회- 관리자 전용 (아이디로 조회)")
     @GetMapping("/admin/members/{id}")
     @Transactional
     public RsData<MemberWithInfoDto> getMemberById(@PathVariable Long id) {
