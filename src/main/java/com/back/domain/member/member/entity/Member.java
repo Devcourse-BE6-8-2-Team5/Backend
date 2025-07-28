@@ -1,5 +1,6 @@
 package com.back.domain.member.member.entity;
 
+import com.back.domain.member.quizhistory.QuizHistory;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Min;
 import lombok.*;
@@ -48,8 +49,8 @@ public class Member {
     private String apiKey; // 리프레시 토큰
 
     // 유저가 푼 퀴즈 기록을 저장하는 리스트 일단 엔티티 없어서 주석
-    //@OneToMany(mappedBy ="member", cascade = CascadeType.ALL, orphanRemoval = true)
-    //private List<memberQuizAnswer> memberQuizAnswers = new ArrayList<>(); //유저가 퀴즈를 푼 기록
+    @OneToMany(mappedBy ="member", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<QuizHistory> quizHistories = new ArrayList<>(); //유저가 퀴즈를 푼 기록
 
     public Member(long id, String email, String name) {
         setId(id);

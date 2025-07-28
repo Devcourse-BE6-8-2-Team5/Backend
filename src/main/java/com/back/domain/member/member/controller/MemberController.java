@@ -20,6 +20,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/members")
 @RequiredArgsConstructor
@@ -135,6 +137,48 @@ public class MemberController {
         );
     }
 
+
+    @Operation(summary = "(다건)전제 회원 정보 조회-관리자 전용")
+    @GetMapping("/admin/members")
+    @Transactional(readOnly = true)
+    public RsData<List<MemberWithInfoDto>> listMembers() {
+        Member actor = rq.getActor();
+        if (actor == null || !actor.isAdmin()) {
+            throw new ServiceException(403, "관리자 권한이 필요합니다.");
+        }
+
+        List<Member> members = memberService.findAll();
+
+        return new RsData<>(
+                200,
+                "전체 회원 정보 조회 완료",
+                members.stream()
+                        .map(MemberWithInfoDto::new)
+                        .toList()
+        );
+
+    }
+
+    @Operation(summary = "(단건)회원 정보 조회- 관리자 전용")
+    @GetMapping("/admin/members/{id}")
+    @Transactional
+    public RsData<MemberWithInfoDto> getMemberById(@PathVariable Long id) {
+        Member actor = rq.getActor();
+        if( actor == null || !actor.isAdmin()) {
+            throw new ServiceException(403, "관리자 권한이 필요합니다.");
+        }
+
+        Member member = memberService.findById(id)
+                .orElseThrow(() -> new ServiceException(404, "존재하지 않는 회원입니다."));
+
+        return new RsData<>(
+                200,
+                "단건 회원 정보 조회 완료",
+                new MemberWithInfoDto(member)
+        );
+    }
+
+
     @Operation(summary = "회원 정보 조회 = 마이페이지")
     @GetMapping("/info")
     @Transactional(readOnly = true)
@@ -142,7 +186,7 @@ public class MemberController {
 
         Member actor = rq.getActor();
         if (actor == null) {
-            throw new ServiceException(401,"로그인이 필요합니다.");
+            throw new ServiceException(401, "로그인이 필요합니다.");
         }
 
         Member member = memberService.findById(actor.getId())
@@ -197,7 +241,7 @@ public class MemberController {
             throw new ServiceException(401, "로그인이 필요합니다.");
         }
         Member member = memberService.findById(actor.getId())
-                .orElseThrow(()-> new ServiceException(404, "존재하지 않는 회원입니다."));
+                .orElseThrow(() -> new ServiceException(404, "존재하지 않는 회원입니다."));
 
         memberService.withdraw(member);
 
