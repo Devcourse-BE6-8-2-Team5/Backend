@@ -15,10 +15,9 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/histories")
@@ -61,6 +60,24 @@ public class QuizHistoryController {
                 200,
                 "퀴즈 히스토리 생성 성공",
                 new QuizHistoryDto(history)
+        );
+    }
+
+    @GetMapping
+    @Operation(summary = "현재 로그인한 유저의 퀴즈 풀이 기록 다건 조회")
+    public RsData<List<QuizHistoryDto>> getListQuizHistories() {
+        Member actor = rq.getActor();
+
+        if(actor == null) {
+            throw new ServiceException(401, "로그인이 필요합니다.");
+        }
+
+        List<QuizHistoryDto> histories = quizHistoryService.getQuizHistoriesByMember(actor);
+
+        return new RsData<>(
+                200,
+                "퀴즈 히스토리 다건 조회 성공",
+                histories
         );
     }
 

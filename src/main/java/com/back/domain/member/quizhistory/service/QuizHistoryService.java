@@ -1,6 +1,7 @@
 package com.back.domain.member.quizhistory.service;
 
 import com.back.domain.member.member.entity.Member;
+import com.back.domain.member.quizhistory.dto.QuizHistoryDto;
 import com.back.domain.member.quizhistory.entity.QuizHistory;
 import com.back.domain.member.quizhistory.repository.QuizHistoryRepository;
 import com.back.domain.quiz.QuizType;
@@ -8,6 +9,8 @@ import com.back.domain.quiz.detail.repository.DetailQuizRepository;
 import com.back.global.exception.ServiceException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -56,5 +59,13 @@ public class QuizHistoryService {
         quizHistoryRepository.save(quizHistory);
 
         return quizHistory;
+    }
+
+    public List<QuizHistoryDto> getQuizHistoriesByMember(Member actor) {
+        List<QuizHistory> quizHistories = quizHistoryRepository.findAllByMemberOrderByCreatedDateDesc(actor); //푼 시간을 기준으로 내림차순 정렬(최신 풀이부터)
+
+        return quizHistories.stream()
+                .map(QuizHistoryDto::new)
+                .toList();
     }
 }
