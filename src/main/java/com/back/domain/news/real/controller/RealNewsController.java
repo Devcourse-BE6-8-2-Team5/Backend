@@ -67,9 +67,9 @@ public class RealNewsController {
         Sort sortBy = Sort.by(sortDirection, "originCreatedDate");
 
         Pageable pageable = PageRequest.of(page-1, size, sortBy);
-        Page<RealNewsDto> RealNewsPage = realNewsService.getRealNewsList(pageable);
+        Page<RealNewsDto> realNewsPage = realNewsService.getRealNewsList(pageable);
 
-        return newsPageService.getPagedNews(RealNewsPage, NewsType.REAL);
+        return newsPageService.getPagedNews(realNewsPage, NewsType.REAL);
     }
 
     //다건조회(검색)

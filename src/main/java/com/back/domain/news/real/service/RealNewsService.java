@@ -2,6 +2,7 @@ package com.back.domain.news.real.service;
 
 import com.back.domain.news.common.dto.NaverNewsDto;
 import com.back.domain.news.common.dto.NewsDetailDto;
+import com.back.domain.news.common.enums.NewsCategory;
 import com.back.domain.news.real.dto.RealNewsDto;
 import com.back.domain.news.real.entity.RealNews;
 import com.back.domain.news.real.repository.RealNewsRepository;
@@ -195,7 +196,9 @@ public class RealNewsService {
                 parseNaverDate(naverNewsDto.pubDate()),
                 newsDetailDto.mediaName(),
                 newsDetailDto.journalist(),
-                naverNewsDto.originallink()
+                naverNewsDto.originallink(),
+                NewsCategory.NOT_FILTERED
+
         );
     }
 
@@ -252,7 +255,8 @@ public class RealNewsService {
                 realNewsDto.originCreatedDate(),
                 realNewsDto.mediaName(),
                 realNewsDto.journalist(),
-                realNewsDto.originalNewsUrl()
+                realNewsDto.originalNewsUrl(),
+                realNewsDto.newsCategory()
         );
     }
 
@@ -272,7 +276,8 @@ public class RealNewsService {
                 realNews.getOriginCreatedDate(),
                 realNews.getMediaName(),
                 realNews.getJournalist(),
-                realNews.getOriginalNewsUrl()
+                realNews.getOriginalNewsUrl(),
+                realNews.getNewsCategory()
         );
     }
 

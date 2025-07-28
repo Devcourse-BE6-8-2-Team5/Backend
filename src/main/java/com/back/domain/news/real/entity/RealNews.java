@@ -68,7 +68,8 @@ public class RealNews {
             LocalDateTime originCreatedDate,
             String mediaName,
             String journalist,
-            String originalNewsUrl) {
+            String originalNewsUrl,
+            NewsCategory newsCategory) {
         this.title = title;
         this.content = content;
         this.description = description;
@@ -78,6 +79,7 @@ public class RealNews {
         this.mediaName = mediaName;
         this.journalist = journalist;
         this.originalNewsUrl = originalNewsUrl;
+        this.newsCategory = newsCategory;
     }
 
 }
