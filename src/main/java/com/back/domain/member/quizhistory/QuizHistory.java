@@ -41,7 +41,7 @@ public class QuizHistory {
     private LocalDateTime createdDate; // 퀴즈 풀이 시간
 
     @Column(nullable = false)
-    String answer; // 퀴즈 정답
+    String answer; // 유저 정답
 
     @Column(nullable = false)
     boolean isCorrect; // 퀴즈 정답 여부
