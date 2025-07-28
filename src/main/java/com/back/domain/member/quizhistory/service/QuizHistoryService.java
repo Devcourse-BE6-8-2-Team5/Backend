@@ -9,6 +9,7 @@ import com.back.domain.quiz.detail.repository.DetailQuizRepository;
 import com.back.global.exception.ServiceException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -24,6 +25,7 @@ public class QuizHistoryService {
     //private final DailyQuizRepository dailyQuizRepository;
 
 
+    @Transactional
     public QuizHistory createQuizHistory(Member actor, Long quizId, QuizType quizType, String answer) {
 
         // 퀴즈 정답 가져오기
