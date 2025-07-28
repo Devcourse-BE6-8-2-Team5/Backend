@@ -7,15 +7,33 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface FactQuizRepository extends JpaRepository<FactQuiz, Long> {
 
     // FactQuiz에서 RealNews.newsCategory 기반으로 조회 (N+1 문제 방지를 위해 JOIN FETCH 사용)
     @Query("""
-            SELECT fq
+            SELECT DISTINCT fq
             FROM FactQuiz fq
             JOIN FETCH fq.realNews rn
             WHERE rn.newsCategory = :category
             """)
     List<FactQuiz> findByCategory(@Param("category") NewsCategory category);
+
+    //
+    @Query("""
+            SELECT DISTINCT fq
+            FROM FactQuiz fq
+            JOIN FETCH fq.realNews
+            """)
+    List<FactQuiz> findAllWithNews();
+
+    @Query("""
+            SELECT DISTINCT fq
+            FROM FactQuiz fq
+            JOIN FETCH fq.realNews
+            JOIN FETCH fq.fakeNews
+            WHERE fq.id = :id
+            """)
+    Optional<FactQuiz> findByIdWithNews(@Param("id") Long id);
 }

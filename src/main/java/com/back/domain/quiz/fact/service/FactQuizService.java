@@ -15,7 +15,7 @@ public class FactQuizService {
     private final FactQuizRepository factQuizRepository;
 
     public List<FactQuiz> findAll() {
-        return factQuizRepository.findAll();
+        return factQuizRepository.findAllWithNews();
     }
 
     public List<FactQuiz> findByCategory(NewsCategory category) {
@@ -23,7 +23,7 @@ public class FactQuizService {
     }
 
     public FactQuiz findById(Long id) {
-        return factQuizRepository.findById(id)
+        return factQuizRepository.findByIdWithNews(id)
                 .orElseThrow(() -> new ServiceException(404, "팩트 퀴즈를 찾을 수 없습니다. ID: " + id));
     }
 }
