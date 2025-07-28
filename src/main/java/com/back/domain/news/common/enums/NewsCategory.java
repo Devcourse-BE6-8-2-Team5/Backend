@@ -1,4 +1,4 @@
-package com.back.domain.news.util;
+package com.back.domain.news.common.enums;
 
 import lombok.Getter;
 

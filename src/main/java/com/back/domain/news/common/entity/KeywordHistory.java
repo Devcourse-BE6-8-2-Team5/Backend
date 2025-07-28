@@ -1,8 +1,7 @@
 package com.back.domain.news.common.entity;
 
 import com.back.domain.news.common.dto.KeywordWithType;
-import com.back.domain.news.common.enums.KeywordType;
-import com.back.domain.news.util.NewsCategory;
+import com.back.domain.news.common.enums.NewsCategory;
 import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;

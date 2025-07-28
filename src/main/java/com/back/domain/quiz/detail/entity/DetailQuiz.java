@@ -1,6 +1,6 @@
 package com.back.domain.quiz.detail.entity;
 
-import com.back.domain.news.realNews.entity.RealNews;
+import com.back.domain.news.real.entity.RealNews;
 import com.back.domain.quiz.QuizType;
 import com.back.domain.quiz.detail.dto.DetailQuizDto;
 import jakarta.persistence.*;

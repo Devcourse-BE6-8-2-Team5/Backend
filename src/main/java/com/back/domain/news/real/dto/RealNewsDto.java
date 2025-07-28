@@ -1,7 +1,6 @@
-package com.back.domain.news.realNews.dto;
+package com.back.domain.news.real.dto;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import io.swagger.v3.core.util.Json;
 
 import java.time.LocalDateTime;
 

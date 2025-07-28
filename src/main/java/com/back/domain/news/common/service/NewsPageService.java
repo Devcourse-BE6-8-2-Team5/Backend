@@ -1,5 +1,6 @@
-package com.back.domain.news.util;
+package com.back.domain.news.common.service;
 
+import com.back.domain.news.common.enums.NewsType;
 import com.back.global.rsData.RsData;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;

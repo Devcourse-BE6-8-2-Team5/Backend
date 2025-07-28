@@ -1,8 +1,8 @@
-package com.back.domain.news.realNews.entity;
+package com.back.domain.news.real.entity;
 
 
-import com.back.domain.news.fakeNews.entity.FakeNews;
-import com.back.domain.news.util.NewsCategory;
+import com.back.domain.news.fake.entity.FakeNews;
+import com.back.domain.news.common.enums.NewsCategory;
 import com.back.domain.quiz.detail.entity.DetailQuiz;
 import jakarta.persistence.*;
 import lombok.Builder;

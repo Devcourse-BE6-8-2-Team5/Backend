@@ -1,7 +1,7 @@
 package com.back.domain.quiz.detail.service;
 
-import com.back.domain.news.realNews.entity.RealNews;
-import com.back.domain.news.realNews.repository.RealNewsRepository;
+import com.back.domain.news.real.entity.RealNews;
+import com.back.domain.news.real.repository.RealNewsRepository;
 import com.back.domain.quiz.detail.dto.DetailQuizDto;
 import com.back.domain.quiz.detail.dto.DetailQuizReqDto;
 import com.back.domain.quiz.detail.entity.DetailQuiz;

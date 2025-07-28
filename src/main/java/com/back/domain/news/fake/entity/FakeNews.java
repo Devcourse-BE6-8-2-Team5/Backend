@@ -1,6 +1,6 @@
-package com.back.domain.news.fakeNews.entity;
+package com.back.domain.news.fake.entity;
 
-import com.back.domain.news.realNews.entity.RealNews;
+import com.back.domain.news.real.entity.RealNews;
 import jakarta.persistence.*;
 import lombok.NoArgsConstructor;
 

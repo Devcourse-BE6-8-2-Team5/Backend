@@ -5,7 +5,7 @@ import com.back.domain.news.common.dto.KeywordGenerationResDto;
 import com.back.domain.news.common.dto.KeywordWithType;
 import com.back.domain.news.common.entity.KeywordHistory;
 import com.back.domain.news.common.repository.KeywordHistoryRepository;
-import com.back.domain.news.util.NewsCategory;
+import com.back.domain.news.common.enums.NewsCategory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
