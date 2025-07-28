@@ -28,7 +28,7 @@ logging:
     com.back: DEBUG
 custom:
   jwt:
-    secretKey: 9f8d7s6a5!@#QWERTYuiopZXCVBNM123456
+    secretKey: ${JWT_SECRET_KEY}
   accessToken:
     expirationSeconds: "#{60*20}"
 
@@ -52,4 +52,7 @@ naver:
   crawling:
     delay: 1000 # 줄이지 말아주세요
 
-
+keyword:
+  overuse:
+    days: 5
+    threshold: 3

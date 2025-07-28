@@ -86,7 +86,7 @@ public class CustomAuthenticationFilter extends OncePerRequestFilter {
 
         if (!headerAuthorization.isBlank()) {
             if (!headerAuthorization.startsWith("Bearer "))
-                throw new ServiceException(401-2, "Authorization 헤더가 Bearer 형식이 아닙니다.");
+                throw new ServiceException(401, "Authorization 헤더가 Bearer 형식이 아닙니다.");
 
             String[] headerAuthorizationBits = headerAuthorization.split(" ", 3);
 
@@ -116,7 +116,7 @@ public class CustomAuthenticationFilter extends OncePerRequestFilter {
             Map<String, Object> payload = memberService.payload(accessToken);
 
             if (payload != null) {
-                int id = (int) payload.get("id");
+                long id = (long) payload.get("id");
                 String email = (String) payload.get("email");
                 String name = (String) payload.get("name");
                 String role = (String) payload.get("role");
@@ -129,7 +129,7 @@ public class CustomAuthenticationFilter extends OncePerRequestFilter {
         if (member == null) {
             member = memberService
                     .findByApiKey(apiKey)
-                    .orElseThrow(() -> new ServiceException(401-3, "API 키가 유효하지 않습니다."));
+                    .orElseThrow(() -> new ServiceException(401, "API 키가 유효하지 않습니다."));
         }
 
         // accessToken이 만료됐으면 새로 발급

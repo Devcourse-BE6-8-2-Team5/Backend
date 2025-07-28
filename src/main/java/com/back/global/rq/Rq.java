@@ -28,7 +28,7 @@ public class Rq {
                 .map(Authentication::getPrincipal)
                 .filter(principal -> principal instanceof SecurityUser)
                 .map(principal -> (SecurityUser) principal)
-                .map(securityUser -> new Member(securityUser.getId(), securityUser.getEmail(), securityUser.getName()))
+                .map(securityUser -> new Member(securityUser.getId(), securityUser.getEmail(), securityUser.getName(), securityUser.getAuthorities().toString()))
                 .orElse(null);
     }
 

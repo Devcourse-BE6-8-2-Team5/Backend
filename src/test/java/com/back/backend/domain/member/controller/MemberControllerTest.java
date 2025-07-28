@@ -204,7 +204,7 @@ public class MemberControllerTest {
     void myInfo_without_auth() throws Exception {
         mvc.perform(get("/api/members/info"))
                 .andDo(print())
-                .andExpect(status().isForbidden());
+                .andExpect(status().isUnauthorized());
     }
 
     @Test
@@ -214,7 +214,7 @@ public class MemberControllerTest {
                         .cookie(new jakarta.servlet.http.Cookie("accessToken", "invalid"))
                         .cookie(new jakarta.servlet.http.Cookie("apiKey", "invalid")))
                 .andDo(print())
-                .andExpect(status().is(398));  // ← 398로 수정
+                .andExpect(status().isUnauthorized());
     }
 
     @Test
@@ -475,7 +475,7 @@ public class MemberControllerTest {
         mvc.perform(get("/관리자페이지")
                         .cookie(new jakarta.servlet.http.Cookie("accessToken", accessToken)))
                 .andDo(print())
-                .andExpect(status().isForbidden());
+                .andExpect(status().isUnauthorized());
     }
 
     @Test
@@ -519,7 +519,7 @@ public class MemberControllerTest {
         // 인증 없이 관리자 페이지 접근
         mvc.perform(get("/관리자페이지"))
                 .andDo(print())
-                .andExpect(status().isForbidden());
+                .andExpect(status().isUnauthorized());
     }
 
     @Test
@@ -551,7 +551,7 @@ public class MemberControllerTest {
         mvc.perform(delete("/관리자페이지뉴스삭제")
                         .cookie(new jakarta.servlet.http.Cookie("accessToken", accessToken)))
                 .andDo(print())
-                .andExpect(status().isForbidden());
+                .andExpect(status().isUnauthorized());
     }
 
 }

@@ -1,5 +1,7 @@
 package com.back.global.security;
 
+import com.back.global.rsData.RsData;
+import com.back.global.standard.util.Ut;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -59,40 +61,42 @@ public class SecurityConfig {
                 .logout(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .sessionManagement(AbstractHttpConfigurer::disable)
-                .addFilterBefore(customAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
-//                .exceptionHandling(
-//                        exceptionHandling -> exceptionHandling
-//                                .authenticationEntryPoint(
-//                                        (request, response, authException) -> {
-//                                            response.setContentType("application/json;charset=UTF-8");
-//
-//                                            response.setStatus(401);
-//                                            response.getWriter().write(
-//                                                    Ut.json.toString(
-//                                                            new RsData<Void>(
-//                                                                    "401-1",
-//                                                                    "로그인 후 이용해주세요."
-//                                                            )
-//                                                    )
-//                                            );
-//                                        }
-//                                )
-//                                .accessDeniedHandler(
-//                                        (request, response, accessDeniedException) -> {
-//                                            response.setContentType("application/json;charset=UTF-8");
-//
-//                                            response.setStatus(403);
-//                                            response.getWriter().write(
-//                                                    Ut.json.toString(
-//                                                            new RsData<Void>(
-//                                                                    "403-1",
-//                                                                    "권한이 없습니다."
-//                                                            )
-//                                                    )
-//                                            );
-//                                        }
-//                                )
-//                );
+                .addFilterBefore(customAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                .exceptionHandling(
+                        exceptionHandling -> exceptionHandling
+                                .authenticationEntryPoint(
+                                        (request, response, authException) -> {
+                                            response.setContentType("application/json;charset=UTF-8");
+
+                                            response.setStatus(401);
+                                            response.getWriter().write(
+                                                    Ut.json.toString(
+                                                            new RsData<Void>(
+                                                                    401,
+                                                                    "로그인 후 이용해주세요.",
+                                                                    null
+                                                            )
+                                                    )
+                                            );
+                                        }
+                                )
+                                .accessDeniedHandler(
+                                        (request, response, accessDeniedException) -> {
+                                            response.setContentType("application/json;charset=UTF-8");
+
+                                            response.setStatus(403);
+                                            response.getWriter().write(
+                                                    Ut.json.toString(
+                                                            new RsData<Void>(
+                                                                    403,
+                                                                    "권한이 없습니다.",
+                                                                    null
+                                                            )
+                                                    )
+                                            );
+                                        }
+                                )
+                );
         return http.build();
     }
 
@@ -106,10 +110,10 @@ public class SecurityConfig {
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE"));
 
         // 자격 증명 허용 설정
-        configuration.setAllowCredentials(true);
+        configuration.setAllowCredentials(true); // 쿠키 허용
 
         // 허용할 헤더 설정
-        configuration.setAllowedHeaders(List.of("*"));
+        configuration.setAllowedHeaders(List.of("*")); // 모든 헤더 허용
 
         // CORS 설정을 소스에 등록
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
