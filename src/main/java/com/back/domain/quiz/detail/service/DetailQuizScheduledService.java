@@ -7,6 +7,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
@@ -17,14 +19,15 @@ public class DetailQuizScheduledService {
     private final DetailQuizAsyncService detailQuizAsyncService;
     private final RealNewsRepository realNewsRepository;
 
-    // 매일 오전 5시에 오늘 DB에 저장된 뉴스로 퀴즈 생성 (실제 뉴스는 오늘 날짜의 뉴스로 변경 필요)
+    // 매일 오전 5시에 오늘 DB에 저장된 뉴스로 퀴즈 생성
     @Scheduled(cron = "0 0 5 * * *", zone = "Asia/Seoul")
     public void generateQuizzesForTodayNews() {
-        // 뉴스 엔티티 변형 필요해 상의 후 진행
-        // List<RealNews> todayNews = realNewsRepository.findTodayNews(); // 오늘 날짜의 뉴스 조회
+        LocalDate today = LocalDate.now();
+        LocalDateTime start = today.atStartOfDay(); // 오늘 00:00
+        LocalDateTime end = today.plusDays(1).atStartOfDay(); // 내일 00:00
 
-        // 임시로 전체 뉴스 조회 (나중에 오늘 날짜의 뉴스로 변경)
-        List<RealNews> todayNews = realNewsRepository.findAll();
+        // 오늘 날짜의 뉴스 조회(시간 설정은 추후 변경 가능)
+        List<RealNews> todayNews = realNewsRepository.findTodayNews(start, end);
 
         if (todayNews.isEmpty()) {
             log.info("오늘 날짜의 뉴스 없음. 퀴즈 생성을 건너뜁니다.");
