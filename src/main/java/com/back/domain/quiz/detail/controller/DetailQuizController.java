@@ -5,6 +5,7 @@ import com.back.domain.quiz.detail.entity.DetailQuiz;
 import com.back.domain.quiz.detail.service.DetailQuizService;
 import com.back.global.rsData.RsData;
 import io.swagger.v3.oas.annotations.Operation;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -77,10 +78,10 @@ public class DetailQuizController {
     }
 
 
-    // 상세 퀴즈 수정(퀴즈 ID로 수정) - 퀴즈 품질 관리를 위한 api, admin 전용
+    // 상세 퀴즈 수정(퀴즈 ID로 수정) - 퀴즈 품질 관리를 위한 api
     @Operation(summary="퀴즈 ID 기반 상세 퀴즈 수정", description = "퀴즈 ID로 상세 퀴즈를 수정합니다.")
     @PutMapping("/{id}")
-    public RsData<DetailQuizDto> updateDetailQuiz(@PathVariable Long id, @RequestBody DetailQuizDto detailQuizDto) {
+    public RsData<DetailQuizDto> updateDetailQuiz(@PathVariable Long id, @RequestBody @Valid DetailQuizDto detailQuizDto) {
         DetailQuiz updatedQuiz = detailQuizService.updateDetailQuiz(id, detailQuizDto);
         return new RsData<>(
                 200,
