@@ -2,6 +2,7 @@ package com.back.domain.news.common.repository;
 
 import com.back.domain.news.common.entity.KeywordHistory;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -35,4 +36,8 @@ public interface KeywordHistoryRepository extends JpaRepository<KeywordHistory,L
         WHERE kh.usedDate = :date 
         """)
     List<String> findKeywordsByUsedDate(@Param("date") LocalDate date);
+
+    @Modifying
+    @Query("DELETE FROM KeywordHistory kh WHERE kh.usedDate < :cutoffDate")
+    int deleteByUsedDateBefore(@Param("cutoffDate") LocalDate cutoffDate);
 }
