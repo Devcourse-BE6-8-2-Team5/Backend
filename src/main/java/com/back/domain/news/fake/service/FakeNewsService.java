@@ -42,8 +42,8 @@ public class FakeNewsService {
 
 
     @Transactional
-    public List<FakeNewsDto> generateAndSaveAllFakeNews(List<RealNewsDto> relaNewsDtos){
-        List<FakeNewsDto> fakeNewsDtos = generateFakeNewsBatch(relaNewsDtos);
+    public List<FakeNewsDto> generateAndSaveAllFakeNews(List<RealNewsDto> realNewsDtos){
+        List<FakeNewsDto> fakeNewsDtos = generateFakeNewsBatch(realNewsDtos);
         saveAllFakeNews(fakeNewsDtos);
 
         return fakeNewsDtos;
@@ -76,6 +76,7 @@ public class FakeNewsService {
 
         // 3. FakeNews 엔티티들 생성 후 저장
         List<FakeNews> fakeNewsList = fakeNewsDtos.stream()
+                .filter(dto -> realNewsMap.containsKey(dto.realNewsId())) // 존재하는 realNewsId만 필터링
                 .map(dto -> FakeNews.builder()
                         .realNews(realNewsMap.get(dto.realNewsId()))
                         .title(dto.title())
