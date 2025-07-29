@@ -22,13 +22,19 @@ public class MemberService {
 
     public Member join(String name, String password, String email) {
         String encodedPassword = passwordEncoder.encode(password);
+
+        String role = "USER";
+        if("admin".equalsIgnoreCase(name) || "system".equalsIgnoreCase(name)) {
+            role = "ADMIN"; // 관리자 권한 설정
+        }
+
         Member member = Member.builder()
                 .name(name)
                 .password(encodedPassword)
                 .email(email)
                 .exp(0)
                 .level(1)
-                .role("USER") //기본 권한 USER. 관리자면 "ADMIN"으로 설정하시면 됩니다
+                .role(role) //기본 권한 USER. 관리자면 "ADMIN"으로 설정하시면 됩니다
                 .apiKey(UUID.randomUUID().toString())
                 .build();
 
@@ -80,5 +86,9 @@ public class MemberService {
 
     public List<Member> findAll() {
         return memberRepository.findAll();
+    }
+
+    public long count() {
+        return memberRepository.count();
     }
 }
