@@ -22,3 +22,4 @@ public interface RealNewsRepository extends JpaRepository<RealNews, Long> {
 
     List<RealNews> findByOriginCreatedDateBetween(LocalDateTime start, LocalDateTime end);
 }
+

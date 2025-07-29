@@ -64,4 +64,5 @@ public class RealNewsService {
                 .map(realNewsMapper::toDto)
                 .collect(Collectors.toList());
     }
+
 }

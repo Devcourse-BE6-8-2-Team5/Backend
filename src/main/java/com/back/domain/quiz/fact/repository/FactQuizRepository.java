@@ -6,8 +6,10 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 public interface FactQuizRepository extends JpaRepository<FactQuiz, Long> {
 
@@ -36,4 +38,13 @@ public interface FactQuizRepository extends JpaRepository<FactQuiz, Long> {
             WHERE fq.id = :id
             """)
     Optional<FactQuiz> findByIdWithNews(@Param("id") Long id);
+
+    @Query("""
+                SELECT DISTINCT fq.realNews.id 
+                FROM FactQuiz fq 
+                WHERE fq.realNews.createdDate >= :start 
+                  AND fq.realNews.createdDate < :end
+            """)
+    Set<Long> findRealNewsIdsWithFactQuiz(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
+
 }

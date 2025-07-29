@@ -1,4 +1,4 @@
-package com.back.domain.member.quizhistory;
+package com.back.domain.member.quizhistory.entity;
 
 import com.back.domain.member.member.entity.Member;
 import com.back.domain.quiz.QuizType;
@@ -27,6 +27,7 @@ public class QuizHistory {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id")
+    @Setter
     Member member; //member_id
 
     @Column(nullable = false)
