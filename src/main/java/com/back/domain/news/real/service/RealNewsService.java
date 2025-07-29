@@ -14,7 +14,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
+
 import com.back.domain.news.today.entity.TodayNews;
 
 @Service
@@ -50,4 +53,16 @@ public class RealNewsService {
                 .map(realNewsMapper::toDto);
 
     }
+
+    @Transactional(readOnly = true)
+    public List<RealNewsDto> getRealNewsListCreatedToday() {
+        LocalDateTime start = LocalDate.now().atStartOfDay(); // 오늘 00:00
+        LocalDateTime end = LocalDate.now().plusDays(1).atStartOfDay();
+
+        List<RealNews> realNewsList = realNewsRepository.findByOriginCreatedDateBetween(start, end);
+        return realNewsList.stream()
+                .map(realNewsMapper::toDto)
+                .collect(Collectors.toList());
+    }
+
 }

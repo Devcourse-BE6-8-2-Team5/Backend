@@ -20,4 +20,6 @@ public interface RealNewsRepository extends JpaRepository<RealNews, Long> {
     @Query("SELECT r FROM RealNews r WHERE r.createdDate >= :start AND r.createdDate < :end")
     List<RealNews> findTodayNews(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
 
+    List<RealNews> findByOriginCreatedDateBetween(LocalDateTime start, LocalDateTime end);
 }
+
