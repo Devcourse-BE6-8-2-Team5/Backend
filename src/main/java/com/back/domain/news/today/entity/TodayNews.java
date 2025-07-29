@@ -4,6 +4,7 @@ import com.back.domain.news.real.entity.RealNews;
 import com.back.domain.quiz.daily.entity.DailyQuiz;
 import jakarta.persistence.*;
 import lombok.Builder;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
@@ -11,6 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
+@Getter
 @NoArgsConstructor
 public class TodayNews {
     @Id

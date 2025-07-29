@@ -16,18 +16,18 @@ public class RealNewsMapper {
     }
 
     public RealNews toEntity(RealNewsDto realNewsDto) {
-        return new RealNews(
-                realNewsDto.title(),
-                realNewsDto.content(),
-                realNewsDto.description(),
-                realNewsDto.link(),
-                realNewsDto.imgUrl(),
-                realNewsDto.originCreatedDate(),
-                realNewsDto.mediaName(),
-                realNewsDto.journalist(),
-                realNewsDto.originalNewsUrl(),
-                realNewsDto.newsCategory()
-        );
+        return RealNews.builder()
+                .title(realNewsDto.title())
+                .content(realNewsDto.content())
+                .description(realNewsDto.description())
+                .link(realNewsDto.link())
+                .imgUrl(realNewsDto.imgUrl())
+                .originCreatedDate(realNewsDto.originCreatedDate())
+                .mediaName(realNewsDto.mediaName())
+                .journalist(realNewsDto.journalist())
+                .originalNewsUrl(realNewsDto.originalNewsUrl())
+                .newsCategory(realNewsDto.newsCategory())
+                .build();
     }
 
     public List<RealNewsDto> toDtoList(List<RealNews> realNewsList) {
@@ -38,6 +38,7 @@ public class RealNewsMapper {
 
     public RealNewsDto toDto(RealNews realNews) {
         return RealNewsDto.of(
+                realNews.getId(),
                 realNews.getTitle(),
                 realNews.getContent(),
                 realNews.getDescription(),

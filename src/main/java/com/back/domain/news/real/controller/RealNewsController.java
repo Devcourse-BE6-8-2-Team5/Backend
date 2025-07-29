@@ -1,6 +1,8 @@
 package com.back.domain.news.real.controller;
 
 import com.back.domain.news.real.dto.RealNewsDto;
+import com.back.domain.news.real.entity.RealNews;
+import com.back.domain.news.real.mapper.RealNewsMapper;
 import com.back.domain.news.real.service.RealNewsService;
 import com.back.domain.news.common.service.NewsPageService;
 import com.back.domain.news.common.enums.NewsType;
@@ -25,12 +27,12 @@ import static org.springframework.data.domain.Sort.Direction.*;
 
 @Tag(name = "RealNewsController", description = "Real News API")
 @RestController
-@RequestMapping("api/news")
+@RequestMapping("/api/news")
 @RequiredArgsConstructor
 public class RealNewsController {
+
     private final RealNewsService realNewsService;
     private final NewsPageService newsPageService;
-
 
 
     //단건조회
@@ -51,6 +53,18 @@ public class RealNewsController {
 
 
         return newsPageService.getSingleNews(realNewsDto, NewsType.REAL, newsId);
+    }
+
+    @Operation(summary = "오늘의 뉴스 조회", description = "선정된 오늘의 뉴스를 조회합니다.")
+    @GetMapping("/today")
+    public RsData<RealNewsDto> getTodayNews() {
+        Optional<RealNewsDto> todayNews = realNewsService.getTodayNews();
+
+        if (todayNews.isEmpty()) {
+            return RsData.of(404, "조회할 뉴스가 없습니다.");
+        }
+
+        return newsPageService.getSingleNews(todayNews, NewsType.REAL, todayNews.get().id());
     }
 
     //다건조회(시간순)

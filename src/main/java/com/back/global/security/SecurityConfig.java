@@ -46,7 +46,9 @@ public class SecurityConfig {
                                 .requestMatchers(HttpMethod.DELETE, "/관리자페이지뉴스삭제").hasRole("ADMIN")
 
                                 // 그 외는 모두 인증 필요
-                                .requestMatchers("/api/*/**").authenticated()
+//                                .requestMatchers("/api/*/**").authenticated()
+                                .requestMatchers("/api/*/**").permitAll()
+
 
                                 // 그 외는 모두 허용
                                 .anyRequest().permitAll()

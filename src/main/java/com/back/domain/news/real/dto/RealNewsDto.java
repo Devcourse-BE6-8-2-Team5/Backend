@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import java.time.LocalDateTime;
 
 public record RealNewsDto(
+        Long id,
         String title,
         String content,
         String description,
@@ -18,6 +19,7 @@ public record RealNewsDto(
         NewsCategory newsCategory
 ) {
     public static RealNewsDto of(
+            Long id,
             String title,
             String content,
             String description,
@@ -30,12 +32,13 @@ public record RealNewsDto(
             NewsCategory newsCategory
     ) {
         return new RealNewsDto(
-                title, content, description, link, imgUrl, originCreatedDate, mediaName, journalist, originalNewsUrl, newsCategory
+                id, title, content, description, link, imgUrl, originCreatedDate, mediaName, journalist, originalNewsUrl, newsCategory
         );
     }
 
     public static RealNewsDto from(JsonNode item){
         return new RealNewsDto(
+                item.get("id").asLong(),
                 item.get("title").asText(),
                 item.get("content").asText(),
                 item.get("description").asText(),
