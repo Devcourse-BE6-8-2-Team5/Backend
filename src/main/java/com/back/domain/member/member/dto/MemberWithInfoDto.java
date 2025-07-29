@@ -23,7 +23,7 @@ public class MemberWithInfoDto {
         this.email = member.getEmail();
         this.exp = member.getExp();
         this.level = LevelSystem.calculateLevel(member.getExp());
-        LevelSystem.getImageByLevel(level);
+        this.characterImage = LevelSystem.getImageByLevel(level);
         this.role = member.getRole();
     }
 }
