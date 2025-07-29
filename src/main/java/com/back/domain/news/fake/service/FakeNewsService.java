@@ -39,6 +39,16 @@ public class FakeNewsService {
                 .collect(Collectors.toList());
     }
 
+
+
+    @Transactional
+    public List<FakeNewsDto> generateAndSaveAllFakeNews(List<RealNewsDto> relaNewsDtos){
+        List<FakeNewsDto> fakeNewsDtos = generateFakeNewsBatch(relaNewsDtos);
+        saveAllFakeNews(fakeNewsDtos);
+
+        return fakeNewsDtos;
+    }
+
     @Transactional
     public void saveFakeNews(FakeNewsDto fakeNewsDto) {
         RealNews mappingNews = realNewsRepository.findById(fakeNewsDto.realNewsId())

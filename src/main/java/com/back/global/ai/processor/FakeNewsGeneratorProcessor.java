@@ -52,12 +52,11 @@ public class FakeNewsGeneratorProcessor implements AiRequestProcessor<FakeNewsDt
                - 원본의 논조와 비슷하게 유지
                - 적당한 길이로 작성 (원본과 비슷한 분량)
                
-               응답 형식:
-               반드시 JSON 형식으로만 응답하세요.
+               ⚠️ 매우 중요: 반드시 아래 JSON 형식으로만 응답하세요. 다른 텍스트나 설명은 포함하지 마세요.
                
                ```json
                {
-                 "realNewsId": "%s",
+                 "realNewsId": %s,  // ← 따옴표 제거 (숫자로 처리)
                  "title": "생성된 가짜 뉴스 제목",
                  "content": "생성된 가짜 뉴스 본문 전체"
                }

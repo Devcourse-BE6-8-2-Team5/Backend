@@ -16,7 +16,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/test")
 @RequiredArgsConstructor
-public class KeywordTestController {
+public class TestController {
 
     private final KeywordGenerationService keywordGenerationService;
     private final KeywordCleanupService keywordCleanupService;
@@ -58,6 +58,15 @@ public class KeywordTestController {
         } catch (Exception e) {
             return RsData.of(500, "가짜 뉴스 생성 실패: " + e.getMessage());
         }
+    }
+
+    @GetMapping("/fake/{id}")
+    public FakeNewsDto testGetFakeNews(@PathVariable Long id) {
+        if (id <= 0) {
+            throw new IllegalArgumentException("ID는 1 이상의 숫자여야 합니다.");
+        }
+
+        return fakeNewsService.getFakeNewsByRealNewsId(id);
     }
 
 }
