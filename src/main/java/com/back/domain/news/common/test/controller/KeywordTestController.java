@@ -4,7 +4,9 @@ import com.back.domain.news.common.dto.KeywordGenerationResDto;
 import com.back.domain.news.common.service.KeywordCleanupService;
 import com.back.domain.news.common.service.KeywordGenerationService;
 import com.back.domain.news.fake.dto.FakeNewsDto;
+import com.back.domain.news.fake.service.FakeNewsService;
 import com.back.domain.news.real.dto.RealNewsDto;
+import com.back.domain.news.real.service.RealNewsService;
 import com.back.global.rsData.RsData;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -18,7 +20,8 @@ public class KeywordTestController {
 
     private final KeywordGenerationService keywordGenerationService;
     private final KeywordCleanupService keywordCleanupService;
-
+    private final FakeNewsService fakeNewsService;
+    private final RealNewsService realNewsService;
 
     @GetMapping("/keywords")
     public KeywordGenerationResDto testKeywords() {
@@ -39,6 +42,22 @@ public class KeywordTestController {
         }
     }
 
+    @PostMapping("/create/fake")
+    public RsData<List<FakeNewsDto>> testCreateFake() {
+
+        List<RealNewsDto> realNewsDtos = realNewsService.getRealNewsListCreatedToday();
+
+        if (realNewsDtos == null || realNewsDtos.isEmpty()) {
+            return RsData.of(400, "실제 뉴스 목록이 비어있습니다.");
+        }
+
+        try {
+            List<FakeNewsDto> fakeNewsDtos = fakeNewsService.generateFakeNewsBatch(realNewsDtos);
+            return RsData.of(200, "가짜 뉴스 생성 성공", fakeNewsDtos);
+        } catch (Exception e) {
+            return RsData.of(500, "가짜 뉴스 생성 실패: " + e.getMessage());
+        }
+    }
 
 }
 

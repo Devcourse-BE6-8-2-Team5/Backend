@@ -33,6 +33,12 @@ public class FakeNewsService {
         return aiService.process(processor);
     }
 
+    public List<FakeNewsDto> generateFakeNewsBatch(List<RealNewsDto> realNewsDtos) {
+        return realNewsDtos.stream()
+                .map(this::generateFakeNews)
+                .collect(Collectors.toList());
+    }
+
     @Transactional
     public void saveFakeNews(FakeNewsDto fakeNewsDto) {
         RealNews mappingNews = realNewsRepository.findById(fakeNewsDto.realNewsId())
