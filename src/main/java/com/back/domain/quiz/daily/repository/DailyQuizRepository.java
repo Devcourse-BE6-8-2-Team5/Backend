@@ -1,5 +1,6 @@
 package com.back.domain.quiz.daily.repository;
 
+import com.back.domain.news.today.entity.TodayNews;
 import com.back.domain.quiz.daily.entity.DailyQuiz;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -15,4 +16,6 @@ public interface DailyQuizRepository extends JpaRepository<DailyQuiz, Long> {
             WHERE dq.todayNews.id = :todayNewsId
             """)
     List<DailyQuiz> findByTodayNewsId(@Param("todayNewsId") Long todayNewsId);
+
+    boolean existsByTodayNews(TodayNews todayNews);
 }
