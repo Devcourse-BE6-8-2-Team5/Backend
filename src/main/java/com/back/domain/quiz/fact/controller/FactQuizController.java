@@ -7,6 +7,7 @@ import com.back.domain.quiz.fact.entity.FactQuiz;
 import com.back.domain.quiz.fact.service.FactQuizService;
 import com.back.global.rsData.RsData;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -32,6 +33,7 @@ public class FactQuizController {
             value = {
                     @ApiResponse(responseCode = "200", description = "팩트 퀴즈 (전체) 목록 조회 성공",
                             content = @Content(mediaType = "application/json",
+                                    array = @ArraySchema(schema = @Schema(implementation = FactQuizDto.class)),
                                     schema = @Schema(implementation = RsData.class))),
             }
     )
@@ -53,6 +55,7 @@ public class FactQuizController {
             value = {
                     @ApiResponse(responseCode = "200", description = "팩트 퀴즈 목록 조회 성공",
                             content = @Content(mediaType = "application/json",
+                                    array = @ArraySchema(schema = @Schema(implementation = FactQuizDto.class)),
                                     schema = @Schema(implementation = RsData.class)))
             }
     )

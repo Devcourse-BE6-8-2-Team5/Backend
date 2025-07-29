@@ -81,7 +81,7 @@ public class DetailQuizController {
                             content = @Content(mediaType = "application/json",
                                     schema = @Schema(implementation = RsData.class),
                                     examples = {
-                                            @ExampleObject(value = "{\"resultCode\": 404, \"msg\": \"\"해당 뉴스에 대한 상세 퀴즈가 존재하지 않습니다. newsId: id: 1\", \"data\": null}")
+                                            @ExampleObject(value = "{\"resultCode\": 404, \"msg\": \"해당 뉴스에 대한 상세 퀴즈가 존재하지 않습니다. newsId: id: 1\", \"data\": null}")
                                     }))
             }
     )
