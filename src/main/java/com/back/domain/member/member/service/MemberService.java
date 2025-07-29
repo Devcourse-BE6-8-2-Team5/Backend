@@ -67,9 +67,10 @@ public class MemberService {
                 .ifPresent(_member -> {
                     throw new ServiceException(409, "이미 존재하는 계정입니다.");
                 });
+        String encodedPassword = passwordEncoder.encode("1234");
         Member member = Member.builder()
                 .name(nickname)
-                .password("")
+                .password(encodedPassword) // null이면 안돼서 임의로 1234
                 .email(email)
                 .exp(0)
                 .level(1)
