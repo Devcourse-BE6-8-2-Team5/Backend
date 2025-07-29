@@ -1,9 +1,10 @@
 package com.back.domain.news.real.service;
 
+import com.back.domain.news.common.dto.AnalyzedNewsDto;
 import com.back.domain.news.common.dto.NaverNewsDto;
 import com.back.domain.news.common.dto.NewsDetailDto;
 import com.back.domain.news.common.enums.NewsCategory;
-import com.back.domain.news.common.service.KeywordGenerationService;
+import com.back.domain.news.common.service.NewsAnalysisService;
 import com.back.domain.news.real.dto.RealNewsDto;
 import com.back.domain.news.real.entity.RealNews;
 import com.back.domain.news.real.mapper.RealNewsMapper;
@@ -43,7 +44,7 @@ public class AdminNewsService {
     private final RealNewsRepository realNewsRepository;
     private final TodayNewsRepository todayNewsRepository;
     private final RealNewsMapper realNewsMapper;
-    private final KeywordGenerationService keywordGenerationService;
+    private final NewsAnalysisService newsAnalysisService;
 
     // HTTP 요청을 보내기 위한 Spring의 HTTP 클라이언트(외부 API 호출 시 사용)
     private final RestTemplate restTemplate;
@@ -366,4 +367,30 @@ public class AdminNewsService {
     public int count() {
         return (int) realNewsRepository.count();
     }
+
+    public List<AnalyzedNewsDto> filterAndScoreNews(List<RealNewsDto> allRealNewsBeforeFilter) {
+        if (allRealNewsBeforeFilter == null || allRealNewsBeforeFilter.isEmpty()) {
+            return List.of();
+        }
+
+        List<AnalyzedNewsDto> allRealNewsAfterFilter = new ArrayList<>();
+
+        // 3개씩 나누어서 처리
+        for (int i = 0; i < allRealNewsBeforeFilter.size(); i += 3) {
+            int endIndex = Math.min(i + 3, allRealNewsBeforeFilter.size());
+            List<RealNewsDto> batch = allRealNewsBeforeFilter.subList(i, endIndex);
+
+            try {
+                // NewsFilterService 호출
+                List<AnalyzedNewsDto> batchResults = newsAnalysisService.filterAndScoreNews(batch);
+                allRealNewsAfterFilter.addAll(batchResults);
+
+            } catch (Exception e) {
+                // 오류 발생 시 해당 배치는 건너뛰고 다음 배치 계속 처리
+                continue;
+            }
+        }
+        return allRealNewsAfterFilter;
+    }
+
 }

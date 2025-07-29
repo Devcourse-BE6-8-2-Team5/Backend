@@ -1,5 +1,6 @@
 package com.back.domain.news.common.test.controller;
 
+import com.back.domain.news.common.dto.AnalyzedNewsDto;
 import com.back.domain.news.common.dto.KeywordGenerationResDto;
 import com.back.domain.news.common.dto.NaverNewsDto;
 import com.back.domain.news.common.service.KeywordCleanupService;
@@ -14,7 +15,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
@@ -95,7 +95,7 @@ public class TestController {
     }
 
     @GetMapping("/process")
-    public RsData<List<RealNewsDto>> newsProcess() {
+    public RsData<List<AnalyzedNewsDto>> newsProcess() {
         try {
             List<String> keywords = keywordGenerationService.generateTodaysKeywords().getKeywords();
             //   속보랑 기타키워드 추가
@@ -104,8 +104,9 @@ public class TestController {
 
             List<RealNewsDto> allRealNewsBeforeFilter = adminNewsService.createRealNewsDtoByCrawl(allNews);
 
+            List<AnalyzedNewsDto> allRealNewsAfterFilter = adminNewsService.filterAndScoreNews(allRealNewsBeforeFilter);
 
-            return RsData.of(200, "성공", allRealNewsBeforeFilter);
+            return RsData.of(200, "성공", allRealNewsAfterFilter);
         } catch (Exception e) {
             return RsData.of(500, "실패: " + e.getMessage());
         }
