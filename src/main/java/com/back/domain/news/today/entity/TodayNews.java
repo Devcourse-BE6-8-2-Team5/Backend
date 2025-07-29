@@ -1,18 +1,14 @@
 package com.back.domain.news.today.entity;
 
-import com.back.domain.news.common.enums.NewsCategory;
 import com.back.domain.news.real.entity.RealNews;
-import com.back.domain.quiz.detail.entity.DetailQuiz;
+import com.back.domain.quiz.daily.entity.DailyQuiz;
 import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.NoArgsConstructor;
-import org.springframework.data.annotation.CreatedDate;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
-
-import static jakarta.persistence.FetchType.LAZY;
-import static jakarta.persistence.GenerationType.*;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @NoArgsConstructor
@@ -26,6 +22,11 @@ public class TodayNews {
     @MapsId
     @JoinColumn(name = "real_news_id")
     private RealNews realNews;
+
+    // 오늘의 퀴즈와 1:N 관계 설정
+    @OneToMany(mappedBy = "todayNews", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<DailyQuiz> todayQuizzes = new ArrayList<>();
+
 
     @Builder
     public TodayNews(LocalDate selectedDate, RealNews realNews) {
