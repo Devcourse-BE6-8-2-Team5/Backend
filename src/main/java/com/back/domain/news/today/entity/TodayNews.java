@@ -5,6 +5,7 @@ import com.back.domain.news.real.entity.RealNews;
 import com.back.domain.quiz.detail.entity.DetailQuiz;
 import jakarta.persistence.*;
 import lombok.Builder;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.CreatedDate;
 
@@ -15,6 +16,7 @@ import static jakarta.persistence.FetchType.LAZY;
 import static jakarta.persistence.GenerationType.*;
 
 @Entity
+@Getter
 @NoArgsConstructor
 public class TodayNews {
     @Id

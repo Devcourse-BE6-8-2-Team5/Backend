@@ -9,6 +9,7 @@ import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 public interface RealNewsRepository extends JpaRepository<RealNews, Long> {
     Page<RealNews> findByTitleContaining(String title, Pageable pageable);
@@ -18,4 +19,5 @@ public interface RealNewsRepository extends JpaRepository<RealNews, Long> {
     // 뉴스 가져오는 시간에 따라 쿼리 변경 가능성 있음
     @Query("SELECT r FROM RealNews r WHERE r.createdDate >= :start AND r.createdDate < :end")
     List<RealNews> findTodayNews(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
+
 }

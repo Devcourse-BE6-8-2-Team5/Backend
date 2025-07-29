@@ -196,6 +196,7 @@ public class AdminNewsService {
     // 네이버 api에서 받아온 정보와 크롤링한 상세 정보를 바탕으로 RealNewsDto 생성
     public RealNewsDto makeRealNewsFromInfo(NaverNewsDto naverNewsDto, NewsDetailDto newsDetailDto) {
         return RealNewsDto.of(
+                null, // ID는 null로 시작, 저장 시 자동 생성
                 naverNewsDto.title(),
                 newsDetailDto.content(),
                 naverNewsDto.description(),
