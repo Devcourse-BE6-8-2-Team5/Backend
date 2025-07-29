@@ -41,17 +41,7 @@ public class FactQuizService {
 
     @Transactional
     public void create(RealNews realNews, FakeNews fakeNews) {
-        // 퀴즈 질문과 정답은 랜덤으로 생성
-        CorrectNewsType answerType = ThreadLocalRandom.current().nextBoolean()
-                ? CorrectNewsType.REAL
-                : CorrectNewsType.FAKE;
-
-        String question = answerType == CorrectNewsType.REAL
-                ? "다음 중 진짜 뉴스는?"
-                : "다음 중 가짜 뉴스는?";
-
-        // 팩트 퀴즈 생성 및 저장
-        FactQuiz quiz = new FactQuiz(question, realNews, fakeNews, answerType);
+        FactQuiz quiz = createQuiz(realNews, fakeNews);
         //real.getFactQuizzes().add(quiz);
         //fake.getFactQuizzes().add(quiz);
         factQuizRepository.save(quiz);
@@ -79,6 +69,16 @@ public class FactQuizService {
 
         FakeNews fake = real.getFakeNews();
 
+        FactQuiz quiz = createQuiz(real, fake);
+
+        //real.getFactQuizzes().add(quiz);
+        //fake.getFactQuizzes().add(quiz);
+        factQuizRepository.save(quiz);
+
+        log.debug("팩트 퀴즈 생성 완료. 퀴즈 ID: {}, 뉴스 ID: {}", quiz.getId(), real.getId());
+    }
+
+    private FactQuiz createQuiz(RealNews real, FakeNews fake){
         // 퀴즈 질문과 정답은 랜덤으로 생성
         CorrectNewsType answerType = ThreadLocalRandom.current().nextBoolean()
                 ? CorrectNewsType.REAL
@@ -88,12 +88,6 @@ public class FactQuizService {
                 ? "다음 중 진짜 뉴스는?"
                 : "다음 중 가짜 뉴스는?";
 
-        // 팩트 퀴즈 생성 및 저장
-        FactQuiz quiz = new FactQuiz(question, real, fake, answerType);
-        //real.getFactQuizzes().add(quiz);
-        //fake.getFactQuizzes().add(quiz);
-        factQuizRepository.save(quiz);
-
-        log.debug("팩트 퀴즈 생성 완료. 퀴즈 ID: {}, 뉴스 ID: {}", quiz.getId(), real.getId());
+        return new FactQuiz(question, real, fake, answerType);
     }
 }
