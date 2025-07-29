@@ -44,7 +44,7 @@ public class DetailQuiz {
 
     // 오늘의 퀴즈와 1:1 관계 설정
     @OneToOne(mappedBy = "detailQuiz", cascade = CascadeType.ALL, orphanRemoval = true)
-    private DailyQuiz todayQuiz;
+    private DailyQuiz dailyQuiz;
 
 
     // 정답 선택지 텍스트 반환
