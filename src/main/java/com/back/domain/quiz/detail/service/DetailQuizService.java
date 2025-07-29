@@ -34,19 +34,28 @@ public class DetailQuizService {
     @Transactional(readOnly = true)
     public DetailQuiz findById(Long id) {
         return detailQuizRepository.findById(id)
-                .orElseThrow(() -> new ServiceException(400, "해당 id의 상세 퀴즈가 존재하지 않습니다. id: " + id));
+                .orElseThrow(() -> new ServiceException(404, "해당 id의 상세 퀴즈가 존재하지 않습니다. id: " + id));
     }
 
     @Transactional(readOnly = true)
     public List<DetailQuiz> findByNewsId(Long newsId) {
-        return detailQuizRepository.findByRealNewsId(newsId);
+        RealNews news = realNewsRepository.findById(newsId)
+                .orElseThrow(() -> new ServiceException(404, "해당 id의 뉴스가 존재하지 않습니다. id: " + newsId));
+
+        List<DetailQuiz> quizzes = detailQuizRepository.findByRealNewsId(newsId);
+
+        if (quizzes.isEmpty()) {
+            throw new ServiceException(404, "해당 뉴스에 대한 상세 퀴즈가 존재하지 않습니다. newsId: " + newsId);
+        }
+
+        return quizzes;
     }
 
 
     // newsId로 뉴스 조회 후 AI api 호출해 퀴즈 생성
     public List<DetailQuizDto> generateQuizzes(Long newsId) {
         RealNews news = realNewsRepository.findById(newsId)
-                .orElseThrow(() -> new ServiceException(400, "해당 id의 뉴스가 존재하지 않습니다. id: " + newsId));
+                .orElseThrow(() -> new ServiceException(404, "해당 id의 뉴스가 존재하지 않습니다. id: " + newsId));
 
         DetailQuizReqDto req = new DetailQuizReqDto(
                 news.getTitle(),
@@ -62,7 +71,7 @@ public class DetailQuizService {
     @Transactional
     public List<DetailQuiz> saveQuizzes(Long newsId, List<DetailQuizDto> quizzes) {
         RealNews news = realNewsRepository.findById(newsId)
-                .orElseThrow(() -> new ServiceException(400, "해당 id의 뉴스가 존재하지 않습니다. id: " + newsId));
+                .orElseThrow(() -> new ServiceException(404, "해당 id의 뉴스가 존재하지 않습니다. id: " + newsId));
 
         detailQuizRepository.deleteByRealNewsId(newsId); // 기존 퀴즈 삭제
 
@@ -84,7 +93,7 @@ public class DetailQuizService {
     @Transactional
     public DetailQuiz updateDetailQuiz(Long id, DetailQuizDto detailQuizDto) {
         DetailQuiz quiz = detailQuizRepository.findById(id)
-                .orElseThrow(() -> new ServiceException(400, "해당 id의 상세 퀴즈가 존재하지 않습니다. id: " + id));
+                .orElseThrow(() -> new ServiceException(404, "해당 id의 상세 퀴즈가 존재하지 않습니다. id: " + id));
 
         quiz.setQuestion(detailQuizDto.question());
         quiz.setOption1(detailQuizDto.option1());
