@@ -1,8 +1,10 @@
 package com.back.domain.quiz.daily.entity;
 
 import com.back.domain.news.today.entity.TodayNews;
+import com.back.domain.quiz.QuizType;
 import com.back.domain.quiz.detail.entity.DetailQuiz;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -23,6 +25,10 @@ public class DailyQuiz {
     @OneToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "detail_quiz_id", unique = true)
     private DetailQuiz detailQuiz;
+
+    @Enumerated(EnumType.STRING)
+    @NotNull
+    private QuizType quizType = QuizType.DAILY;
 
     public DailyQuiz(TodayNews todayNews, DetailQuiz detailQuiz) {
         this.todayNews = todayNews;

@@ -2,6 +2,7 @@ package com.back.domain.quiz.detail.entity;
 
 import com.back.domain.news.real.entity.RealNews;
 import com.back.domain.quiz.QuizType;
+import com.back.domain.quiz.daily.entity.DailyQuiz;
 import com.back.domain.quiz.detail.dto.DetailQuizDto;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
@@ -40,6 +41,11 @@ public class DetailQuiz {
     @Enumerated(EnumType.STRING)
     @NotNull
     private QuizType quizType = QuizType.DETAIL;
+
+    // 오늘의 퀴즈와 1:1 관계 설정
+    @OneToOne(mappedBy = "detailQuiz", cascade = CascadeType.ALL, orphanRemoval = true)
+    private DailyQuiz todayQuiz;
+
 
     // 정답 선택지 텍스트 반환
     public String getCorrectAnswerText() {
