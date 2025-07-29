@@ -39,7 +39,9 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         String nickname = (String) attributesProperties.get(userNicknameAttributeName);
         String profileImgUrl = (String) attributesProperties.get(profileImgUrlAttributeName);
 
-        Member member = memberService.modifyOrJoin(oauthUserId, null, nickname, profileImgUrl).data();
+        String email = oauthUserId + "@" + providerTypeCode.toLowerCase() + ".com";
+
+        Member member = memberService.modifyOrJoin(oauthUserId, email, nickname, profileImgUrl).data();
 
         // securityContext
         return new SecurityUser(

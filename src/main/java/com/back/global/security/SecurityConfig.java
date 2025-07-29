@@ -27,6 +27,7 @@ public class SecurityConfig {
     @Lazy
     private final CustomAuthenticationFilter customAuthenticationFilter;
     private final AuthenticationSuccessHandler customOAuth2LoginSuccessHandler;
+    private final CustomOAuth2AuthorizationRequestResolver customOAuth2AuthorizationRequestResolver;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -68,7 +69,13 @@ public class SecurityConfig {
                 .logout(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .sessionManagement(sessionManagement -> sessionManagement.sessionCreationPolicy(STATELESS))
-                .oauth2Login(oauth2Login -> oauth2Login.successHandler(customOAuth2LoginSuccessHandler))
+                .oauth2Login(oauth2Login -> oauth2Login
+                        .successHandler(customOAuth2LoginSuccessHandler)
+                        .authorizationEndpoint(
+                                authorizationEndpoint -> authorizationEndpoint
+                                        .authorizationRequestResolver(customOAuth2AuthorizationRequestResolver)
+                        )
+                )
                 .addFilterBefore(customAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .exceptionHandling(
                         exceptionHandling -> exceptionHandling
