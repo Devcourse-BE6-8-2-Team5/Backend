@@ -52,7 +52,8 @@ public class KeywordTestController {
         }
 
         try {
-            List<FakeNewsDto> fakeNewsDtos = fakeNewsService.generateFakeNewsBatch(realNewsDtos);
+            List<FakeNewsDto> fakeNewsDtos = fakeNewsService.generateAndSaveAllFakeNews(realNewsDtos);
+
             return RsData.of(200, "가짜 뉴스 생성 성공", fakeNewsDtos);
         } catch (Exception e) {
             return RsData.of(500, "가짜 뉴스 생성 실패: " + e.getMessage());
