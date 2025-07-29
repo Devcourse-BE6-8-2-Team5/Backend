@@ -44,12 +44,12 @@ public class SecurityConfig {
                                 .requestMatchers(HttpMethod.DELETE, "/마이페이지회원탈퇴").authenticated()
 
                                 // 관리자만 접근 가능한 API
-                                .requestMatchers(HttpMethod.GET, "/관리자페이지").hasRole("ADMIN")
+                                .requestMatchers(HttpMethod.GET, "/api/admin/**").hasRole("ADMIN")
                                 .requestMatchers(HttpMethod.DELETE, "/관리자페이지뉴스삭제").hasRole("ADMIN")
 
                                 // 그 외는 모두 인증 필요
-//                                .requestMatchers("/api/*/**").authenticated()
-                                .requestMatchers("/api/*/**").permitAll()
+                                .requestMatchers("/api/**").authenticated()
+                                //.requestMatchers("/api/*/**").permitAll()
 
 
                                 // 그 외는 모두 허용
