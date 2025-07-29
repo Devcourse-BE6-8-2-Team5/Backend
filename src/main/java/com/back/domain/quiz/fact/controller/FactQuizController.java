@@ -41,7 +41,7 @@ public class FactQuizController {
 
         return new RsData<>(
                 200,
-                "팩트 퀴즈 목록 조회 성공",
+                "팩트 퀴즈 목록 조회 성공. 카테고리: " + category,
                 factQuizzes.stream()
                         .map(FactQuizDto::new)
                         .collect(toList())
@@ -55,8 +55,17 @@ public class FactQuizController {
 
         return new RsData<>(
                 200,
-                "팩트 퀴즈 조회 성공",
+                "팩트 퀴즈 조회 성공. ID: " + id,
                 new FactQuizDtoWithNewsContent(factQuiz)
         );
+    }
+
+    @Operation(summary = "팩트 퀴즈 삭제", description = "팩트 퀴즈 ID로 팩트 퀴즈를 삭제합니다.")
+    @DeleteMapping("/{id}")
+    public RsData<Void> deleteFactQuiz(@PathVariable Long id) {
+        factQuizService.delete(id);
+        return RsData.of(
+                200,
+                "팩트 퀴즈 삭제 성공. ID: " + id);
     }
 }
