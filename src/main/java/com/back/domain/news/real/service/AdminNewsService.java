@@ -284,4 +284,8 @@ public class AdminNewsService {
 
         todayNewsRepository.save(todayNews);
     }
+
+    public int count() {
+        return (int) realNewsRepository.count();
+    }
 }

@@ -5,4 +5,7 @@ public record FakeNewsDto (
         String title,
         String content
 ) {
+    public static FakeNewsDto of(Long realNewsId, String title, String content) {
+        return new FakeNewsDto(realNewsId, title, content);
+    }
 }
