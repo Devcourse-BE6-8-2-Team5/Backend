@@ -1,5 +1,6 @@
 package com.back.domain.news.real.repository;
 
+import com.back.domain.news.common.enums.NewsCategory;
 import com.back.domain.news.real.entity.RealNews;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -21,5 +22,7 @@ public interface RealNewsRepository extends JpaRepository<RealNews, Long> {
     List<RealNews> findTodayNews(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
 
     List<RealNews> findByOriginCreatedDateBetween(LocalDateTime start, LocalDateTime end);
+
+    Page<RealNews> findByNewsCategory(NewsCategory category, Pageable pageable);
 }
 
