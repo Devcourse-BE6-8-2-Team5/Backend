@@ -47,10 +47,11 @@ public class DailyQuizService {
             throw new ServiceException(400, "연결된 상세 퀴즈가 없습니다.");
         }
 
-        for(DetailQuiz quiz : quizzes) {
-            DailyQuiz dailyQuiz = new DailyQuiz(todayNews, quiz);
-            dailyQuizRepository.save(dailyQuiz);
-        }
+        List<DailyQuiz> dailyQuizzes = quizzes.stream()
+                .map(quiz -> new DailyQuiz(todayNews, quiz))
+                .toList();
+
+        dailyQuizRepository.saveAll(dailyQuizzes);
 
         log.info("오늘의 퀴즈 생성 완료");
     }
