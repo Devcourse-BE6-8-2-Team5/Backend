@@ -1,11 +1,8 @@
 package com.back.domain.news.real.repository;
 
-import com.back.domain.news.real.dto.RealNewsDto;
-import com.back.domain.news.real.entity.RealNews;
 import com.back.domain.news.today.entity.TodayNews;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
-import org.springframework.data.jpa.repository.Query;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
@@ -18,4 +15,6 @@ public interface TodayNewsRepository extends JpaRepository<TodayNews, Long> {
     void deleteBySelectedDate(LocalDate today);
 
     Optional<TodayNews> findBySelectedDate(LocalDate today);
+
+    Optional<TodayNews> findFirstByOrderBySelectedDateDesc();
 }
