@@ -1,4 +1,6 @@
 spring:
+  config:
+    import: optional:file:.env
   profiles:
     active: dev
   jpa:
@@ -24,7 +26,7 @@ spring:
       client:
         registration:
           kakao:
-            clientId: ON_SECRET  # 추후 변경
+            clientId: ${KAKAO_OAUTH2_CLIENT_ID}
             scope: profile_nickname, profile_image # 카카오 프사, 닉네임 가져옴
             client-name: Kakao
             authorization-grant-type: authorization_code
@@ -45,7 +47,7 @@ logging:
     com.back: DEBUG
 custom:
   jwt:
-    secretKey: Zj9gXpK5u3IORrZKzL1dXowgQdtNCLEX
+    secretKey: ${JWT_SECRET_KEY}
   accessToken:
     expirationSeconds: "#{60*20}"
 server:
