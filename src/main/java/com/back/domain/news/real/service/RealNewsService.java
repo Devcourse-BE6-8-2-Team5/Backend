@@ -66,6 +66,7 @@ public class RealNewsService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
     public Page<RealNewsDto> getRealNewsByCategory(NewsCategory category, Pageable pageable) {
         Page<RealNews> realNewsPage = realNewsRepository.findByNewsCategory(category, pageable);
         return realNewsPage.map(realNewsMapper::toDto);

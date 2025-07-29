@@ -9,6 +9,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.ai.chat.model.ChatResponse;
 
+import java.util.regex.Pattern;
+
 /**
  * 진짜 뉴스를 기반으로 가짜 뉴스를 생성하는 AI 요청 Processor 입니다.
  */
@@ -138,43 +140,46 @@ public class FakeNewsGeneratorProcessor implements AiRequestProcessor<FakeNewsDt
     /**
      * JSON 내부 문자열 값의 큰따옴표를 안전하게 처리
      */
+    /**
+     * JSON 내부 문자열 값의 큰따옴표를 안전하게 처리 (간단한 버전)
+     */
     private String fixJsonQuotes(String json) {
         try {
-            // ObjectMapper를 이용한 사전 검증
-            JsonNode jsonNode = objectMapper.readTree(json);
+            // 직접 ObjectMapper로 파싱 시도
+            FakeNewsDto result = objectMapper.readValue(json, FakeNewsDto.class);
 
-            // 각 필드값을 안전하게 이스케이프하여 새 JSON 생성
-            Long realNewsId = jsonNode.get("realNewsId").asLong();
-            String title = escapeJsonString(jsonNode.get("title").asText());
-            String content = escapeJsonString(jsonNode.get("content").asText());
-
-            return String.format("""
-                {
-                  "realNewsId": %d,
-                  "title": "%s",
-                  "content": "%s"
-                }
-                """, realNewsId, title, content);
+            // 성공하면 다시 JSON으로 직렬화 (자동으로 이스케이프됨)
+            return objectMapper.writeValueAsString(result);
 
         } catch (Exception e) {
-            // 파싱 실패 시 기존 방식으로 대체
-            return json.replaceAll("(?<!\\\\)\"", "'");
+            // 파싱 실패 시: 문자열 값 내부의 따옴표만 이스케이프
+            String fixed = json;
+
+            // title 필드 처리
+            fixed = fixFieldQuotes(fixed, "title");
+
+            // content 필드 처리
+            fixed = fixFieldQuotes(fixed, "content");
+
+            return fixed;
         }
     }
-    /**
-     * JSON 문자열 내부의 특수문자 이스케이프
-     */
-    private String escapeJsonString(String text) {
-        if (text == null) return "";
 
-        return text
-                .replace("\\", "\\\\")  // 백슬래시 먼저 이스케이프
-                .replace("\"", "\\\"")  // 큰따옴표 이스케이프 (제거하지 않음!)
-                .replace("\n", "\\n")   // 개행 이스케이프
-                .replace("\r", "\\r")   // 캐리지 리턴 이스케이프
-                .replace("\t", "\\t")   // 탭 이스케이프
-                .replace("\b", "\\b")   // 백스페이스 이스케이프
-                .replace("\f", "\\f");  // 폼피드 이스케이프
+    /**
+     * 특정 필드의 값 내부 따옴표를 이스케이프
+     */
+    private String fixFieldQuotes(String json, String fieldName) {
+        // "fieldName": "value" 패턴을 찾아서 value 내부의 따옴표를 이스케이프
+        Pattern pattern = Pattern.compile(
+                "\"" + fieldName + "\"\\s*:\\s*\"((?:[^\"\\\\]|\\\\.)*)\"",
+                Pattern.DOTALL
+        );
+
+        return pattern.matcher(json).replaceAll(matchResult -> {
+            String value = matchResult.group(1);
+            String escapedValue = value.replace("\"", "\\\"");
+            return String.format("\"%s\": \"%s\"", fieldName, escapedValue);
+        });
     }
 
     /**
