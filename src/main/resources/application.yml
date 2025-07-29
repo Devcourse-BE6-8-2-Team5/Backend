@@ -19,7 +19,24 @@ spring:
           model: "gemini-2.0-flash-lite"
           temperature: 0.5 # 모델의 출력 다양성 조절 (0.0 ~ 1.0)
         completions-path: "/chat/completions"
-
+  security:
+    oauth2:
+      client:
+        registration:
+          kakao:
+            clientId: ON_SECRET  # 추후 변경
+            scope: profile_nickname, profile_image # 카카오 프사, 닉네임 가져옴
+            client-name: Kakao
+            authorization-grant-type: authorization_code
+            redirect-uri: 'http://localhost:8080/login/oauth2/code/kakao' # 현재 서버 주소
+        provider:
+          kakao:
+            authorization-uri: https://kauth.kakao.com/oauth/authorize
+            token-uri: https://kauth.kakao.com/oauth/token
+            user-info-uri: https://kapi.kakao.com/v2/user/me
+            user-name-attribute: id
+springdoc:
+  default-produces-media-type: application/json;charset=UTF-8
 logging:
   level:
     org.hibernate.orm.jdbc.bind: TRACE
@@ -31,17 +48,12 @@ custom:
     secretKey: Zj9gXpK5u3IORrZKzL1dXowgQdtNCLEX
   accessToken:
     expirationSeconds: "#{60*20}"
-
-springdoc:
-  default-produces-media-type: application/json;charset=UTF-8
-
 server:
   servlet:
     encoding:
       charset: UTF-8
       enabled: true
       force: true
-
 naver:
   client-id: ${NAVER_CLIENT_ID}
   client-secret: ${NAVER_CLIENT_SECRET}
@@ -51,8 +63,6 @@ naver:
     sort: sim
   crawling:
     delay: 1000 # 줄이지 말아주세요
-
-
 keyword:
   overuse:
     days: 5
