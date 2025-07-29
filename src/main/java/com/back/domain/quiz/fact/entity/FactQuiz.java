@@ -43,8 +43,14 @@ public class FactQuiz {
     @NotNull
     private QuizType quizType = QuizType.FACT;
 
-
     @CreatedDate
-    private LocalDateTime createdDate; // 생성 날짜(DB에 저장된 날짜)a
+    private LocalDateTime createdDate;
+
+    public FactQuiz(String question, RealNews realNews, FakeNews fakeNews, CorrectNewsType correctNewsType) {
+        this.question = question;
+        this.realNews = realNews;
+        this.fakeNews = fakeNews;
+        this.correctNewsType = correctNewsType;
+    }
 
 }
