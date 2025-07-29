@@ -98,4 +98,8 @@ public class FakeNewsService {
                 .orElseThrow(() -> new IllegalArgumentException("Fake news not found for real news id: " + realNewsId));
 
     }
+
+    public int count() {
+        return (int) fakeNewsRepository.count();
+    }
 }
