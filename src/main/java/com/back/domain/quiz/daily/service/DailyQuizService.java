@@ -24,13 +24,17 @@ public class DailyQuizService {
 
     @Transactional(readOnly = true)
     public List<DailyQuiz> getDailyQuizzes(Long todayNewsId) {
-        return dailyQuizRepository.findByTodayNewsId(todayNewsId);
+        List<DailyQuiz> quizzes = dailyQuizRepository.findByTodayNewsId(todayNewsId);
+        if( quizzes.isEmpty()) {
+            throw new ServiceException(404, "오늘의 뉴스에 해당하는 오늘 퀴즈가 존재하지 않습니다.");
+        }
+        return quizzes;
     }
 
     @Scheduled(cron = "0 0 3 * * *", zone = "Asia/Seoul")
     public void createDailyQuiz() {
         TodayNews todayNews = todayNewsRepository.findFirstByOrderBySelectedDateDesc()
-                .orElseThrow(() -> new ServiceException(400, "오늘의 뉴스가 없습니다."));
+                .orElseThrow(() -> new ServiceException(404, "오늘의 뉴스가 없습니다."));
 
         boolean alreadyCreated = dailyQuizRepository.existsByTodayNews(todayNews);
 
