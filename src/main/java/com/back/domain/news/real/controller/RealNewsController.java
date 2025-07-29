@@ -1,5 +1,6 @@
 package com.back.domain.news.real.controller;
 
+import com.back.domain.news.common.enums.NewsCategory;
 import com.back.domain.news.real.dto.RealNewsDto;
 import com.back.domain.news.real.entity.RealNews;
 import com.back.domain.news.real.mapper.RealNewsMapper;
@@ -19,6 +20,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -112,6 +114,36 @@ public class RealNewsController {
         Page<RealNewsDto> RealNewsPage = realNewsService.searchRealNewsByTitle(title, pageable);
 
         return newsPageService.getPagedNews(RealNewsPage, NewsType.REAL);
+    }
+
+    @Operation(summary = "카테고리별 뉴스 조회", description = "카테고리별로 뉴스를 조회합니다")
+    @GetMapping("/category/{category}")
+    public RsData<Page<RealNewsDto>> getRealNewsByCategory(
+            @PathVariable String category,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "desc") String direction
+    ) {
+        if (!isValidPageParam(page, size, direction)) {
+            return RsData.of(400, "잘못된 페이지 파라미터입니다");
+        }
+
+        NewsCategory newsCategory;
+
+        try {
+            newsCategory = NewsCategory.valueOf(category.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            return RsData.of(400, "올바르지 않은 카테고리입니다. 사용 가능한 카테고리: " +
+                    Arrays.toString(NewsCategory.values()));
+        }
+
+        Direction sortDirection = fromString(direction);
+        Sort sortBy = Sort.by(sortDirection, "originCreatedDate");
+
+        Pageable pageable = PageRequest.of(page-1, size, sortBy);
+        Page<RealNewsDto> realNewsPage = realNewsService.getRealNewsByCategory(newsCategory, pageable);
+
+        return newsPageService.getPagedNews(realNewsPage, NewsType.REAL);
     }
 
     private boolean isValidPageParam(int page, int size, String direction) {

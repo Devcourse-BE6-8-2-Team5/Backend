@@ -1,6 +1,7 @@
 package com.back.domain.news.real.service;
 
 
+import com.back.domain.news.common.enums.NewsCategory;
 import com.back.domain.news.real.dto.RealNewsDto;
 import com.back.domain.news.real.entity.RealNews;
 import com.back.domain.news.real.mapper.RealNewsMapper;
@@ -65,4 +66,9 @@ public class RealNewsService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
+    public Page<RealNewsDto> getRealNewsByCategory(NewsCategory category, Pageable pageable) {
+        Page<RealNews> realNewsPage = realNewsRepository.findByNewsCategory(category, pageable);
+        return realNewsPage.map(realNewsMapper::toDto);
+    }
 }

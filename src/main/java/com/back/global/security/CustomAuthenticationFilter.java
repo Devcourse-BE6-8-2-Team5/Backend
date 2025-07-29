@@ -51,6 +51,7 @@ public class CustomAuthenticationFilter extends OncePerRequestFilter {
     private void work(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         String uri = request.getRequestURI();
 
+
         // 아래 API 요청이 아니라면 인증 패스 (추후 진짜 api로 변경 예정)
         if (
                 !uri.startsWith("/상세퀴즈페이지") &&
@@ -63,8 +64,7 @@ public class CustomAuthenticationFilter extends OncePerRequestFilter {
                         !uri.startsWith("/마이페이지내정보수정") &&
                         !uri.startsWith("/마이페이지회원탈퇴") &&
                         !uri.startsWith("/관리자페이지") &&
-                        !uri.startsWith("/관리자페이지뉴스삭제") &&
-                        !uri.startsWith("/api/news")    // for test
+                        !uri.startsWith("/관리자페이지뉴스삭제")
         ) {
             filterChain.doFilter(request, response);
             return;
