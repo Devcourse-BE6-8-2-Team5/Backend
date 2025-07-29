@@ -1,6 +1,7 @@
 package com.back.domain.news.real.dto;
 
 import com.back.domain.news.common.enums.NewsCategory;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.module.jsonSchema.annotation.Link;
 

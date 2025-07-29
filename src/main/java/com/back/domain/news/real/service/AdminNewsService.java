@@ -29,6 +29,7 @@ import org.springframework.web.client.RestTemplate;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
@@ -165,6 +166,12 @@ public class AdminNewsService {
             try {
                 List<NaverNewsDto> news = fetchNews(keyword);
                 log.info("키워드 '{}': {}건 조회", keyword, news.size());
+
+                // 네이버 뉴스만 필터링
+                List<NaverNewsDto> naverOnlyNews = news.stream()
+                        .filter(dto -> dto.link().contains("n.news.naver.com"))
+                        .toList();
+
                 allNews.addAll(news);
 
                 Thread.sleep(1000); // API 제한
@@ -303,13 +310,21 @@ public class AdminNewsService {
     // 네이버 API에서 받아온 날짜 문자열을 LocalDateTime으로 변환
     private LocalDateTime parseNaverDate(String naverDate) {
         try {
-            String dateTimeFormat = HtmlEntityDecoder.decode(naverDate);
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("EEE, dd MMM yyyy HH:mm", Locale.ENGLISH);
-            return LocalDateTime.parse(dateTimeFormat , formatter);
+            String cleaned = HtmlEntityDecoder.decode(naverDate);
+
+            // 네이버 API 형식: "Tue, 29 Jul 2025 18:48:00 +0900"
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("EEE, dd MMM yyyy HH:mm:ss Z", Locale.ENGLISH);
+
+            // ZonedDateTime으로 파싱 후 LocalDateTime으로 변환 (시간대 정보 제거)
+            ZonedDateTime zonedDateTime = ZonedDateTime.parse(cleaned, formatter);
+            return zonedDateTime.toLocalDateTime();
+
         } catch (Exception e) {
-            return LocalDateTime.now(); // 파싱 실패 시 현재 시간
+            log.warn("날짜 파싱 실패: {}. 현재 시간으로 설정", naverDate);
+            return LocalDateTime.now();
         }
     }
+
     @Transactional
     public boolean deleteRealNews(Long newsId) {
         Optional<RealNews> realNewsOpt = realNewsRepository.findById(newsId);
