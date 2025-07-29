@@ -56,4 +56,12 @@ public class FactQuizService {
 
         log.debug("팩트 퀴즈 생성 완료. 퀴즈 ID: {}, 뉴스 ID: {}", quiz.getId(), realNews.getId());
     }
+
+    @Transactional
+    public void delete(Long id) {
+        FactQuiz quiz = factQuizRepository.findById(id)
+                .orElseThrow(() -> new ServiceException(404, "팩트 퀴즈를 찾을 수 없습니다. ID: " + id));
+
+        factQuizRepository.delete(quiz);
+    }
 }
