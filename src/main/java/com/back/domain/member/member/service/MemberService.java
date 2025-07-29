@@ -3,6 +3,7 @@ package com.back.domain.member.member.service;
 import com.back.domain.member.member.entity.Member;
 import com.back.domain.member.member.repository.MemberRepository;
 import com.back.global.exception.ServiceException;
+import com.back.global.rsData.RsData;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -20,6 +21,7 @@ public class MemberService {
     private final AuthTokenService authTokenService;
     private final PasswordEncoder passwordEncoder;
 
+    // 기본 회원가입
     public Member join(String name, String password, String email) {
         String encodedPassword = passwordEncoder.encode(password);
 
@@ -36,9 +38,54 @@ public class MemberService {
                 .level(1)
                 .role(role) //기본 권한 USER. 관리자면 "ADMIN"으로 설정하시면 됩니다
                 .apiKey(UUID.randomUUID().toString())
+                .profileImgUrl(null)
+                .oauthId(null)
                 .build();
 
         return memberRepository.save(member);
+    }
+
+    // 소셜로그인으로 회원가입 & 회원 정보 수정
+    public RsData<Member> modifyOrJoin(String oauthId, String email, String nickname,String profileImgUrl) {
+
+        //oauthId로 기존 회원인지 확인
+        Member member = memberRepository.findByOauthId(oauthId).orElse(null);
+
+        // 기존 회원이 아니면 소셜로그인으로 회원가입 진행
+        if(member == null) {
+            member = joinSocial(oauthId, email, nickname, profileImgUrl);
+            return new RsData<>(201, "회원가입이 완료되었습니다.", member);
+        }
+
+        // 기존 회원이면 회원 정보 수정
+        modifySocial(member, nickname, profileImgUrl);
+        return new RsData<>(200, "회원 정보가 수정되었습니다.", member);
+    }
+
+    public Member joinSocial(String oauthId, String email, String nickname, String profileImgUrl){
+        memberRepository.findByOauthId(oauthId)
+                .ifPresent(_member -> {
+                    throw new ServiceException(409, "이미 존재하는 계정입니다.");
+                });
+        Member member = Member.builder()
+                .name(nickname)
+                .password("")
+                .email(email)
+                .exp(0)
+                .level(1)
+                .role("USER") //기본 권한 USER. 관리자면 "ADMIN"으로 설정하시면 됩니다
+                .apiKey(UUID.randomUUID().toString())
+                .profileImgUrl(profileImgUrl)
+                .oauthId(oauthId)
+                .build();
+
+        return memberRepository.save(member);
+    }
+
+    public void modifySocial(Member member, String nickname, String profileImgUrl){
+        member.setName(nickname);
+        member.setProfileImgUrl(profileImgUrl);
+        memberRepository.save(member);
     }
 
     public Optional<Member> findByEmail(String email) {
@@ -91,4 +138,5 @@ public class MemberService {
     public long count() {
         return memberRepository.count();
     }
+
 }
