@@ -26,6 +26,10 @@ public class DetailQuizService {
     private final AiService aiService;
     private final ObjectMapper objectMapper;
 
+    public long count() {
+        return detailQuizRepository.count();
+    }
+
     @Transactional(readOnly = true)
     public List<DetailQuiz> findAll() {
         return detailQuizRepository.findAll();
