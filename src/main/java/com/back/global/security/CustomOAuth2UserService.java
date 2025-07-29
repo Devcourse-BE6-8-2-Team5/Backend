@@ -7,7 +7,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
-import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -42,14 +41,13 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
         Member member = memberService.modifyOrJoin(oauthUserId, null, nickname, profileImgUrl).data();
 
-        return new DefaultOAuth2User(
-                member.getAuthorities(),
-                attributes,
-                userRequest
-                        .getClientRegistration()
-                        .getProviderDetails()
-                        .getUserInfoEndpoint()
-                        .getUserNameAttributeName()
+        // securityContext
+        return new SecurityUser(
+                member.getId(),
+                member.getEmail(),
+                member.getName(),
+                member.getPassword(),
+                member.getAuthorities()
         );
     }
 }
