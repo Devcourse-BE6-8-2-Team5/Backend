@@ -225,7 +225,7 @@ public class AdminNewsController {
     public RsData<Page<RealNewsDto>> getRealNewsByCategory(
             @Parameter(description = "뉴스 카테고리", example = "ECONOMY",
                     schema = @io.swagger.v3.oas.annotations.media.Schema(
-                            allowableValues = {"POLITICS", "ECONOMY", "SOCIETY", "CULTURE", "WORLD", "TECH", "NOT_FILTERED"}))
+                            allowableValues = {"POLITICS", "ECONOMY", "IT", "CULTURE", "SOCIETY", "NOT_FILTERED"}))
             @PathVariable String category,
             @Parameter(description = "페이지 번호 (1부터 시작)", example = "1")
             @RequestParam(defaultValue = "1") int page,
