@@ -18,6 +18,9 @@ public class FakeNewsGeneratorProcessor implements AiRequestProcessor<FakeNewsDt
     private final RealNewsDto req;
     private final ObjectMapper objectMapper;
 
+    private static final int MAX_TITLE_LENGTH = 200;
+    private static final int MAX_CONTENT_LENGTH = 10000;
+
     public FakeNewsGeneratorProcessor(RealNewsDto req, ObjectMapper objectMapper) {
         this.req = req;
         this.objectMapper = objectMapper;
@@ -140,9 +143,6 @@ public class FakeNewsGeneratorProcessor implements AiRequestProcessor<FakeNewsDt
     /**
      * JSON 내부 문자열 값의 큰따옴표를 안전하게 처리
      */
-    /**
-     * JSON 내부 문자열 값의 큰따옴표를 안전하게 처리 (간단한 버전)
-     */
     private String fixJsonQuotes(String json) {
         try {
             // 직접 ObjectMapper로 파싱 시도
@@ -185,6 +185,7 @@ public class FakeNewsGeneratorProcessor implements AiRequestProcessor<FakeNewsDt
     /**
      * 파싱 결과 검증
      */
+
     private void validateResult(FakeNewsDto result) {
         if (result.realNewsId() == null) {
             throw new IllegalArgumentException("realNewsId가 누락되었습니다");
@@ -199,11 +200,11 @@ public class FakeNewsGeneratorProcessor implements AiRequestProcessor<FakeNewsDt
         }
 
         // 길이 검증
-        if (result.title().length() > 200) {
+        if (result.title().length() > MAX_TITLE_LENGTH) {
             throw new IllegalArgumentException("title이 너무 깁니다");
         }
 
-        if (result.content().length() > 10000) {
+        if (result.content().length() > MAX_CONTENT_LENGTH) {
             throw new IllegalArgumentException("content가 너무 깁니다");
         }
     }
