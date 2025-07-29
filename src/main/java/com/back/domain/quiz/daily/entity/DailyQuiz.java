@@ -1,0 +1,31 @@
+package com.back.domain.quiz.daily.entity;
+
+import com.back.domain.news.today.entity.TodayNews;
+import com.back.domain.quiz.detail.entity.DetailQuiz;
+import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+@Entity
+@Getter
+@Setter
+@NoArgsConstructor
+public class DailyQuiz {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "today_news_id")
+    private TodayNews todayNews;
+
+    @OneToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "detail_quiz_id", unique = true)
+    private DetailQuiz detailQuiz;
+
+    public DailyQuiz(TodayNews todayNews, DetailQuiz detailQuiz) {
+        this.todayNews = todayNews;
+        this.detailQuiz = detailQuiz;
+    }
+}
