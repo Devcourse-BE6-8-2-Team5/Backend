@@ -80,6 +80,12 @@ public class NewsDataService {
         if (newsDisplayCount < 1 || newsDisplayCount >10) {
             throw new IllegalArgumentException("NAVER_NEWS_DISPLAY_COUNT는 1에서 10 사이의 값이어야 합니다.");
         }
+        if (crawlingDelay < 0) {
+            throw new IllegalArgumentException("NAVER_CRAWLING_DELAY는 0 이상이어야 합니다.");
+        }
+        if (naverUrl == null || naverUrl.isEmpty()) {
+            throw new IllegalArgumentException("NAVER_BASE_URL이 설정되지 않았습니다.");
+        }
     }
 
     // RealNewsDto를 생성하는 메서드 for test
@@ -158,7 +164,6 @@ public class NewsDataService {
     }
 
     // 네이버 API를 통해 메타데이터 수집
-    @Transactional
     public List<NaverNewsDto> collectMetaDataFromNaver(List<String> keywords) {
         List<NaverNewsDto> allNews = new ArrayList<>();
 
@@ -217,11 +222,11 @@ public class NewsDataService {
                 }
                 return new ArrayList<>();
             }
-            throw new RuntimeException("네이버 API 요청 실패");
+            throw new ServiceException(500, "네이버 API 요청 실패");
 
         }
         catch (JsonProcessingException e) {
-            throw new RuntimeException("JSON 파싱 실패");
+            throw new ServiceException(500, "JSON 파싱 실패");
         }
 
     }
