@@ -1,5 +1,7 @@
 package com.back.backend.domain.quiz.detail.controller;
 
+import com.back.backend.global.config.TestRqConfig;
+import com.back.backend.global.rq.TestRq;
 import com.back.domain.member.member.entity.Member;
 import com.back.domain.member.member.service.MemberService;
 import com.back.domain.quiz.detail.dto.DetailQuizDto;
@@ -13,9 +15,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Primary;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
@@ -36,6 +36,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         "NAVER_CLIENT_SECRET=test_client_secret",
         "GEMINI_API_KEY=api_key"
 })
+@Import(TestRqConfig.class)
 class DetailQuizControllerTest {
     @Autowired
     private DetailQuizService detailQuizService;
@@ -273,53 +274,5 @@ class DetailQuizControllerTest {
                 .andExpect(jsonPath("$.data.correct").value(false))
                 .andExpect(jsonPath("$.data.gainExp").value(0))
                 .andExpect(jsonPath("$.data.quizType").value("DETAIL"));
-    }
-
-    @TestConfiguration
-    static class TestConfig {
-        @Bean
-        @Primary
-        Rq testRq() {
-            return new TestRq();
-        }
-    }
-
-    static class TestRq extends Rq {
-        private Member actor;
-
-        public TestRq() {
-            super(null, null, null); // 실제 req/resp는 필요 없으니 null
-        }
-
-        void setActor(Member actor) {
-            this.actor = actor;
-        }
-
-        @Override
-        public Member getActor() {
-            return actor;
-        }
-
-        @Override
-        public String getHeader(String name, String defaultValue) {
-            return defaultValue;
-        }
-
-        @Override
-        public void setHeader(String name, String value) {
-        }
-
-        @Override
-        public String getCookieValue(String name, String defaultValue) {
-            return defaultValue;
-        }
-
-        @Override
-        public void setCookie(String name, String value) {
-        }
-
-        @Override
-        public void deleteCookie(String name) {
-        }
     }
 }
