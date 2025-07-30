@@ -4,6 +4,7 @@ import com.back.domain.news.common.dto.AnalyzedNewsDto;
 import com.back.domain.news.common.enums.NewsCategory;
 import com.back.domain.news.real.dto.RealNewsDto;
 import com.back.global.exception.ServiceException;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.model.ChatResponse;
@@ -17,6 +18,9 @@ public class NewsAnalysisProcessor implements AiRequestProcessor<List<AnalyzedNe
     private final ObjectMapper objectMapper;
 
     public NewsAnalysisProcessor(List<RealNewsDto> newsToAnalyze, ObjectMapper objectMapper) {
+        if (newsToAnalyze == null || newsToAnalyze.isEmpty()) {
+            throw new ServiceException(400, "분석할 뉴스가 제공되지 않았습니다");
+        }
         this.newsToAnalyze = newsToAnalyze;
         this.objectMapper = objectMapper;
     }
@@ -133,11 +137,19 @@ public class NewsAnalysisProcessor implements AiRequestProcessor<List<AnalyzedNe
 
             return convertToFilteredNewsDto(results);
 
-        } catch (Exception e) {
+        }  catch (JsonProcessingException e) {
             log.error("JSON 파싱 실패: {}", e.getMessage());
-            throw new ServiceException(500, "AI 응답 파싱에 실패했습니다: " + e.getMessage());
+            throw new ServiceException(500, "AI 응답의 JSON 형식이 올바르지 않습니다: " + e.getMessage());
+        } catch (IllegalArgumentException e) {
+            log.error("데이터 변환 실패: {}", e.getMessage());
+            throw new ServiceException(500, "AI 응답 데이터 변환에 실패했습니다: " + e.getMessage());
+        } catch (Exception e) {
+            log.error("예상치 못한 오류: {}", e.getMessage());
+            throw new ServiceException(500, "AI 응답 처리 중 예상치 못한 오류가 발생했습니다: " + e.getMessage());
         }
     }
+
+
 
     //  AI 응답 정리 - 마크다운 코드 블록 제거
     private String cleanResponse(String text) {

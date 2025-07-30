@@ -12,6 +12,7 @@ import com.back.domain.news.real.mapper.RealNewsMapper;
 import com.back.domain.news.real.repository.RealNewsRepository;
 import com.back.domain.news.real.repository.TodayNewsRepository;
 import com.back.domain.news.today.entity.TodayNews;
+import com.back.global.exception.ServiceException;
 import com.back.global.util.HtmlEntityDecoder;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -156,7 +157,8 @@ public class AdminNewsService {
             return allRealNewsDtos;
             //return 뉴스 필터하기
         } catch (InterruptedException e) {
-            throw new RuntimeException(e);
+            Thread.currentThread().interrupt(); // 인터럽트 상태 복원
+            throw new ServiceException(500, "뉴스 크롤링이 중단되었습니다");
         }
 
     }
@@ -188,7 +190,7 @@ public class AdminNewsService {
                         .filter(dto -> dto.link().contains("n.news.naver.com"))
                         .toList();
 
-                allNews.addAll(news);
+                allNews.addAll(naverOnlyNews);
 
                 Thread.sleep(1000); // API 제한
             } catch (Exception e) {
