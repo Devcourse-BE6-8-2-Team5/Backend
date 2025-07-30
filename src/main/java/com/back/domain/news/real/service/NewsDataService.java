@@ -388,4 +388,13 @@ public class NewsDataService {
                 .distinct()
                 .toList();
     }
+
+    public List<RealNewsDto> removeDuplicateTitles(List<RealNewsDto> newsBeforeFilter) {
+        // 제목을 기준으로 중복 제거
+        Map<String, RealNewsDto> uniqueNewsMap = new LinkedHashMap<>();
+        for (RealNewsDto news : newsBeforeFilter) {
+            uniqueNewsMap.put(news.title(), news);
+        }
+        return new ArrayList<>(uniqueNewsMap.values());
+    }
 }

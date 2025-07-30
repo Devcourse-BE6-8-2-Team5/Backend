@@ -7,6 +7,7 @@ import com.back.domain.news.common.service.KeywordGenerationService;
 import com.back.domain.news.fake.dto.FakeNewsDto;
 import com.back.domain.news.fake.service.FakeNewsService;
 import com.back.domain.news.real.dto.RealNewsDto;
+import com.back.domain.news.real.service.AdminNewsService;
 import com.back.domain.news.real.service.NewsDataService;
 import com.back.domain.news.real.service.RealNewsService;
 import com.back.global.rsData.RsData;
@@ -27,11 +28,26 @@ public class TestController {
     private final FakeNewsService fakeNewsService;
     private final RealNewsService realNewsService;
     private final NewsDataService newsDataService;
+    private final AdminNewsService adminNewsService;
 
     @GetMapping("/keywords")
     public KeywordGenerationResDto testKeywords() {
         return keywordGenerationService.generateTodaysKeywords();
     }
+
+
+    //     뉴스 배치 프로세서
+    @GetMapping("/process")
+    public RsData<Void> newsProcess() {
+        try {
+            adminNewsService.dailyNewsProcess();
+
+            return RsData.of(200, "성공");
+        } catch (Exception e) {
+            return RsData.of(500, "실패: " + e.getMessage());
+        }
+    }
+
 
     //-1 -> 내일 이전(모든 키워드 삭제)
     // 0 -> 오늘 이전(어제 키워드까지 삭제)

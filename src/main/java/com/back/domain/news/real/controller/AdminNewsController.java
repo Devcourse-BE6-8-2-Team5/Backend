@@ -63,11 +63,11 @@ public class AdminNewsController {
     @GetMapping("/process")
     public RsData<List<RealNewsDto>> newsProcess() {
         try {
-            List<RealNewsDto> result = adminNewsService.dailyNewsProcess();
+            adminNewsService.dailyNewsProcess();
 
-            return RsData.of(200, "성공", result);
+            return RsData.of(200, "뉴스 생성 성공");
         } catch (Exception e) {
-            return RsData.of(500, "실패: " + e.getMessage());
+            return RsData.of(500, "뉴스 생성 실패 : " + e.getMessage());
         }
     }
 
