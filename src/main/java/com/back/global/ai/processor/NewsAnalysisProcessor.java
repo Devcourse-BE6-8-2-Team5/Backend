@@ -40,6 +40,7 @@ public class NewsAnalysisProcessor implements AiRequestProcessor<List<AnalyzedNe
                목적:
                - 각 뉴스의 품질을 1-100점으로 평가
                - 뉴스를 5개 카테고리 중 하나로 분류
+               - 본문에서 불필요한 내용을 제거하여 정제된 내용 제공
                - 사용자에게 가치 있는 뉴스를 선별하기 위함
                
                [품질 평가 기준]
@@ -65,18 +66,30 @@ public class NewsAnalysisProcessor implements AiRequestProcessor<List<AnalyzedNe
                
                [카테고리 분류 기준]
                다음 5개 카테고리 중 가장 적합한 하나를 선택하세요:
-               
                - POLITICS: 정치, 선거, 정부 정책, 외교, 국회, 지방자치 관련
                - ECONOMY: 경제, 금융, 기업, 산업, 무역, 주식, 부동산, 고용 관련
                - SOCIETY: 사회 이슈, 교육, 복지, 범죄, 사고, 환경, 인구, 지역 사회 관련
                - CULTURE: 문화, 예술, 스포츠, 연예, 관광, 여행, 축제, 종교 관련
                - IT: 과학기술, IT, 인공지능, 바이오, 우주, 통신, 게임, 디지털 관련
                
+               [본문 정제 요구사항]
+               다음과 같은 불필요한 내용들을 제거하고 핵심 뉴스 내용만 남기세요:
+               - 제보 안내 (이메일, 카카오톡, 전화번호, 사이트 링크)
+               - 저작권 관련 안내 ([DB 및 재배포 금지], 무단전재, 재배포금지 등)
+               - 기자 정보나 매체 정보 ([기자명], (기자명) 등)
+               - 광고성 문구나 홍보 내용
+               - 구독 안내나 앱 다운로드 유도 문구
+               - 관련 기사 안내나 링크
+               - 기타 뉴스 핵심 내용과 무관한 부가 정보
+                
+               정제된 본문은 뉴스의 핵심 사실과 내용만 포함해야 합니다.
+                        
                [주의사항]
                - 점수는 반드시 1-100 사이의 정수로 제공
                - 카테고리는 반드시 위의 5개 중 하나만 선택 (대문자로 정확히 표기)
                - 객관적이고 공정한 평가를 수행
                - 개인적 편견이나 주관적 취향을 배제
+               - 정제된 본문에서 뉴스의 핵심 내용은 절대 삭제하지 마세요
                
                [출력 규칙]
                - 마크다운 코드 블록 사용 금지
@@ -88,12 +101,14 @@ public class NewsAnalysisProcessor implements AiRequestProcessor<List<AnalyzedNe
                  {
                    "newsIndex": 1,
                    "qualityScore": 85,
-                   "category": "POLITICS"
+                   "category": "POLITICS",
+                   "cleanedContent": "정제된 뉴스 본문 내용"
                  },
                  {
                    "newsIndex": 2,
                    "qualityScore": 72,
-                   "category": "ECONOMY"
+                   "category": "ECONOMY",
+                   "cleanedContent": "정제된 뉴스 본문 내용"
                  }
                ]
                
@@ -158,7 +173,7 @@ public class NewsAnalysisProcessor implements AiRequestProcessor<List<AnalyzedNe
             RealNewsDto updatedNews = RealNewsDto.of(
                     originalNews.id(),
                     originalNews.title(),
-                    originalNews.content(),
+                    result.cleanedContent(),
                     originalNews.description(),
                     originalNews.link(),
                     originalNews.imgUrl(),
@@ -177,6 +192,7 @@ public class NewsAnalysisProcessor implements AiRequestProcessor<List<AnalyzedNe
     private record NewsAnalyzedRes(
             int newsIndex,
             int qualityScore,
-            NewsCategory category
+            NewsCategory category,
+            String cleanedContent
     ) {}
 }

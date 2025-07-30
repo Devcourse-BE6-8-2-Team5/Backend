@@ -95,7 +95,7 @@ public class TestController {
     }
 
     @GetMapping("/process")
-    public RsData<List<AnalyzedNewsDto>> newsProcess() {
+    public RsData<List<RealNewsDto>> newsProcess() {
         try {
             List<String> keywords = keywordGenerationService.generateTodaysKeywords().getKeywords();
             //   속보랑 기타키워드 추가
@@ -106,7 +106,11 @@ public class TestController {
 
             List<AnalyzedNewsDto> allRealNewsAfterFilter = adminNewsService.filterAndScoreNews(allRealNewsBeforeFilter);
 
-            return RsData.of(200, "성공", allRealNewsAfterFilter);
+            List<RealNewsDto> selectedNews = adminNewsService.selectNewsByScore(allRealNewsAfterFilter);
+
+            List<RealNewsDto> res = adminNewsService.saveAllRealNews(selectedNews);
+
+            return RsData.of(200, "성공", res);
         } catch (Exception e) {
             return RsData.of(500, "실패: " + e.getMessage());
         }

@@ -32,10 +32,8 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -107,7 +105,7 @@ public class AdminNewsService {
 
                 Thread.sleep(crawlingDelay);
             }
-            return saveRealNews(realNewsDtoList);
+            return saveAllRealNews(realNewsDtoList);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             throw new RuntimeException("런타임 인터럽트 발생");
@@ -147,7 +145,7 @@ public class AdminNewsService {
     }
 
     @Transactional
-    public List<RealNewsDto> saveRealNews(List<RealNewsDto> realNewsDtoList) {
+    public List<RealNewsDto> saveAllRealNews(List<RealNewsDto> realNewsDtoList) {
             // DTO → Entity 변환 후 저장
             List<RealNews> realNewsList = realNewsMapper.toEntityList(realNewsDtoList);
             List<RealNews> savedEntities = realNewsRepository.saveAll(realNewsList); // 저장된 결과 받기
@@ -393,4 +391,17 @@ public class AdminNewsService {
         return allRealNewsAfterFilter;
     }
 
+    public List<RealNewsDto> selectNewsByScore(List<AnalyzedNewsDto> allRealNewsAfterFilter) {
+        return allRealNewsAfterFilter.stream()
+                .collect(Collectors.groupingBy(AnalyzedNewsDto::category))
+                .values()
+                .stream()
+                .flatMap(categoryNews ->
+                        categoryNews.stream()
+                                .sorted(Comparator.comparing(AnalyzedNewsDto::score).reversed())
+                                .limit(3)
+                )
+                .map(AnalyzedNewsDto::realNewsDto)  // RealNewsDto로 변환
+                .toList();
+    }
 }
