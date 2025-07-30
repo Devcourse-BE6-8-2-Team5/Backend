@@ -37,7 +37,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @TestPropertySource(properties = {
         "NAVER_CLIENT_ID=test_client_id",
         "NAVER_CLIENT_SECRET=test_client_secret",
-        "GEMINI_API_KEY=AIzaSyDkp7j5fH_gMC6IRgAVwMFi1BJ_cN4QgQg"
+        "GEMINI_API_KEY=apikey"
 })
 //@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 class DetailQuizControllerTest {
