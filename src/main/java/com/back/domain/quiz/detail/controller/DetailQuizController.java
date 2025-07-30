@@ -3,6 +3,7 @@ package com.back.domain.quiz.detail.controller;
 import com.back.domain.member.member.entity.Member;
 import com.back.domain.quiz.detail.dto.DetailQuizAnswerDto;
 import com.back.domain.quiz.detail.dto.DetailQuizDto;
+import com.back.domain.quiz.detail.dto.DetailQuizResDto;
 import com.back.domain.quiz.detail.entity.DetailQuiz;
 import com.back.domain.quiz.detail.entity.Option;
 import com.back.domain.quiz.detail.service.DetailQuizService;
@@ -41,14 +42,14 @@ public class DetailQuizController {
             }
     )
     @GetMapping
-    public RsData<List<DetailQuizDto>> getDetailQuizzes() {
+    public RsData<List<DetailQuizResDto>> getDetailQuizzes() {
         List<DetailQuiz> detailQuizzes = detailQuizService.findAll();
 
         return new RsData<>(
                 200,
                 "상세 퀴즈 목록 조회 성공",
                 detailQuizzes.stream()
-                        .map(DetailQuizDto::new)
+                        .map(DetailQuizResDto::new)
                         .toList()
         );
     }
@@ -67,13 +68,13 @@ public class DetailQuizController {
             }
     )
     @GetMapping("/{id}")
-    public RsData<DetailQuizDto> getDetailQuiz(@PathVariable Long id) {
+    public RsData<DetailQuizResDto> getDetailQuiz(@PathVariable Long id) {
         DetailQuiz detailQuiz = detailQuizService.findById(id);
 
         return new RsData<>(
                 200,
                 "상세 퀴즈 조회 성공",
-                new DetailQuizDto(detailQuiz)
+                new DetailQuizResDto(detailQuiz)
         );
     }
 
@@ -93,14 +94,14 @@ public class DetailQuizController {
             }
     )
     @GetMapping("/news/{newsId}")
-    public RsData<List<DetailQuizDto>> getDetailQuizzesByNewsId(@PathVariable Long newsId) {
+    public RsData<List<DetailQuizResDto>> getDetailQuizzesByNewsId(@PathVariable Long newsId) {
         List<DetailQuiz> detailQuizzes = detailQuizService.findByNewsId(newsId);
 
         return new RsData<>(
                 200,
                 "뉴스 ID로 상세 퀴즈 목록 조회 성공",
                 detailQuizzes.stream()
-                        .map(DetailQuizDto::new)
+                        .map(DetailQuizResDto::new)
                         .toList()
         );
     }
@@ -124,7 +125,7 @@ public class DetailQuizController {
             }
     )
     @PostMapping("news/{newsId}/regenerate")
-    public RsData<List<DetailQuizDto>> generateDetailQuizzes(@PathVariable Long newsId) {
+    public RsData<List<DetailQuizResDto>> generateDetailQuizzes(@PathVariable Long newsId) {
         List<DetailQuizDto> newQuizzes = detailQuizService.generateQuizzes(newsId);
         List<DetailQuiz> savedQuizzes = detailQuizService.saveQuizzes(newsId, newQuizzes);
 
@@ -132,7 +133,7 @@ public class DetailQuizController {
                 201,
                 "상세 퀴즈 생성 성공",
                 savedQuizzes.stream()
-                        .map(DetailQuizDto::new)
+                        .map(DetailQuizResDto::new)
                         .toList()
         );
     }
@@ -154,12 +155,12 @@ public class DetailQuizController {
             }
     )
     @PutMapping("/{id}")
-    public RsData<DetailQuizDto> updateDetailQuiz(@PathVariable Long id, @RequestBody @Valid DetailQuizDto detailQuizDto) {
+    public RsData<DetailQuizResDto> updateDetailQuiz(@PathVariable Long id, @RequestBody @Valid DetailQuizDto detailQuizDto) {
         DetailQuiz updatedQuiz = detailQuizService.updateDetailQuiz(id, detailQuizDto);
         return new RsData<>(
                 200,
                 "상세 퀴즈 수정 성공",
-                new DetailQuizDto(updatedQuiz)
+                new DetailQuizResDto(updatedQuiz)
         );
     }
 
