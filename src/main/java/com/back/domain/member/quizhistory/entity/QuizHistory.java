@@ -17,6 +17,10 @@ import java.time.LocalDateTime;
 @SuperBuilder
 @EntityListeners(AuditingEntityListener.class)
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@Table(
+        name = "quiz_history",
+        uniqueConstraints = @UniqueConstraint(columnNames = {"member_id", "quiz_id", "quizType"})
+)
 public class QuizHistory {
 
     @Id

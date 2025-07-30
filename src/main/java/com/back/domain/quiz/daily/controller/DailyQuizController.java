@@ -1,8 +1,13 @@
 package com.back.domain.quiz.daily.controller;
 
+import com.back.domain.member.member.entity.Member;
+import com.back.domain.quiz.daily.dto.DailyQuizAnswerDto;
 import com.back.domain.quiz.daily.dto.DailyQuizDto;
 import com.back.domain.quiz.daily.entity.DailyQuiz;
 import com.back.domain.quiz.daily.service.DailyQuizService;
+import com.back.domain.quiz.detail.entity.Option;
+import com.back.global.exception.ServiceException;
+import com.back.global.rq.Rq;
 import com.back.global.rsData.RsData;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -11,11 +16,10 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -25,6 +29,7 @@ import java.util.List;
 @Tag(name= "DailyQuizController", description = "오늘의 퀴즈 관련 API")
 public class DailyQuizController {
     private final DailyQuizService dailyQuizService;
+    private final Rq rq;
 
     @Operation(summary = "오늘의 퀴즈 조회", description = "오늘의 뉴스 ID로 오늘의 퀴즈(3개)를 조회합니다.")
     @ApiResponses(
@@ -48,6 +53,24 @@ public class DailyQuizController {
                 dailyQuizzes.stream()
                         .map(DailyQuizDto::new)
                         .toList()
+        );
+    }
+
+    @Operation(summary = "오늘의 퀴즈 정답 제출", description = "퀴즈 ID로 오늘의 퀴즈의 정답을 제출합니다.")
+    @PostMapping("/submit/{id}")
+    public RsData<DailyQuizAnswerDto> submitDailyQuizAnswer(@PathVariable Long id, @RequestBody @Valid @NotNull Option selectedOption) {
+
+        Member actor = rq.getActor();
+        if (actor == null) {
+            throw new ServiceException(401, "로그인이 필요합니다.");
+        }
+
+        DailyQuizAnswerDto submittedQuiz = dailyQuizService.submitDetailQuizAnswer(actor,id, selectedOption);
+
+        return new RsData<>(
+                200,
+                "퀴즈 정답 제출 성공",
+                submittedQuiz
         );
     }
 }

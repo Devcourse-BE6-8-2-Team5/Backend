@@ -1,11 +1,16 @@
 package com.back.domain.quiz.daily.service;
 
+import com.back.domain.member.member.entity.Member;
+import com.back.domain.member.member.repository.MemberRepository;
+import com.back.domain.member.quizhistory.service.QuizHistoryService;
 import com.back.domain.news.real.entity.RealNews;
 import com.back.domain.news.real.repository.TodayNewsRepository;
 import com.back.domain.news.today.entity.TodayNews;
+import com.back.domain.quiz.daily.dto.DailyQuizAnswerDto;
 import com.back.domain.quiz.daily.entity.DailyQuiz;
 import com.back.domain.quiz.daily.repository.DailyQuizRepository;
 import com.back.domain.quiz.detail.entity.DetailQuiz;
+import com.back.domain.quiz.detail.entity.Option;
 import com.back.global.exception.ServiceException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,6 +26,8 @@ import java.util.List;
 public class DailyQuizService {
     private final DailyQuizRepository dailyQuizRepository;
     private final TodayNewsRepository todayNewsRepository;
+    private final MemberRepository memberRepository;
+    private final QuizHistoryService quizHistoryService;
 
     @Transactional(readOnly = true)
     public List<DailyQuiz> getDailyQuizzes(Long todayNewsId) {
@@ -77,6 +84,35 @@ public class DailyQuizService {
                 .toList();
 
         dailyQuizRepository.saveAll(dailyQuizzes);
+
+    }
+
+    @Transactional
+    public DailyQuizAnswerDto submitDetailQuizAnswer(Member actor, Long id, Option selectedOption) {
+        DailyQuiz dailyQuiz = dailyQuizRepository.findById(id)
+                .orElseThrow(() -> new ServiceException(404, "오늘의 퀴즈를 찾을 수 없습니다."));
+
+        Member managedActor = memberRepository.findById(actor.getId())
+                .orElseThrow(() -> new ServiceException(404, "회원이 존재하지 않습니다."));
+
+        DetailQuiz detailQuiz = dailyQuiz.getDetailQuiz();
+
+        boolean isCorrect = detailQuiz.isCorrect(selectedOption);
+        int gainExp = isCorrect ? 10 : 0;
+
+        managedActor.setExp(managedActor.getExp() + gainExp);
+
+        quizHistoryService.save(managedActor, id, dailyQuiz.getQuizType(), String.valueOf(selectedOption), isCorrect, gainExp); // 퀴즈 히스토리 저장
+
+        return new DailyQuizAnswerDto(
+                dailyQuiz.getId(),
+                detailQuiz.getQuestion(),
+                detailQuiz.getCorrectOption(),
+                selectedOption,
+                isCorrect,
+                gainExp,
+                dailyQuiz.getQuizType()
+        );
 
     }
 }
