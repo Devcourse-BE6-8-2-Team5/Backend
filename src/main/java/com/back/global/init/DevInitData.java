@@ -7,6 +7,10 @@ import com.back.domain.news.fake.dto.FakeNewsDto;
 import com.back.domain.news.fake.service.FakeNewsService;
 import com.back.domain.news.real.dto.RealNewsDto;
 import com.back.domain.news.real.service.AdminNewsService;
+import com.back.domain.quiz.daily.service.DailyQuizService;
+import com.back.domain.quiz.detail.dto.DetailQuizDto;
+import com.back.domain.quiz.detail.service.DetailQuizService;
+import com.back.domain.quiz.fact.service.FactQuizService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationRunner;
@@ -29,6 +33,9 @@ public class DevInitData {
     private final MemberService memberService;
     private final AdminNewsService adminNewsService;
     private final FakeNewsService fakeNewsService;
+    private final DetailQuizService detailQuizService;
+    private final FactQuizService factQuizService;
+    private final DailyQuizService dailyQuizService;
 
     @Bean
     ApplicationRunner devInitDataApplicationRunner() {
@@ -36,6 +43,9 @@ public class DevInitData {
             self.memberInit();
             self.newsInit();
             self.fakeNewsInit();
+            self.detailQuizInit();
+            self.factQuizInit();
+            self.dailyQuizInit();
         };
     }
 
@@ -70,7 +80,7 @@ public class DevInitData {
                 "정부가 '민생회복 소비쿠폰'을 지급 중인 가운데 본격적인 여름 휴가철에 접어들면서 내수경기 반등에... '7말 8초'(7월 말부터 8월 초) 여름 휴가철과 맞물려 소비 진작 효과가 커질 가능성도 있다. 정부 관계자는...",
                 "https://n.news.naver.com/mnews/article/088/0000961622?sid=101",
                 "https://imgnews.pstatic.net/image/088/2025/07/29/0000961622_001_20250729133508809.jpg?type=w860",
-                LocalDateTime.now().minusHours(1),
+                LocalDateTime.now().minusDays(3),
                 "매일신문",
                 "정은빈 기자",
                 "https://www.imaeil.com/page/view/2025072913253167202",
@@ -85,7 +95,7 @@ public class DevInitData {
                 "29일 서울 서초구 농협유통 하나로마트 양재점에서 모델들이 여름 제철 간식인 감자와 찰옥수수를 소개하고 있다. (사진=농협유통 제공) 2025.07.29. photo@newsis.com *재판매 및 DB 금지",
                 "https://n.news.naver.com/mnews/article/003/0013391031?sid=101",
                 "https://imgnews.pstatic.net/image/003/2025/07/29/NISI20250729_0020908209_web_20250729134833_20250729134922533.jpg?type=w860",
-                LocalDateTime.now().minusMinutes(30),
+                LocalDateTime.now().minusDays(2),
                 "뉴시스",
                 "류현주 기자",
                 "https://www.newsis.com/view/NISI20250729_0020908209",
@@ -100,7 +110,7 @@ public class DevInitData {
                 "경제계는 국회에서 더 강한 상법 및 노란봉투법(노동조합 및 노동관계조정법 제2·3조 개정안) 처리가 급물살을 타는 데 대해 \"깊은 우려를 넘어 참담한 심정을 금할 수 없다\"고 반발했다. 경제8단체는 29일 '내우외환...",
                 "https://n.news.naver.com/mnews/article/003/0013389987?sid=101",
                 "https://imgnews.pstatic.net/image/003/2025/07/29/NISI20250728_0020906501_web_20250728105814_20250729090316531.jpg?type=w860",
-                LocalDateTime.now().minusHours(1),
+                LocalDateTime.now().minusDays(2),
                 "연합뉴스",
                 "강태현 기자",
                 "https://www.yna.co.kr/view/AKR20250729103800062?input=1195m",
@@ -113,7 +123,7 @@ public class DevInitData {
                 "강원랜드가 운영하는 하이원리조트에서 여름 휴가철을 맞아 다양한 여름철 이벤트를 선보인다. 하이원 워터월드 야외 파도 풀 포세이돈 웨이브에서는 내달 10일까지 'DJ 풀 파티'가 열린다. 풀 파티는 매일 오후 2시부터...",
                 "https://n.news.naver.com/mnews/article/001/0015536299?sid=102",
                 "https://imgnews.pstatic.net/image/001/2025/07/29/AKR20250729103800062_01_i_P4_20250729141024634.jpg?type=w860",
-                LocalDateTime.now().minusHours(3),
+                LocalDateTime.now().minusDays(3),
                 "뉴시스",
                 "이현주 기자",
                 "https://www.newsis.com/view/NISX20250729_0003269924",
@@ -125,10 +135,10 @@ public class DevInitData {
                 5L,
                 "경제8단체, 상법·노조법 개정에 \"국회 신중히 재검토해달라\"",
                 "한경협·대한상의 등 \"韓경제 미래 결정될 분수령서 극도혼란 초래\" 상법개정안 여당 주도 법사소위 통과 (서울=연합뉴스) 김주성 기자 = 더불어민주당 장경태 의원 등 여당 법제사법위원회 위원들이 28일 국회 법사위 법안심사소위에서 집중투표제를 의무화하고 감사위원 분리 선출을 확대하는 내용의 상법 개정안을 여당 주도로 통과시킨 후 취재진에게 내용을 설명하고 있다. 왼쪽부터 더불어민주당 박균택·김용민·장경태·이성윤 의원. 2025.7.28 utzza@yna.co.kr (서울=연합뉴스) 김보경 기자 = 재계는 한국 경제의 명운을 가를 미국과의 관세 협상 마감이 임박한 가운데 기업 경영에 부담을 줄 수 있는 상법 및 노동조합법 2·3조 개정안 논의가 국회에서 빠르게 진행되는 것과 관련, 큰 우려를 표하며 개정안 재검토를 호소했다. 한국경제인협회와 대한상공회의소, 한국경영자총협회, 한국무역협회, 중소기업중앙회, 한국중견기업연합회, 한국상장회사협의회, 코스닥협회 등 경제8단체는 29일 배포한 공동 입장문에서 \"엄중한 경제 상황에도 상법 및 노조법 개정안이 국회에서 급물살을 타는 것에 대해 깊은 우려를 넘어 참담한 심정을 금할 수 없다\"고 밝혔다. 경제8단체는 올해 우리 경제가 0.8% 성장에 그칠 것으로 전망되는 등 초저성장 국면이 지속되는 상황에서 며칠 앞으로 다가온 대미 통상 협상 결과가 한국 경제의 미래를 결정할 중요한 분수령이 될 것이라고 강조했다. 이들 단체는 \"우리 기업의 평균 영업이익률이 5% 내외인 상황에서 한미 관세 협상이 난항을 겪는다면 미국으로 수출하는 길이 사실상 막히게 된다\"며 \"이는 우리나라 최대 수출 시장을 잃는 것이고, 경제 정책 및 기업 경영 전략을 새롭게 수립해야 할 중대한 상황을 맞이하게 될 것\"이라고 우려했다. 노조법 2·3조 개정안 상정에 반발해 퇴장하는 국민의힘 환노위원들 (서울=연합뉴스) 황광모 기자 = 국회 환경노동위원회 국민의힘 의원들이 28일 윤석열 전 대통령이 거부권(재의요구권)을 행사했던 '노란봉투법'(노조법 2·3조 개정안)이 국회 환경노동위원회에 상정되자 강한 유감을 표현한 뒤 회의장에서 퇴장하고 있다. 2025.7.28 hkmpooh@yna.co.kr 이런 위기 속 기업 경영에 부담을 줄 수 있는 상법 개정안과 이른바 '노란봉투법'(노조법 개정안)이 국회에서 통과될 경우 기업들은 큰 혼란에 빠질 것이라고 경제8단체는 경고했다. 이사의 충실의무 확대 등을 담은 상법 개정안은 지난 22일 공포된 후 1주일도 안 돼 추가 상법 개정안이 현재 국회 법제사법위원회 법안소위에서 처리됐고, 노조법 개정안이 법안소위와 전체 회의를 연달아 통과한 바 있다. 이들 단체는 \"정부와 국회, 기업이 위기 극복을 위해 하나로 뭉쳐야 하는 중차대한 시점에 국회가 기업활동을 옥죄는 규제 입법을 연이어 쏟아내는 것은 기업에 극도의 혼란을 초래할 수 있다\"며 \"관세 협상의 결과가 불투명한 상황에서 자승자박하는 것은 아닌지 안타깝다\"고 지적했다. 그러면서 \"상법 추가 개정은 사업재편 반대, 주요 자산 매각 등 해외 투기자본의 무리한 요구로 이어져 주력산업의 구조조정과 새로운 성장동력 확충을 어렵게 할 수 있다\"며 \"노조법 개정안도 사용자 범위가 확대되고, 기업 고유의 경영활동까지도 쟁의 대상에 포함돼 파업 만능주의를 조장하고 노사관계 안정성도 훼손되는 등 심각한 부작용이 우려된다\"고 덧붙였다. 이들 단체는 \"새 정부가 성장 중심 경제정책의 의지를 밝힌 만큼 위기 극복을 위해 정부와 국회, 기업이 하나가 되어 모든 역량을 총동원해야 한다\"며 \"꺼져가는 성장동력을 재점화하고 양질의 일자리 창출을 위해 기업들이 전력을 다할 수 있는 환경을 조성하는데 국회가 나서주기를 바란다\"고 호소했다. 이어 \"국회는 지금이라도 우리 기업이 처한 어려움과 절박한 호소를 외면하지 말길 바란다\"며 \"개정안들을 철저히 국익 관점에서 신중하게 재검토해 주기를 간곡히 호소한다\"고 덧붙였다. vivid@yna.co.kr",
-                 "한경협·대한상의 등 \"韓경제 미래 결정될 분수령서 극도혼란 초래\" 재계는 한국 경제의 명운을 가를 미국과의 관세 협상 마감이 임박한 가운데 기업 경영에 부담을 줄 수 있는 상법 및 노동조합법 2·3조 개정안 논의가...",
+                "한경협·대한상의 등 \"韓경제 미래 결정될 분수령서 극도혼란 초래\" 재계는 한국 경제의 명운을 가를 미국과의 관세 협상 마감이 임박한 가운데 기업 경영에 부담을 줄 수 있는 상법 및 노동조합법 2·3조 개정안 논의가...",
                 "https://n.news.naver.com/mnews/article/001/0015535245?sid=101",
                 "https://imgnews.pstatic.net/image/001/2025/07/29/PYH2025072813430001300_P4_20250729093815961.jpg?type=w860",
-                LocalDateTime.now().minusDays(3),
+                LocalDateTime.now().minusDays(1),
                 "연합뉴스",
                 "김보경 기자",
                 "https://www.yna.co.kr/view/AKR20250729042500003?input=1195m",
@@ -141,7 +151,7 @@ public class DevInitData {
                 "인도 최대 정보기술(IT) 서비스업체 TCS(타타 컨설턴시 서비스)는 2025/26 회계연도(2025년 4월~2026년 3월)... 인도 IT 업계는 수요 침체, 지속적인 인플레, 미국 고관세 정책을 배경으로 고객이 필요 불가결하지...",
                 "https://n.news.naver.com/mnews/article/003/0013390843?sid=104",
                 "https://imgnews.pstatic.net/image/003/2025/07/29/NISI20181111_0014639173_web_20181111100557_20250729121621751.jpg?type=w860",
-                LocalDateTime.now().minusDays(3),
+                LocalDateTime.now().minusDays(1),
                 "뉴시스",
                 "이재준 기자",
                 "https://www.newsis.com/view/NISX20250729_0003270456",
@@ -154,7 +164,7 @@ public class DevInitData {
                 "인도네시아 시나르마스 은행 카드 시스템 사업 수주 LC GNS는 28일 인도네시아 상업은행인 시나르마스 은행의 차세대 카드 시스템 구축 사업을 수주, 동남아 금융 정보기술(IT) 시장 공략에 본격 나선다고 밝혔다. 이번...",
                 "https://n.news.naver.com/mnews/article/001/0015533231?sid=101",
                 "https://imgnews.pstatic.net/image/001/2025/07/28/PCM20241214000158017_P4_20250728100510353.jpg?type=w860",
-                LocalDateTime.now().minusDays(3),
+                LocalDateTime.now().minusDays(1),
                 "연합뉴스",
                 "김경희 기자",
                 "https://www.yna.co.kr/view/AKR20250728046500017?input=1195m",
@@ -239,5 +249,43 @@ public class DevInitData {
         // 페이크뉴스 리스트 생성 및 저장
         List<FakeNewsDto> fakeNewsList = List.of(fakeNews1, fakeNews2, fakeNews3, fakeNews4, fakeNews5, fakeNews6, fakeNews7);
         fakeNewsService.saveAllFakeNews(fakeNewsList);
+    }
+
+    @Transactional
+    public void detailQuizInit() {
+        // 퀴즈가 이미 있으면 초기화 생략
+        if (detailQuizService.count() > 0) {
+            return;
+        }
+
+        // 퀴즈 생성 로직 추가
+        for(long l = 1L; l <= 7L; l++) {
+            List<DetailQuizDto> quizzes = detailQuizService.generateQuizzes(l);
+            detailQuizService.saveQuizzes(l, quizzes);
+        }
+    }
+
+    @Transactional
+    public void factQuizInit() {
+        // 퀴즈가 이미 있으면 초기화 생략
+        if (factQuizService.count() > 0) {
+            return;
+        }
+
+        // 퀴즈 생성 로직 추가
+        for(long l = 1L; l <= 7L; l++) {
+            factQuizService.create(l);
+        }
+    }
+
+    @Transactional
+    public void dailyQuizInit() {
+        // 퀴즈가 이미 있으면 초기화 생략
+        if (dailyQuizService.count() > 0) {
+            return;
+        }
+
+        // 퀴즈 생성 로직 추가 (예시)
+        dailyQuizService.createDailyQuizForInitData();
     }
 }

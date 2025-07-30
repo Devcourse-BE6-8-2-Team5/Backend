@@ -11,11 +11,14 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.List;
+
+import static org.springframework.security.config.http.SessionCreationPolicy.STATELESS;
 
 @Configuration
 @RequiredArgsConstructor
@@ -23,6 +26,8 @@ public class SecurityConfig {
 
     @Lazy
     private final CustomAuthenticationFilter customAuthenticationFilter;
+    private final AuthenticationSuccessHandler customOAuth2LoginSuccessHandler;
+    private final CustomOAuth2AuthorizationRequestResolver customOAuth2AuthorizationRequestResolver;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -33,7 +38,7 @@ public class SecurityConfig {
                                 .requestMatchers("/h2-console/**").permitAll()
 
                                 //모두 접근 가능한 API
-                                .requestMatchers(HttpMethod.GET,  "/메인페이지/뉴스목록", "/뉴스상세페이지", "/오늘의뉴스페이지", "/ox퀴즈페이지").permitAll()
+                                .requestMatchers(HttpMethod.GET,  "/메인페이지/뉴스목록", "/뉴스상세페이지", "/오늘의뉴스페이지").permitAll()
                                 .requestMatchers(HttpMethod.POST, "/api/members/login", "/api/members/join").permitAll()
                                 .requestMatchers(HttpMethod.DELETE, "/api/members/logout").permitAll()
 
@@ -50,8 +55,6 @@ public class SecurityConfig {
                                 // 그 외는 모두 인증 필요
 //                                .requestMatchers("/api/*/**").authenticated()
                                 .requestMatchers("/api/*/**").permitAll()
-
-
                                 // 그 외는 모두 허용
                                 .anyRequest().permitAll()
                 )
@@ -64,7 +67,14 @@ public class SecurityConfig {
                 .formLogin(AbstractHttpConfigurer::disable)
                 .logout(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)
-                .sessionManagement(AbstractHttpConfigurer::disable)
+                .sessionManagement(sessionManagement -> sessionManagement.sessionCreationPolicy(STATELESS))
+                .oauth2Login(oauth2Login -> oauth2Login
+                        .successHandler(customOAuth2LoginSuccessHandler)
+                        .authorizationEndpoint(
+                                authorizationEndpoint -> authorizationEndpoint
+                                        .authorizationRequestResolver(customOAuth2AuthorizationRequestResolver)
+                        )
+                )
                 .addFilterBefore(customAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .exceptionHandling(
                         exceptionHandling -> exceptionHandling
