@@ -4,7 +4,6 @@ import com.back.domain.member.member.dto.MemberWithInfoDto;
 import com.back.domain.member.member.entity.Member;
 import com.back.domain.member.member.service.MemberService;
 import com.back.global.exception.ServiceException;
-import com.back.global.rq.Rq;
 import com.back.global.rsData.RsData;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -24,17 +23,11 @@ import java.util.List;
 public class AdmMemberController {
 
     private final MemberService memberService;
-    private final Rq rq;
-
 
     @Operation(summary = "(단건)회원 정보 조회- 관리자 전용 (아이디로 조회)")
     @GetMapping("/members/{id}")
     @Transactional
     public RsData<MemberWithInfoDto> getMemberById(@PathVariable Long id) {
-        Member actor = rq.getActor();
-        if (actor == null || !actor.isAdmin()) {
-            throw new ServiceException(403, "관리자 권한이 필요합니다.");
-        }
 
         Member member = memberService.findById(id)
                 .orElseThrow(() -> new ServiceException(404, "존재하지 않는 회원입니다."));
@@ -50,10 +43,6 @@ public class AdmMemberController {
     @GetMapping("/members")
     @Transactional(readOnly = true)
     public RsData<List<MemberWithInfoDto>> listMembers() {
-        Member actor = rq.getActor();
-        if (actor == null || !actor.isAdmin()) {
-            throw new ServiceException(403, "관리자 권한이 필요합니다.");
-        }
 
         List<Member> members = memberService.findAll();
 
