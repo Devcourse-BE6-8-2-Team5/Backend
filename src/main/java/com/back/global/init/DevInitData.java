@@ -6,7 +6,6 @@ import com.back.domain.news.common.enums.NewsCategory;
 import com.back.domain.news.fake.dto.FakeNewsDto;
 import com.back.domain.news.fake.service.FakeNewsService;
 import com.back.domain.news.real.dto.RealNewsDto;
-import com.back.domain.news.real.service.AdminNewsService;
 import com.back.domain.news.real.service.NewsDataService;
 import com.back.domain.quiz.daily.service.DailyQuizService;
 import com.back.domain.quiz.detail.dto.DetailQuizDto;
