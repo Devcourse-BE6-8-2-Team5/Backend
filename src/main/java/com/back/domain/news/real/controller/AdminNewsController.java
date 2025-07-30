@@ -18,8 +18,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Arrays;
@@ -38,6 +36,18 @@ public class AdminNewsController {
     private final RealNewsService realNewsService;
     private final NewsPageService newsPageService;
 
+
+//     뉴스 배치 프로세서
+    @GetMapping("/process")
+    public RsData<List<RealNewsDto>> newsProcess() {
+        try {
+            List<RealNewsDto> result = adminNewsService.dailyNewsProcess();
+
+            return RsData.of(200, "성공", result);
+        } catch (Exception e) {
+            return RsData.of(500, "실패: " + e.getMessage());
+        }
+    }
 
     //뉴스 생성
     @Operation(summary = "뉴스 생성", description = "네이버 뉴스 API와 데이터 파싱을 통해 뉴스를 생성합니다.")

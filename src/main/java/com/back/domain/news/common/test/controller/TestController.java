@@ -1,11 +1,14 @@
 package com.back.domain.news.common.test.controller;
 
+import com.back.domain.news.common.dto.AnalyzedNewsDto;
 import com.back.domain.news.common.dto.KeywordGenerationResDto;
+import com.back.domain.news.common.dto.NaverNewsDto;
 import com.back.domain.news.common.service.KeywordCleanupService;
 import com.back.domain.news.common.service.KeywordGenerationService;
 import com.back.domain.news.fake.dto.FakeNewsDto;
 import com.back.domain.news.fake.service.FakeNewsService;
 import com.back.domain.news.real.dto.RealNewsDto;
+import com.back.domain.news.real.service.AdminNewsService;
 import com.back.domain.news.real.service.RealNewsService;
 import com.back.global.rsData.RsData;
 import lombok.RequiredArgsConstructor;
@@ -13,6 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.stream.Stream;
 
 @Slf4j
 @RestController
@@ -24,6 +28,7 @@ public class TestController {
     private final KeywordCleanupService keywordCleanupService;
     private final FakeNewsService fakeNewsService;
     private final RealNewsService realNewsService;
+    private final AdminNewsService adminNewsService;
 
     @GetMapping("/keywords")
     public KeywordGenerationResDto testKeywords() {
@@ -70,6 +75,48 @@ public class TestController {
         }
 
         return fakeNewsService.getFakeNewsByRealNewsId(id);
+    }
+    @GetMapping("/fetch")
+    public RsData<List<NaverNewsDto>> testFetchNews(@RequestParam String query) {
+        try {
+            if (query == null || query.trim().isEmpty()) {
+                return RsData.of(400, "검색어가 비어있습니다.");
+            }
+            // 네이버 API 호출
+            List<NaverNewsDto> news = adminNewsService.fetchNews(query);
+
+            // 속도 제한 준수
+            Thread.sleep(1000);
+
+            return RsData.of(200, "네이버 뉴스 조회 성공", news);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            return RsData.of(500, "네이버 뉴스 조회 중단됨: " + e.getMessage());
+        } catch (Exception e) {
+            log.error("네이버 뉴스 조회 실패: {}", e.getMessage());
+            return RsData.of(500, "네이버 뉴스 조회 실패: " + e.getMessage());
+        }
+    }
+
+
+
+    @GetMapping("/keyword/create")
+    public RsData<List<String>> testCreateKeyword() {
+        try {
+            KeywordGenerationResDto keywords = keywordGenerationService.generateTodaysKeywords();
+            List<String> keywordList = keywords.getKeywords();
+//            Todo: 키워드 추가
+//            List<String> prefixes = List.of("속보", "긴급", "단독");
+//
+//            keywordList = Stream
+//                    .concat(keywordList.stream(), prefixes.stream())
+//                    .toList();
+
+            return RsData.of(200, "키워드 생성 성공", keywordList);
+        } catch (Exception e) {
+            log.error("키워드 생성 실패: {}", e.getMessage());
+            return RsData.of(500, "키워드 생성 실패: " + e.getMessage());
+        }
     }
 
 }

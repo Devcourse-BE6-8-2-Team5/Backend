@@ -9,4 +9,11 @@ public record KeywordGenerationResDto(
         List<KeywordWithType> politics,
         List<KeywordWithType> culture,
         List<KeywordWithType> it
-) { }
+) {
+    public List<String> getKeywords() {
+        return Stream.of(society, economy, politics, culture, it)
+                .flatMap(List::stream)
+                .map(KeywordWithType::keyword)
+                .toList();
+    }
+}

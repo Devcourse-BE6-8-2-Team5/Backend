@@ -1,8 +1,11 @@
 package com.back.domain.news.real.service;
 
+import com.back.domain.news.common.dto.AnalyzedNewsDto;
 import com.back.domain.news.common.dto.NaverNewsDto;
 import com.back.domain.news.common.dto.NewsDetailDto;
 import com.back.domain.news.common.enums.NewsCategory;
+import com.back.domain.news.common.service.KeywordGenerationService;
+import com.back.domain.news.common.service.NewsAnalysisService;
 import com.back.domain.news.real.dto.RealNewsDto;
 import com.back.domain.news.real.entity.RealNews;
 import com.back.domain.news.real.mapper.RealNewsMapper;
@@ -15,6 +18,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -27,18 +31,20 @@ import org.springframework.web.client.RestTemplate;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AdminNewsService {
     private final RealNewsRepository realNewsRepository;
     private final TodayNewsRepository todayNewsRepository;
     private final RealNewsMapper realNewsMapper;
+    private final NewsAnalysisService newsAnalysisService;
+    private final KeywordGenerationService keywordGenerationService;
 
     // HTTP 요청을 보내기 위한 Spring의 HTTP 클라이언트(외부 API 호출 시 사용)
     private final RestTemplate restTemplate;
@@ -75,6 +81,21 @@ public class AdminNewsService {
         }
     }
 
+    @Transactional
+    public List<RealNewsDto> dailyNewsProcess(){
+        List<String> keywords = keywordGenerationService.generateTodaysKeywords().getKeywords();
+        //   속보랑 기타키워드 추가
+
+        List<NaverNewsDto> allNews = collectMetaDataFromNaver(keywords);
+
+        List<RealNewsDto> allRealNewsBeforeFilter = createRealNewsDtoByCrawl(allNews);
+
+        List<AnalyzedNewsDto> allRealNewsAfterFilter = newsAnalysisService.filterAndScoreNews(allRealNewsBeforeFilter);
+
+        List<RealNewsDto> selectedNews = selectNewsByScore(allRealNewsAfterFilter);
+
+        return saveAllRealNews(selectedNews);
+    }
     // RealNewsDto를 생성하는 메서드
     @Transactional
     public List<RealNewsDto> createRealNewsDto(String query) {
@@ -84,7 +105,7 @@ public class AdminNewsService {
             List<RealNewsDto> realNewsDtoList = new ArrayList<>();
 
             for (NaverNewsDto naverMetaData : naverMetaDataList) {
-                Optional<NewsDetailDto> newsDetailData = crawlAddtionalInfo(naverMetaData.link());
+                Optional<NewsDetailDto> newsDetailData = crawladditionalInfo(naverMetaData.link());
 
                 if (newsDetailData.isEmpty()) {
                     // 크롤링 실패 시 해당 뉴스는 건너뜀
@@ -98,10 +119,10 @@ public class AdminNewsService {
                     realNewsDtoList.add(realNewsDto);
                 }
 
-
+                //TODO : @Async, TaskScheduler 등으로 비동기 처리 고려
                 Thread.sleep(crawlingDelay);
             }
-            return saveRealNews(realNewsDtoList);
+            return saveAllRealNews(realNewsDtoList);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             throw new RuntimeException("런타임 인터럽트 발생");
@@ -109,7 +130,39 @@ public class AdminNewsService {
     }
 
     @Transactional
-    public List<RealNewsDto> saveRealNews(List<RealNewsDto> realNewsDtoList) {
+    public List<RealNewsDto> createRealNewsDtoByCrawl(List<NaverNewsDto> MetaDataList) {
+        List<RealNewsDto> allRealNewsDtos = new ArrayList<>();
+
+        try{
+            for (NaverNewsDto metaData : MetaDataList) {
+                Optional<NewsDetailDto> newsDetailData = crawladditionalInfo(metaData.link());
+
+                if (newsDetailData.isEmpty()) {
+                    // 크롤링 실패 시 해당 뉴스는 건너뜀
+                    log.warn("크롤링 실패: {}", metaData.link());
+                    continue;
+                } else{
+                    log.info("크롤링 성공: {}", metaData.link());
+                }
+
+                RealNewsDto realNewsDto = makeRealNewsFromInfo(metaData, newsDetailData.get());
+
+                // 중복된 뉴스 제목이 있는지 확인
+                if (!realNewsRepository.existsByTitle(realNewsDto.title())) {
+                    allRealNewsDtos.add(realNewsDto);
+                }
+                Thread.sleep(crawlingDelay);
+            }
+            return allRealNewsDtos;
+            //return 뉴스 필터하기
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+
+    }
+
+    @Transactional
+    public List<RealNewsDto> saveAllRealNews(List<RealNewsDto> realNewsDtoList) {
             // DTO → Entity 변환 후 저장
             List<RealNews> realNewsList = realNewsMapper.toEntityList(realNewsDtoList);
             List<RealNews> savedEntities = realNewsRepository.saveAll(realNewsList); // 저장된 결과 받기
@@ -118,15 +171,44 @@ public class AdminNewsService {
             return realNewsMapper.toDtoList(savedEntities);
     }
 
+    // 네이버 API를 통해 메타데이터 수집
+    @Transactional
+    public List<NaverNewsDto> collectMetaDataFromNaver(List<String> keywords) {
+        List<NaverNewsDto> allNews = new ArrayList<>();
+
+        log.info("네이버 API 호출 시작: {} 개 키워드", keywords.size());
+
+        for (String keyword : keywords) {
+            try {
+                List<NaverNewsDto> news = fetchNews(keyword);
+                log.info("키워드 '{}': {}건 조회", keyword, news.size());
+
+                // 네이버 뉴스만 필터링
+                List<NaverNewsDto> naverOnlyNews = news.stream()
+                        .filter(dto -> dto.link().contains("n.news.naver.com"))
+                        .toList();
+
+                allNews.addAll(news);
+
+                Thread.sleep(1000); // API 제한
+            } catch (Exception e) {
+                log.error("키워드 '{}' 조회 실패: {}", keyword, e.getMessage());
+            }
+        }
+
+        log.info("네이버 API 호출 완료: 총 {}건", allNews.size());
+        return allNews;
+    }
+
     //N건 패치
     //예상되는 문제 : 최신순으로 하면 겹치는 부분이 많을 것 같음
     //주요기사를 받아오는 로직이 필요할 것 같은데... 쉽지않을듯 자체적으론 힘들듯하고 우선 ai 프롬프트를 잘 만져봐야할 것 같습니다.
-    public List<NaverNewsDto> fetchNews(String query) {
-
+    public List<NaverNewsDto> fetchNews(String keyword) {
         try {
             //display는 한 번에 보여줄 뉴스의 개수, sort는 정렬 기준 (date: 최신순, sim: 정확도순)
             //일단 3건 패치하도록 해놨습니다. yml 에서 작성해서 사용하세요(10건 이상 x)
-            String url = naverUrl + query + "&display=" + newsDisplayCount + "&sort=" + newsSortOrder;
+
+            String url = naverUrl + keyword + "&display=" + newsDisplayCount + "&sort=" + newsSortOrder;
 
             // http 요청 헤더 설정 (아래는 네이버 디폴트 형식)
             HttpHeaders headers = new HttpHeaders();
@@ -139,7 +221,7 @@ public class AdminNewsService {
 
             //http 요청 수행
             ResponseEntity<String> response = restTemplate.exchange(
-                    url, HttpMethod.GET, entity, String.class, query);
+                    url, HttpMethod.GET, entity, String.class, keyword);
 
             if (response.getStatusCode() == HttpStatus.OK) {
                 // JsonNode: json 구조를 트리 형태로 표현. json의 중첩 구조를 탐색할 때 사용
@@ -153,14 +235,18 @@ public class AdminNewsService {
                 return new ArrayList<>();
             }
             throw new RuntimeException("네이버 API 요청 실패");
+
         }
         catch (JsonProcessingException e) {
             throw new RuntimeException("JSON 파싱 실패");
         }
+
     }
 
+    //현재 문제. 간격 배치. 하나의 키워드만 되도록
+
     // 단건 크롤링
-    public Optional<NewsDetailDto> crawlAddtionalInfo(String naverNewsUrl) {
+    public Optional<NewsDetailDto> crawladditionalInfo(String naverNewsUrl) {
         try{
             Document doc = Jsoup.connect(naverNewsUrl)
                     .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64)")  // 브라우저인 척
@@ -188,8 +274,8 @@ public class AdminNewsService {
             return Optional.of(NewsDetailDto.of(content, imgUrl, journalist, mediaName));
 
         } catch (IOException e) {
-            //  Jsoup 연결 실패 시
-            throw new RuntimeException("크롤링 실패");
+            log.warn("크롤링 실패: {}", naverNewsUrl);
+            return Optional.empty();  // 예외 던지지 않고 빈 값 반환
         }
     }
 
@@ -240,13 +326,21 @@ public class AdminNewsService {
     // 네이버 API에서 받아온 날짜 문자열을 LocalDateTime으로 변환
     private LocalDateTime parseNaverDate(String naverDate) {
         try {
-            String dateTimeFormat = HtmlEntityDecoder.decode(naverDate);
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("EEE, dd MMM yyyy HH:mm", Locale.ENGLISH);
-            return LocalDateTime.parse(dateTimeFormat , formatter);
+            String cleaned = HtmlEntityDecoder.decode(naverDate);
+
+            // 네이버 API 형식: "Tue, 29 Jul 2025 18:48:00 +0900"
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("EEE, dd MMM yyyy HH:mm:ss Z", Locale.ENGLISH);
+
+            // ZonedDateTime으로 파싱 후 LocalDateTime으로 변환 (시간대 정보 제거)
+            ZonedDateTime zonedDateTime = ZonedDateTime.parse(cleaned, formatter);
+            return zonedDateTime.toLocalDateTime();
+
         } catch (Exception e) {
-            return LocalDateTime.now(); // 파싱 실패 시 현재 시간
+            log.warn("날짜 파싱 실패: {}. 현재 시간으로 설정", naverDate);
+            return LocalDateTime.now();
         }
     }
+
     @Transactional
     public boolean deleteRealNews(Long newsId) {
         Optional<RealNews> realNewsOpt = realNewsRepository.findById(newsId);
@@ -287,5 +381,19 @@ public class AdminNewsService {
 
     public int count() {
         return (int) realNewsRepository.count();
+    }
+
+    public List<RealNewsDto> selectNewsByScore(List<AnalyzedNewsDto> allRealNewsAfterFilter) {
+        return allRealNewsAfterFilter.stream()
+                .collect(Collectors.groupingBy(AnalyzedNewsDto::category))
+                .values()
+                .stream()
+                .flatMap(categoryNews ->
+                        categoryNews.stream()
+                                .sorted(Comparator.comparing(AnalyzedNewsDto::score).reversed())
+                                .limit(3)
+                )
+                .map(AnalyzedNewsDto::realNewsDto)  // RealNewsDto로 변환
+                .toList();
     }
 }

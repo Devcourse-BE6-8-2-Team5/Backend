@@ -176,7 +176,7 @@ public class DevInitData {
         List<RealNewsDto> newsList = List.of(news1, news2, news3, news4, news5, news6, news7);
 
         // 뉴스 저장
-        List<RealNewsDto> savedNewsList = adminNewsService.saveRealNews(newsList);
+        List<RealNewsDto> savedNewsList = adminNewsService.saveAllRealNews(newsList);
 
         // 첫 번째 뉴스를 오늘의 뉴스로 설정 (저장된 뉴스의 ID 사용)
         if (!savedNewsList.isEmpty()) {
