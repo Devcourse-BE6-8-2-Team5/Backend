@@ -9,6 +9,7 @@ import com.back.domain.news.real.dto.RealNewsDto;
 import com.back.domain.news.real.service.AdminNewsService;
 import com.back.domain.quiz.daily.service.DailyQuizService;
 import com.back.domain.quiz.detail.dto.DetailQuizDto;
+import com.back.domain.quiz.detail.entity.Option;
 import com.back.domain.quiz.detail.service.DetailQuizService;
 import com.back.domain.quiz.fact.service.FactQuizService;
 import lombok.RequiredArgsConstructor;
@@ -259,9 +260,12 @@ public class DevInitData {
         }
 
         // 퀴즈 생성 로직 추가
-        for(long l = 1L; l <= 7L; l++) {
-            List<DetailQuizDto> quizzes = detailQuizService.generateQuizzes(l);
-            detailQuizService.saveQuizzes(l, quizzes);
+        DetailQuizDto quiz1 = new DetailQuizDto("question1", "option1", "option2", "option3", Option.OPTION1);
+        DetailQuizDto quiz2 = new DetailQuizDto("question2", "option1", "option2", "option3", Option.OPTION3);
+        DetailQuizDto quiz3 = new DetailQuizDto("question3", "option1", "option2", "option3", Option.OPTION2);
+
+        for(long l = 1L; l <= 7L; l++){
+            detailQuizService.saveQuizzes(l, List.of(quiz1, quiz2, quiz3));
         }
     }
 
