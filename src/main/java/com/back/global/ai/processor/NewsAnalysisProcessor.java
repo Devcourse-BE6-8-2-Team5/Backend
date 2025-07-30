@@ -21,6 +21,7 @@ public class NewsAnalysisProcessor implements AiRequestProcessor<List<AnalyzedNe
         if (newsToAnalyze == null || newsToAnalyze.isEmpty()) {
             throw new ServiceException(400, "분석할 뉴스가 제공되지 않았습니다");
         }
+
         this.newsToAnalyze = newsToAnalyze;
         this.objectMapper = objectMapper;
     }
@@ -148,8 +149,6 @@ public class NewsAnalysisProcessor implements AiRequestProcessor<List<AnalyzedNe
             throw new ServiceException(500, "AI 응답 처리 중 예상치 못한 오류가 발생했습니다: " + e.getMessage());
         }
     }
-
-
 
     //  AI 응답 정리 - 마크다운 코드 블록 제거
     private String cleanResponse(String text) {

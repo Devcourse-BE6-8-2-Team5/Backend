@@ -49,6 +49,11 @@ public class Member {
     @Column(nullable = false, unique = true)
     private String apiKey; // 리프레시 토큰
 
+    private String profileImgUrl;
+
+    @Column(unique = true, nullable = true)
+    private String oauthId; // 소셜 로그인용 고유 oauthId
+
     // 유저가 푼 퀴즈 기록을 저장하는 리스트 일단 엔티티 없어서 주석
     @OneToMany(mappedBy = "member", fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.REMOVE}, orphanRemoval = true)
     @Builder.Default

@@ -7,6 +7,11 @@ import com.back.domain.news.fake.dto.FakeNewsDto;
 import com.back.domain.news.fake.service.FakeNewsService;
 import com.back.domain.news.real.dto.RealNewsDto;
 import com.back.domain.news.real.service.AdminNewsService;
+import com.back.domain.quiz.daily.service.DailyQuizService;
+import com.back.domain.quiz.detail.dto.DetailQuizDto;
+import com.back.domain.quiz.detail.entity.Option;
+import com.back.domain.quiz.detail.service.DetailQuizService;
+import com.back.domain.quiz.fact.service.FactQuizService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationRunner;
@@ -29,6 +34,9 @@ public class DevInitData {
     private final MemberService memberService;
     private final AdminNewsService adminNewsService;
     private final FakeNewsService fakeNewsService;
+    private final DetailQuizService detailQuizService;
+    private final FactQuizService factQuizService;
+    private final DailyQuizService dailyQuizService;
 
     @Bean
     ApplicationRunner devInitDataApplicationRunner() {
@@ -36,6 +44,9 @@ public class DevInitData {
             self.memberInit();
             self.newsInit();
             self.fakeNewsInit();
+            self.detailQuizInit();
+            self.factQuizInit();
+            self.dailyQuizInit();
         };
     }
 
@@ -125,7 +136,7 @@ public class DevInitData {
                 5L,
                 "경제8단체, 상법·노조법 개정에 \"국회 신중히 재검토해달라\"",
                 "한경협·대한상의 등 \"韓경제 미래 결정될 분수령서 극도혼란 초래\" 상법개정안 여당 주도 법사소위 통과 (서울=연합뉴스) 김주성 기자 = 더불어민주당 장경태 의원 등 여당 법제사법위원회 위원들이 28일 국회 법사위 법안심사소위에서 집중투표제를 의무화하고 감사위원 분리 선출을 확대하는 내용의 상법 개정안을 여당 주도로 통과시킨 후 취재진에게 내용을 설명하고 있다. 왼쪽부터 더불어민주당 박균택·김용민·장경태·이성윤 의원. 2025.7.28 utzza@yna.co.kr (서울=연합뉴스) 김보경 기자 = 재계는 한국 경제의 명운을 가를 미국과의 관세 협상 마감이 임박한 가운데 기업 경영에 부담을 줄 수 있는 상법 및 노동조합법 2·3조 개정안 논의가 국회에서 빠르게 진행되는 것과 관련, 큰 우려를 표하며 개정안 재검토를 호소했다. 한국경제인협회와 대한상공회의소, 한국경영자총협회, 한국무역협회, 중소기업중앙회, 한국중견기업연합회, 한국상장회사협의회, 코스닥협회 등 경제8단체는 29일 배포한 공동 입장문에서 \"엄중한 경제 상황에도 상법 및 노조법 개정안이 국회에서 급물살을 타는 것에 대해 깊은 우려를 넘어 참담한 심정을 금할 수 없다\"고 밝혔다. 경제8단체는 올해 우리 경제가 0.8% 성장에 그칠 것으로 전망되는 등 초저성장 국면이 지속되는 상황에서 며칠 앞으로 다가온 대미 통상 협상 결과가 한국 경제의 미래를 결정할 중요한 분수령이 될 것이라고 강조했다. 이들 단체는 \"우리 기업의 평균 영업이익률이 5% 내외인 상황에서 한미 관세 협상이 난항을 겪는다면 미국으로 수출하는 길이 사실상 막히게 된다\"며 \"이는 우리나라 최대 수출 시장을 잃는 것이고, 경제 정책 및 기업 경영 전략을 새롭게 수립해야 할 중대한 상황을 맞이하게 될 것\"이라고 우려했다. 노조법 2·3조 개정안 상정에 반발해 퇴장하는 국민의힘 환노위원들 (서울=연합뉴스) 황광모 기자 = 국회 환경노동위원회 국민의힘 의원들이 28일 윤석열 전 대통령이 거부권(재의요구권)을 행사했던 '노란봉투법'(노조법 2·3조 개정안)이 국회 환경노동위원회에 상정되자 강한 유감을 표현한 뒤 회의장에서 퇴장하고 있다. 2025.7.28 hkmpooh@yna.co.kr 이런 위기 속 기업 경영에 부담을 줄 수 있는 상법 개정안과 이른바 '노란봉투법'(노조법 개정안)이 국회에서 통과될 경우 기업들은 큰 혼란에 빠질 것이라고 경제8단체는 경고했다. 이사의 충실의무 확대 등을 담은 상법 개정안은 지난 22일 공포된 후 1주일도 안 돼 추가 상법 개정안이 현재 국회 법제사법위원회 법안소위에서 처리됐고, 노조법 개정안이 법안소위와 전체 회의를 연달아 통과한 바 있다. 이들 단체는 \"정부와 국회, 기업이 위기 극복을 위해 하나로 뭉쳐야 하는 중차대한 시점에 국회가 기업활동을 옥죄는 규제 입법을 연이어 쏟아내는 것은 기업에 극도의 혼란을 초래할 수 있다\"며 \"관세 협상의 결과가 불투명한 상황에서 자승자박하는 것은 아닌지 안타깝다\"고 지적했다. 그러면서 \"상법 추가 개정은 사업재편 반대, 주요 자산 매각 등 해외 투기자본의 무리한 요구로 이어져 주력산업의 구조조정과 새로운 성장동력 확충을 어렵게 할 수 있다\"며 \"노조법 개정안도 사용자 범위가 확대되고, 기업 고유의 경영활동까지도 쟁의 대상에 포함돼 파업 만능주의를 조장하고 노사관계 안정성도 훼손되는 등 심각한 부작용이 우려된다\"고 덧붙였다. 이들 단체는 \"새 정부가 성장 중심 경제정책의 의지를 밝힌 만큼 위기 극복을 위해 정부와 국회, 기업이 하나가 되어 모든 역량을 총동원해야 한다\"며 \"꺼져가는 성장동력을 재점화하고 양질의 일자리 창출을 위해 기업들이 전력을 다할 수 있는 환경을 조성하는데 국회가 나서주기를 바란다\"고 호소했다. 이어 \"국회는 지금이라도 우리 기업이 처한 어려움과 절박한 호소를 외면하지 말길 바란다\"며 \"개정안들을 철저히 국익 관점에서 신중하게 재검토해 주기를 간곡히 호소한다\"고 덧붙였다. vivid@yna.co.kr",
-                 "한경협·대한상의 등 \"韓경제 미래 결정될 분수령서 극도혼란 초래\" 재계는 한국 경제의 명운을 가를 미국과의 관세 협상 마감이 임박한 가운데 기업 경영에 부담을 줄 수 있는 상법 및 노동조합법 2·3조 개정안 논의가...",
+                "한경협·대한상의 등 \"韓경제 미래 결정될 분수령서 극도혼란 초래\" 재계는 한국 경제의 명운을 가를 미국과의 관세 협상 마감이 임박한 가운데 기업 경영에 부담을 줄 수 있는 상법 및 노동조합법 2·3조 개정안 논의가...",
                 "https://n.news.naver.com/mnews/article/001/0015535245?sid=101",
                 "https://imgnews.pstatic.net/image/001/2025/07/29/PYH2025072813430001300_P4_20250729093815961.jpg?type=w860",
                 LocalDateTime.now().minusDays(1),
@@ -239,5 +250,80 @@ public class DevInitData {
         // 페이크뉴스 리스트 생성 및 저장
         List<FakeNewsDto> fakeNewsList = List.of(fakeNews1, fakeNews2, fakeNews3, fakeNews4, fakeNews5, fakeNews6, fakeNews7);
         fakeNewsService.saveAllFakeNews(fakeNewsList);
+    }
+
+    @Transactional
+    public void detailQuizInit() {
+        // 퀴즈가 이미 있으면 초기화 생략
+        if (detailQuizService.count() > 0) {
+            return;
+        }
+
+        // 뉴스 1 상세 퀴즈
+        DetailQuizDto quiz1 = new DetailQuizDto("7월 첫째 주 신용카드 이용금액은 작년 동기 대비 얼마나 증가했습니까?", "9.9%", "12.6%", "4.5%", Option.OPTION2);
+        DetailQuizDto quiz2 = new DetailQuizDto("7월 둘째 주 신용카드 이용 증가를 견인한 업종은 무엇입니까?", "숙박 서비스 및 음식·음료 서비스", "식료품 및 음료", "교육 서비스 및 보건", Option.OPTION3);
+        DetailQuizDto quiz3 = new DetailQuizDto("뉴스에서 언급된 소비자심리지수(CCSI)가 2021년 6월 이후 최고치를 경신한 달은 언제입니까?", "6월", "7월", "5월", Option.OPTION2);
+        detailQuizService.saveQuizzes(1L, List.of(quiz1, quiz2, quiz3));
+
+        // 뉴스 2 상세 퀴즈
+        DetailQuizDto quiz4 = new DetailQuizDto("뉴스에서 소개하는 여름 제철 간식은 무엇인가요?", "수박과 복숭아", "감자와 찰옥수수", "토마토와 오이", Option.OPTION2);
+        DetailQuizDto quiz5 = new DetailQuizDto("뉴스에서 언급된 장소는 어디인가요?", "서울 강남구 농협유통 하나로마트", "서울 서초구 농협유통 하나로마트 양재점", "경기도 성남시 농협유통 하나로마트", Option.OPTION2);
+        DetailQuizDto quiz6 = new DetailQuizDto("뉴스에서 감자와 찰옥수수를 소개하는 사람들은 누구인가요?", "농협유통 직원들", "농민 대표들", "모델들", Option.OPTION3);
+        detailQuizService.saveQuizzes(2L, List.of(quiz4, quiz5, quiz6));
+
+        // 뉴스 3 상세 퀴즈
+        DetailQuizDto quiz7 = new DetailQuizDto("경제계가 국회에서 더 강한 상법 및 노란봉투법 처리가 급물살을 타는 것에 대해 어떤 심정을 표현했습니까?", "깊은 환영과 지지를 표명했다.", "깊은 우려를 넘어 참담한 심정을 금할 수 없다.", "별다른 입장을 밝히지 않았다.", Option.OPTION2);
+        DetailQuizDto quiz8 = new DetailQuizDto("경제8단체가 우려하는 상법 추가 개정의 주요 내용은 무엇입니까?", "이사의 충실의무 축소로 경영 효율성 증대", "사업재편 반대, 주요 자산 매각 등 해외 투기자본의 무리한 요구 가능성", "주주총회 의결권 강화로 기업 투명성 증대", Option.OPTION2);
+        DetailQuizDto quiz9 = new DetailQuizDto("경제계는 국회의 규제 입법에 대해 어떤 점을 가장 우려하고 있으며, 국회에 무엇을 요청했습니까?", "기업 활동을 촉진하는 규제 입법을 늘리고, 노사 관계 안정을 위한 법안 처리를 요청했다.", "기업 활동을 옥죄는 규제 입법을 연이어 쏟아내는 것에 대해 기업들에게 극도의 혼란을 초래할 수 있다고 우려하며, 국익 관점에서 개정안들을 신중하게 재검토해달라고 요청했다.", "새 정부의 성장 중심 경제 정책을 지지하며, 국회는 기업 활동에 대한 규제를 완화하고 투자 활성화를 위한 법안 처리에 집중해달라고 요청했다.", Option.OPTION2);
+        detailQuizService.saveQuizzes(3L, List.of(quiz7, quiz8, quiz9));
+
+        // 뉴스 4 상세 퀴즈
+        DetailQuizDto quiz10 = new DetailQuizDto("하이원 워터월드에서 열리는 'DJ 풀 파티'는 언제까지 진행되는가?", "8월 15일까지", "내달 10일까지", "8월 말까지", Option.OPTION2);
+        DetailQuizDto quiz11 = new DetailQuizDto("올해 하이원리조트의 '하이원 레이저 불꽃 쇼'는 어떤 콘셉트로 진행되는가?", "바다의 신비", "우주", "동화 속 세상", Option.OPTION2);
+        DetailQuizDto quiz12 = new DetailQuizDto("뉴스에서 언급된 하이원리조트의 여름철 식음료 메뉴로 올바른 것은 무엇인가?", "산상 바비큐와 오리엔 냉짬뽕", "시원한 냉면과 팥빙수", "바비큐 플래터와 해산물 파스타", Option.OPTION1);
+        detailQuizService.saveQuizzes(4L, List.of(quiz10, quiz11, quiz12));
+
+        // 뉴스 5 상세 퀴즈
+        DetailQuizDto quiz13 = new DetailQuizDto("경제8단체가 상법 및 노동조합법 개정안 논의에 대해 깊은 우려를 표하며 재검토를 호소한 주된 이유는 무엇인가?", "개정안들이 기업 경영에 부담을 줄 수 있고, 한국 경제의 미래를 결정할 중요한 시점에 혼란을 초래할 수 있기 때문", "개정안들이 국회에서 통과되기까지 너무 많은 시간이 소요되어 경제 상황에 대한 대응이 늦어지고 있기 때문", "개정안들이 중소기업의 경쟁력을 약화시키고 대기업에게만 유리하게 작용하기 때문", Option.OPTION1);
+        DetailQuizDto quiz14 = new DetailQuizDto("경제8단체가 언급한 '한국 경제의 미래를 결정할 중요한 분수령'은 무엇과 관련이 있는가?", "미국과의 관세 협상 마감", "새로운 성장 동력 확보를 위한 기술 개발", "국내 소비 시장의 확대", Option.OPTION1);
+        DetailQuizDto quiz15 = new DetailQuizDto("경제8단체는 상법 추가 개정이 가져올 수 있는 부정적인 영향으로 무엇을 지적했는가?", "해외 투기 자본의 무리한 요구로 사업 재편 및 구조조정이 어려워질 수 있음", "노동 조합의 파업 권한이 축소되어 기업의 경영 효율성이 저하될 수 있음", "기업의 정보 공개 의무가 강화되어 영업 비밀이 침해될 수 있음", Option.OPTION1);
+        detailQuizService.saveQuizzes(5L, List.of(quiz13, quiz14, quiz15));
+
+        // 뉴스 6 상세 퀴즈
+        DetailQuizDto quiz16 = new DetailQuizDto("인도 최대 IT 서비스업체 TCS가 2025/26 회계연도에 감원할 직원 수는 몇 명인가요?", "약 61만 3000명", "약 1만 2200명", "약 3847명", Option.OPTION2);
+        DetailQuizDto quiz17 = new DetailQuizDto("TCS의 감원 대상이 주로 어느 직급에 해당한다고 보도되었나요?", "신입 사원 및 주니어 개발자", "최고 경영진 및 이사", "중간 관리직 및 간부 관리직", Option.OPTION3);
+        DetailQuizDto quiz18 = new DetailQuizDto("인도 IT 업계가 현재 직면하고 있는 어려움으로 언급되지 않은 것은 무엇인가요?", "지속적인 인플레이션", "신규 기술 도입을 위한 투자 확대", "미국의 고관세 정책", Option.OPTION2);
+        detailQuizService.saveQuizzes(6L, List.of(quiz16, quiz17, quiz18));
+
+        // 뉴스 7 상세 퀴즈
+        DetailQuizDto quiz19 = new DetailQuizDto("LG CNS가 이번에 수주한 인도네시아 시나르마스 은행의 차세대 카드 시스템 구축 사업의 총 사업 기간은 어떻게 되나요?", "3년", "6년", "10년", Option.OPTION2);
+        DetailQuizDto quiz20 = new DetailQuizDto("LG CNS가 이번 사업을 통해 동남아시아 시장 공략을 본격화하는 가운데, 어떤 솔루션을 활용하여 시나르마스 은행의 카드 시스템을 구축할 예정인가요?", "AI 기반 금융 분석 솔루션", "블록체인 기반 보안 솔루션", "자체 카드 비즈니스 솔루션 '카드퍼펙트'", Option.OPTION3);
+        DetailQuizDto quiz21 = new DetailQuizDto("LG CNS가 이번 인도네시아 시나르마스 은행 사업을 수주한 것은 어떤 점에서 의미가 있나요?", "국내 금융 IT 시장에서 최초로 수주한 사업이기 때문입니다.", "LG 시나르마스 합작 법인 출범 이후 금융 분야에서 수주한 첫 번째 프로젝트이자, 해외 현지 금융사의 차세대 시스템 구축 첫 사례이기 때문입니다.", "인도네시아 정부로부터 직접 발주받은 유일한 사업이기 때문입니다.", Option.OPTION2);
+        detailQuizService.saveQuizzes(7L, List.of(quiz19, quiz20, quiz21));
+    }
+
+    @Transactional
+    public void factQuizInit() {
+        // 퀴즈가 이미 있으면 초기화 생략
+        if (factQuizService.count() > 0) {
+            return;
+        }
+
+        // 퀴즈 생성 로직 추가
+        for(long l = 1L; l <= 7L; l++) {
+            factQuizService.create(l);
+        }
+    }
+
+    @Transactional
+    public void dailyQuizInit() {
+        // 퀴즈가 이미 있으면 초기화 생략
+        if (dailyQuizService.count() > 0) {
+            return;
+        }
+
+        // 퀴즈 생성 로직 추가 (예시)
+        // 오늘의 뉴스 테이블의 가장 첫번째 뉴스를 가져와 해당 뉴스의 상세 퀴즈를 오늘의 퀴즈로 저장
+        dailyQuizService.createDailyQuizForInitData();
     }
 }
