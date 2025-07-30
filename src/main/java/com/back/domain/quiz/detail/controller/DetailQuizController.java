@@ -1,8 +1,13 @@
 package com.back.domain.quiz.detail.controller;
 
+import com.back.domain.member.member.entity.Member;
+import com.back.domain.quiz.detail.dto.DetailQuizAnswerDto;
 import com.back.domain.quiz.detail.dto.DetailQuizDto;
 import com.back.domain.quiz.detail.entity.DetailQuiz;
+import com.back.domain.quiz.detail.entity.Option;
 import com.back.domain.quiz.detail.service.DetailQuizService;
+import com.back.global.exception.ServiceException;
+import com.back.global.rq.Rq;
 import com.back.global.rsData.RsData;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -12,6 +17,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -23,6 +29,7 @@ import java.util.List;
 @Tag(name = "DetailQuizController", description = "상세 퀴즈 관련 API")
 public class DetailQuizController {
     private final DetailQuizService detailQuizService;
+    private final Rq rq;
 
     // 상세 퀴즈 목록 조회(전체 조회)
     @Operation(summary = "전체 조회", description = "상세 퀴즈 목록을 조회합니다.")
@@ -154,6 +161,25 @@ public class DetailQuizController {
                 "상세 퀴즈 수정 성공",
                 new DetailQuizDto(updatedQuiz)
         );
+    }
+
+
+    @Operation(summary = "퀴즈 정답 제출", description = "퀴즈 ID로 상세 퀴즈의 정답을 제출합니다.")
+    @PostMapping("/submit/{id}")
+    public RsData<DetailQuizAnswerDto> submitDetailQuizAnswer(@PathVariable Long id, @RequestBody @Valid @NotNull Option selectedOption) {
+
+        Member actor = rq.getActor();
+        if (actor == null) {
+            throw new ServiceException(401, "로그인이 필요합니다.");
+        }
+
+        DetailQuizAnswerDto submittedQuiz = detailQuizService.submitDetailQuizAnswer(actor,id, selectedOption);
+
+        return new RsData<>(
+                200,
+                "퀴즈 정답 제출 성공",
+                submittedQuiz
+                );
     }
 
 }
