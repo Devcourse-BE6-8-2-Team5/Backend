@@ -43,19 +43,18 @@ public class SecurityConfig {
                                 .requestMatchers(HttpMethod.DELETE, "/api/members/logout").permitAll()
 
                                 // 회원만 접근 가능한 API
-                                .requestMatchers( "/api/quiz/detail/*/**").authenticated() // 상세퀴즈에 대한 모든 HTTP 메서드 요청은 로그인한 사용자만 허용
-                                .requestMatchers(HttpMethod.GET, "/api/quiz/fact", "/api/quiz/fact/category").permitAll() // OX퀴즈 전체/카테고리별 목록 조회는 모두 허용
-                                .requestMatchers(HttpMethod.GET, "/api/quiz/fact/*").authenticated() // OX퀴즈 단건 조회는 로그인한 사용자만 허용
-                                .requestMatchers(HttpMethod.POST,  "/오늘의퀴즈제출", "/ox퀴즈제출").authenticated()
-                                .requestMatchers( "/api/members/info").authenticated() // 마이페이지 조회, 수정
-                                .requestMatchers(HttpMethod.DELETE, "/api/members/withdraw").authenticated() //회원 탈퇴
+                                .requestMatchers(HttpMethod.GET,  "/상세퀴즈페이지", "/오늘의퀴즈페이지", "/ox퀴즈상세페이지", "/api/members/info").authenticated()
+                                .requestMatchers(HttpMethod.POST, "/상세퀴즈제출", "/오늘의퀴즈제출", "/ox퀴즈제출").authenticated()
+                                .requestMatchers(HttpMethod.PUT,  "/api/members/info").authenticated() // 내정보 수정 api로 변경해야함.
+                                .requestMatchers(HttpMethod.DELETE, "/api/members/withdraw").authenticated()
 
                                 // 관리자만 접근 가능한 API
-                                .requestMatchers("/api/admin/**").hasRole("ADMIN") // 관리자 페이지의 모든 HTTP 메서드 요청은 ADMIN 권한이여야함
+                                .requestMatchers(HttpMethod.GET, "/api/admin").hasRole("ADMIN")
+                                .requestMatchers(HttpMethod.DELETE, "/관리자페이지뉴스삭제").hasRole("ADMIN")
 
                                 // 그 외는 모두 인증 필요
-                                .requestMatchers("/api/*/**").authenticated()
-
+//                                .requestMatchers("/api/*/**").authenticated()
+                                .requestMatchers("/api/*/**").permitAll()
                                 // 그 외는 모두 허용
                                 .anyRequest().permitAll()
                 )

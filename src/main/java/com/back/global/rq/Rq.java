@@ -28,8 +28,17 @@ public class Rq {
                 )
                 .map(Authentication::getPrincipal)
                 .filter(principal -> principal instanceof SecurityUser)
-                .map(principal -> (SecurityUser) principal)
-                .map(securityUser -> new Member(securityUser.getId(), securityUser.getEmail(), securityUser.getName(), securityUser.getAuthorities().toString()))
+                .map(principal -> {
+                    SecurityUser securityUser = (SecurityUser) principal;
+                    // 권한에서 ROLE_ 접두사를 제거하여 ADMIN/USER로 변환
+                    String role = securityUser.getAuthorities().stream()
+                            .map(auth -> auth.getAuthority())
+                            .filter(auth -> auth.startsWith("ROLE_"))
+                            .map(auth -> auth.substring(5)) // "ROLE_" 제거
+                            .findFirst()
+                            .orElse("USER");
+                    return new Member(securityUser.getId(), securityUser.getEmail(), securityUser.getName(), role);
+                })
                 .orElse(null);
     }
 
@@ -70,9 +79,9 @@ public class Rq {
         Cookie cookie = new Cookie(name, value);
         cookie.setPath("/");
         cookie.setHttpOnly(true);
-        cookie.setDomain("localhost");
-        cookie.setSecure(true);
-        cookie.setAttribute("SameSite", "Strict");
+        //cookie.setDomain("localhost");
+        cookie.setSecure(false);
+        cookie.setAttribute("SameSite", "Lax");
 
         if (value.isBlank()) cookie.setMaxAge(0);
         else cookie.setMaxAge(60 * 60 * 24 * 365);

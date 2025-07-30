@@ -70,9 +70,13 @@ public class CustomAuthenticationFilter extends OncePerRequestFilter {
                         !uri.startsWith("/ox퀴즈제출") &&
                         !uri.startsWith("/오늘의퀴즈페이지") &&
                         !uri.startsWith("/오늘의퀴즈제출") &&
-                        !uri.startsWith("/api/members/info") && //마이페이지 조회,수정
-                        !uri.startsWith("/api/members/withdraw") && //회원탈퇴
-                        !uri.startsWith("/api/admin") // 관리자페이지
+                        !uri.startsWith("/ox퀴즈제출") &&
+                        !uri.startsWith("/api/members/info") &&
+                        !uri.startsWith("/마이페이지내정보수정") &&
+                        !uri.startsWith("/api/members/withdraw") &&
+                        !uri.startsWith("/api/admin") &&
+                        !uri.startsWith("/관리자페이지뉴스삭제")
+
         ) {
             filterChain.doFilter(request, response);
             return;
