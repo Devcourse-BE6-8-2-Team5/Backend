@@ -59,4 +59,24 @@ public class DailyQuizService {
 
         log.info("오늘의 퀴즈 생성 완료");
     }
+
+    public long count() {
+        return dailyQuizRepository.count();
+    }
+
+    //InitData 전용
+    @Transactional
+    public void createDailyQuizForInitData() {
+        TodayNews todayNews = todayNewsRepository.findAll().getFirst();
+
+        RealNews realNews = todayNews.getRealNews();
+        List<DetailQuiz> quizzes = realNews.getDetailQuizzes();
+
+        List<DailyQuiz> dailyQuizzes = quizzes.stream()
+                .map(quiz -> new DailyQuiz(todayNews, quiz))
+                .toList();
+
+        dailyQuizRepository.saveAll(dailyQuizzes);
+
+    }
 }

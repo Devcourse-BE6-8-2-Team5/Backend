@@ -3,6 +3,7 @@ package com.back.domain.quiz.fact.service;
 import com.back.domain.news.common.enums.NewsCategory;
 import com.back.domain.news.fake.entity.FakeNews;
 import com.back.domain.news.real.entity.RealNews;
+import com.back.domain.news.real.repository.RealNewsRepository;
 import com.back.domain.quiz.fact.entity.CorrectNewsType;
 import com.back.domain.quiz.fact.entity.FactQuiz;
 import com.back.domain.quiz.fact.repository.FactQuizRepository;
@@ -20,6 +21,7 @@ import java.util.concurrent.ThreadLocalRandom;
 @Slf4j
 public class FactQuizService {
     private final FactQuizRepository factQuizRepository;
+    private final RealNewsRepository realNewsRepository;
 
     @Transactional(readOnly = true)
     public List<FactQuiz> findAll() {
@@ -39,17 +41,7 @@ public class FactQuizService {
 
     @Transactional
     public void create(RealNews realNews, FakeNews fakeNews) {
-        // 퀴즈 질문과 정답은 랜덤으로 생성
-        CorrectNewsType answerType = ThreadLocalRandom.current().nextBoolean()
-                ? CorrectNewsType.REAL
-                : CorrectNewsType.FAKE;
-
-        String question = answerType == CorrectNewsType.REAL
-                ? "다음 중 진짜 뉴스는?"
-                : "다음 중 가짜 뉴스는?";
-
-        // 팩트 퀴즈 생성 및 저장
-        FactQuiz quiz = new FactQuiz(question, realNews, fakeNews, answerType);
+        FactQuiz quiz = createQuiz(realNews, fakeNews);
         //real.getFactQuizzes().add(quiz);
         //fake.getFactQuizzes().add(quiz);
         factQuizRepository.save(quiz);
@@ -63,5 +55,39 @@ public class FactQuizService {
                 .orElseThrow(() -> new ServiceException(404, "팩트 퀴즈를 찾을 수 없습니다. ID: " + id));
 
         factQuizRepository.delete(quiz);
+    }
+
+    public long count() {
+        return factQuizRepository.count();
+    }
+
+    // initData 전용
+    @Transactional
+    public void create(Long realNewsId) {
+        RealNews real = realNewsRepository.findById(realNewsId)
+                .orElseThrow(() -> new ServiceException(404, "진짜 뉴스를 찾을 수 없습니다. ID: " + realNewsId));
+
+        FakeNews fake = real.getFakeNews();
+
+        FactQuiz quiz = createQuiz(real, fake);
+
+        //real.getFactQuizzes().add(quiz);
+        //fake.getFactQuizzes().add(quiz);
+        factQuizRepository.save(quiz);
+
+        log.debug("팩트 퀴즈 생성 완료. 퀴즈 ID: {}, 뉴스 ID: {}", quiz.getId(), real.getId());
+    }
+
+    private FactQuiz createQuiz(RealNews real, FakeNews fake){
+        // 퀴즈 질문과 정답은 랜덤으로 생성
+        CorrectNewsType answerType = ThreadLocalRandom.current().nextBoolean()
+                ? CorrectNewsType.REAL
+                : CorrectNewsType.FAKE;
+
+        String question = answerType == CorrectNewsType.REAL
+                ? "다음 중 진짜 뉴스는?"
+                : "다음 중 가짜 뉴스는?";
+
+        return new FactQuiz(question, real, fake, answerType);
     }
 }
