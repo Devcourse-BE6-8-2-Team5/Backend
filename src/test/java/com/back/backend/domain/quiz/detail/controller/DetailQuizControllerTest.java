@@ -3,7 +3,6 @@ package com.back.backend.domain.quiz.detail.controller;
 import com.back.domain.member.member.entity.Member;
 import com.back.domain.member.member.service.MemberService;
 import com.back.domain.quiz.detail.dto.DetailQuizDto;
-import com.back.domain.quiz.detail.entity.DetailQuiz;
 import com.back.domain.quiz.detail.entity.Option;
 import com.back.domain.quiz.detail.service.DetailQuizService;
 import com.back.global.rq.Rq;
@@ -24,8 +23,6 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -37,7 +34,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @TestPropertySource(properties = {
         "NAVER_CLIENT_ID=test_client_id",
         "NAVER_CLIENT_SECRET=test_client_secret",
-        "GEMINI_API_KEY=apikey"
+        "GEMINI_API_KEY=api_key"
 })
 class DetailQuizControllerTest {
     @Autowired
@@ -66,7 +63,7 @@ class DetailQuizControllerTest {
 
     @Test
     @DisplayName("GET /api/quiz/detail - 상세 퀴즈 목록 조회")
-    void getDetailQuizzes() throws Exception {
+    void t1() throws Exception {
         //Given
         int quizCount = (int) detailQuizService.count();
 
@@ -84,11 +81,10 @@ class DetailQuizControllerTest {
     }
 
     @Test
-    @DisplayName("GET /api/quiz/detail/{id} - 상세 퀴즈 단건 조회")
-    void getDetailQuiz() throws Exception {
+    @DisplayName("GET /api/quiz/detail/{id} - 상세 퀴즈 단건 조회 성공")
+    void t2() throws Exception {
         //Given
         Long quizId = 5L;
-        DetailQuiz quiz = detailQuizService.findById(quizId);
 
         //When
         ResultActions resultActions = mvc.perform(get("/api/quiz/detail/" + quizId)
@@ -100,19 +96,37 @@ class DetailQuizControllerTest {
                 .andExpect(handler().methodName("getDetailQuiz"))
                 .andExpect(jsonPath("$.code").value(200))
                 .andExpect(jsonPath("$.message").value("상세 퀴즈 조회 성공"))
-                .andExpect(jsonPath("$.data.question").value(quiz.getQuestion()))
-                .andExpect(jsonPath("$.data.option1").value(quiz.getOption1()))
-                .andExpect(jsonPath("$.data.option2").value(quiz.getOption2()))
-                .andExpect(jsonPath("$.data.option3").value(quiz.getOption3()))
-                .andExpect(jsonPath("$.data.correctOption").value(quiz.getCorrectOption().toString()));
+                .andExpect(jsonPath("$.data.question").value("뉴스에서 언급된 장소는 어디인가요?"))
+                .andExpect(jsonPath("$.data.option1").value("서울 강남구 농협유통 하나로마트"))
+                .andExpect(jsonPath("$.data.option2").value("서울 서초구 농협유통 하나로마트 양재점"))
+                .andExpect(jsonPath("$.data.option3").value("경기도 성남시 농협유통 하나로마트"))
+                .andExpect(jsonPath("$.data.correctOption").value("OPTION2"));
     }
 
     @Test
-    @DisplayName("GET /api/quiz/detail/news/{newsId} - 뉴스 ID로 상세 퀴즈 목록 조회")
-    void getDetailQuizzesByNewsId() throws Exception {
+    @DisplayName("GET /api/quiz/detail/{id} - 상세 퀴즈 단건 조회 실패 - 존재하지 않는 ID")
+    void t3() throws Exception {
+        //Given
+        Long quizId = 999L;
+
+        //When
+        ResultActions resultActions = mvc.perform(get("/api/quiz/detail/" + quizId)
+        ).andDo(print());
+
+        //Then
+        resultActions
+                .andExpect(status().isNotFound())
+                .andExpect(handler().methodName("getDetailQuiz"))
+                .andExpect(jsonPath("$.code").value(404))
+                .andExpect(jsonPath("$.message").value("해당 id의 상세 퀴즈가 존재하지 않습니다. id: " + quizId));
+
+    }
+
+    @Test
+    @DisplayName("GET /api/quiz/detail/news/{newsId} - 뉴스 ID로 상세 퀴즈 목록 조회 성공")
+    void t4() throws Exception {
         //Given
         Long newsId = 2L;
-        List<DetailQuiz> quizzes = detailQuizService.findByNewsId(newsId);
 
         //When
         ResultActions resultActions = mvc.perform(get("/api/quiz/detail/news/" + newsId)
@@ -125,14 +139,50 @@ class DetailQuizControllerTest {
                 .andExpect(jsonPath("$.code").value(200))
                 .andExpect(jsonPath("$.message").value("뉴스 ID로 상세 퀴즈 목록 조회 성공"))
                 .andExpect(jsonPath("$.data.length()").value(3))
-                .andExpect(jsonPath("$.data[0].question").value(quizzes.get(0).getQuestion()))
-                .andExpect(jsonPath("$.data[1].question").value(quizzes.get(1).getQuestion()))
-                .andExpect(jsonPath("$.data[2].question").value(quizzes.get(2).getQuestion()));
+                .andExpect(jsonPath("$.data[0].question").value("뉴스에서 소개하는 여름 제철 간식은 무엇인가요?"))
+                .andExpect(jsonPath("$.data[1].question").value("뉴스에서 언급된 장소는 어디인가요?"))
+                .andExpect(jsonPath("$.data[2].question").value("뉴스에서 감자와 찰옥수수를 소개하는 사람들은 누구인가요?"));
+    }
+
+    @Test
+    @DisplayName("GET /api/quiz/detail/news/{newsId} - 뉴스 ID로 상세 퀴즈 목록 조회 실패 - 존재하지 않는 뉴스 ID")
+    void t5() throws Exception {
+        //Given
+        Long newsId = 999L;
+
+        //When
+        ResultActions resultActions = mvc.perform(get("/api/quiz/detail/news/" + newsId)
+        ).andDo(print());
+
+        //Then
+        resultActions
+                .andExpect(status().isNotFound())
+                .andExpect(handler().methodName("getDetailQuizzesByNewsId"))
+                .andExpect(jsonPath("$.code").value(404))
+                .andExpect(jsonPath("$.message").value("해당 id의 뉴스가 존재하지 않습니다. id: " + newsId));
+    }
+
+    @Test
+    @DisplayName("GET /api/quiz/detail/news/{newsId} - 뉴스 ID로 상세 퀴즈 목록 조회 실패 - 뉴스에 퀴즈가 없는 경우")
+    void t6() throws Exception {
+        //Given
+        Long newsId = 8L;
+
+        //When
+        ResultActions resultActions = mvc.perform(get("/api/quiz/detail/news/" + newsId)
+        ).andDo(print());
+
+        //Then
+        resultActions
+                .andExpect(status().isNotFound())
+                .andExpect(handler().methodName("getDetailQuizzesByNewsId"))
+                .andExpect(jsonPath("$.code").value(404))
+                .andExpect(jsonPath("$.message").value("해당 뉴스에 대한 상세 퀴즈가 존재하지 않습니다. newsId: " + newsId));
     }
 
     @Test
     @DisplayName("POST /api/quiz/detail/news/{newsId}/regenerate - 뉴스 ID로 상세 퀴즈 생성")
-    void generateDetailQuizzes() throws Exception {
+    void t7() throws Exception {
         // Given
         Long newsId = 1L;
 
@@ -152,7 +202,7 @@ class DetailQuizControllerTest {
 
     @Test
     @DisplayName("PUT /api/quiz/detail/{id} - 상세 퀴즈 수정")
-    void updateDetailQuiz() throws Exception {
+    void t8() throws Exception {
         //Given
         Long quizId = 1L;
         DetailQuizDto updatedDto = new DetailQuizDto("수정된 질문", "수정된 옵션1", "수정된 옵션2", "수정된 옵션3", Option.OPTION2);
@@ -175,7 +225,7 @@ class DetailQuizControllerTest {
 
     @Test
     @DisplayName("POST /api/quiz/detail/submit/{id} - 퀴즈 정답 제출")
-    void submitDetailQuizAnswerCorrect() throws Exception {
+    void t9() throws Exception {
         // Given
         Long quizId = 1L;
         Option selectedOption = Option.OPTION2;
@@ -201,7 +251,7 @@ class DetailQuizControllerTest {
 
     @Test
     @DisplayName("POST /api/quiz/detail/submit/{id} - 퀴즈 오답 제출")
-    void submitDetailQuizAnswerIncorrect() throws Exception {
+    void t10() throws Exception {
         // Given
         Long quizId = 1L;
         Option selectedOption = Option.OPTION1;
