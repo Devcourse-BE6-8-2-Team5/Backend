@@ -69,7 +69,7 @@ public class CustomAuthenticationFilter extends OncePerRequestFilter {
                         !uri.startsWith("/api/quiz/fact/") && // OX 퀴즈 단건 조회
                         !uri.startsWith("/ox퀴즈제출") &&
                         !uri.startsWith("/오늘의퀴즈페이지") &&
-                        !uri.startsWith("/오늘의퀴즈제출") &&
+                        !uri.startsWith("/api/quiz/daily/") &&
                         !uri.startsWith("/ox퀴즈제출") &&
                         !uri.startsWith("/api/members/info") &&
                         !uri.startsWith("/마이페이지내정보수정") &&

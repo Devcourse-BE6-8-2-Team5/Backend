@@ -5,7 +5,9 @@ import com.back.domain.member.quizhistory.dto.QuizHistoryDto;
 import com.back.domain.member.quizhistory.entity.QuizHistory;
 import com.back.domain.member.quizhistory.repository.QuizHistoryRepository;
 import com.back.domain.quiz.QuizType;
+import com.back.global.exception.ServiceException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -43,6 +45,10 @@ public class QuizHistoryService {
                 .build();
 
         // 퀴즈 히스토리 저장
-        quizHistoryRepository.save(quizHistory);
+        try {
+            quizHistoryRepository.save(quizHistory);
+        } catch (DataIntegrityViolationException e) {
+            throw new ServiceException(400, "이미 푼 문제입니다.");
+        }
     }
 }

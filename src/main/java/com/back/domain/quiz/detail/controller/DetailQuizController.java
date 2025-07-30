@@ -164,7 +164,7 @@ public class DetailQuizController {
     }
 
 
-    @Operation(summary = "퀴즈 정답 제출", description = "퀴즈 ID로 상세 퀴즈의 정답을 제출합니다.")
+    @Operation(summary = "퀴즈 정답 제출", description = "퀴즈 ID로 오늘의 퀴즈의 정답을 제출합니다.")
     @PostMapping("/submit/{id}")
     public RsData<DetailQuizAnswerDto> submitDetailQuizAnswer(@PathVariable Long id, @RequestBody @Valid @NotNull Option selectedOption) {
 
