@@ -26,18 +26,34 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
         OAuth2User oAuth2User = super.loadUser(userRequest);
 
-        String oauthUserId = oAuth2User.getName(); // 고유 ID
+        String oauthUserId = "";
         String providerTypeCode = userRequest.getClientRegistration().getRegistrationId().toUpperCase();
+        String nickname = "";
+        String profileImgUrl = "";
 
-        Map<String, Object> attributes = oAuth2User.getAttributes();
-        Map<String, Object> attributesProperties = (Map<String, Object>) attributes.get("properties");
+        switch (providerTypeCode) {
+            case "KAKAO" -> {
+                Map<String, Object> attributes = oAuth2User.getAttributes();
+                Map<String, Object> attributesProperties = (Map<String, Object>) attributes.get("properties");
 
-        // 사용자 정보 추출
-        String userNicknameAttributeName = "nickname";
-        String profileImgUrlAttributeName = "profile_image";
+                oauthUserId = oAuth2User.getName();
+                nickname = (String) attributesProperties.get("nickname");
+                profileImgUrl = (String) attributesProperties.get("profile_image");
+            }
+            case "GOOGLE" -> {
+                oauthUserId = oAuth2User.getName();
+                nickname = (String) oAuth2User.getAttributes().get("name");
+                profileImgUrl = (String) oAuth2User.getAttributes().get("picture");
+            }
+            case "NAVER" -> {
+                Map<String, Object> attributes = oAuth2User.getAttributes();
+                Map<String, Object> attributesProperties = (Map<String, Object>) attributes.get("response");
 
-        String nickname = (String) attributesProperties.get(userNicknameAttributeName);
-        String profileImgUrl = (String) attributesProperties.get(profileImgUrlAttributeName);
+                oauthUserId = (String) attributesProperties.get("id");
+                nickname = (String) attributesProperties.get("nickname");
+                profileImgUrl = (String) attributesProperties.get("profile_image");
+            }
+        }
 
         String email = oauthUserId + "@" + providerTypeCode.toLowerCase() + ".com";
 
