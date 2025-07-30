@@ -11,11 +11,14 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.List;
+
+import static org.springframework.security.config.http.SessionCreationPolicy.STATELESS;
 
 @Configuration
 @RequiredArgsConstructor
@@ -23,6 +26,8 @@ public class SecurityConfig {
 
     @Lazy
     private final CustomAuthenticationFilter customAuthenticationFilter;
+    private final AuthenticationSuccessHandler customOAuth2LoginSuccessHandler;
+    private final CustomOAuth2AuthorizationRequestResolver customOAuth2AuthorizationRequestResolver;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -33,24 +38,23 @@ public class SecurityConfig {
                                 .requestMatchers("/h2-console/**").permitAll()
 
                                 //모두 접근 가능한 API
-                                .requestMatchers(HttpMethod.GET,  "/메인페이지/뉴스목록", "/뉴스상세페이지", "/오늘의뉴스페이지", "/ox퀴즈페이지").permitAll()
+                                .requestMatchers(HttpMethod.GET,  "/메인페이지/뉴스목록", "/뉴스상세페이지", "/오늘의뉴스페이지").permitAll()
                                 .requestMatchers(HttpMethod.POST, "/api/members/login", "/api/members/join").permitAll()
                                 .requestMatchers(HttpMethod.DELETE, "/api/members/logout").permitAll()
 
                                 // 회원만 접근 가능한 API
-                                .requestMatchers(HttpMethod.GET,  "/상세퀴즈페이지", "/오늘의퀴즈페이지", "/ox퀴즈상세페이지", "/api/members/info").authenticated()
-                                .requestMatchers(HttpMethod.POST, "/상세퀴즈제출", "/오늘의퀴즈제출", "/ox퀴즈제출").authenticated()
-                                .requestMatchers(HttpMethod.PUT,  "/api/members/info").authenticated() // 내정보 수정 api로 변경해야함.
-                                .requestMatchers(HttpMethod.DELETE, "/마이페이지회원탈퇴").authenticated()
+                                .requestMatchers( "/api/quiz/detail/*/**").authenticated() // 상세퀴즈에 대한 모든 HTTP 메서드 요청은 로그인한 사용자만 허용
+                                .requestMatchers(HttpMethod.GET, "/api/quiz/fact", "/api/quiz/fact/category").permitAll() // OX퀴즈 전체/카테고리별 목록 조회는 모두 허용
+                                .requestMatchers(HttpMethod.GET, "/api/quiz/fact/*").authenticated() // OX퀴즈 단건 조회는 로그인한 사용자만 허용
+                                .requestMatchers(HttpMethod.POST,  "/오늘의퀴즈제출", "/ox퀴즈제출").authenticated()
+                                .requestMatchers( "/api/members/info").authenticated() // 마이페이지 조회, 수정
+                                .requestMatchers(HttpMethod.DELETE, "/api/members/withdraw").authenticated() //회원 탈퇴
 
                                 // 관리자만 접근 가능한 API
-                                .requestMatchers(HttpMethod.GET, "/api/admin/**").hasRole("ADMIN")
-                                .requestMatchers(HttpMethod.DELETE, "/관리자페이지뉴스삭제").hasRole("ADMIN")
+                                .requestMatchers("/api/admin/**").hasRole("ADMIN") // 관리자 페이지의 모든 HTTP 메서드 요청은 ADMIN 권한이여야함
 
                                 // 그 외는 모두 인증 필요
-                                .requestMatchers("/api/**").authenticated()
-                                //.requestMatchers("/api/*/**").permitAll()
-
+                                .requestMatchers("/api/*/**").authenticated()
 
                                 // 그 외는 모두 허용
                                 .anyRequest().permitAll()
@@ -64,7 +68,14 @@ public class SecurityConfig {
                 .formLogin(AbstractHttpConfigurer::disable)
                 .logout(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)
-                .sessionManagement(AbstractHttpConfigurer::disable)
+                .sessionManagement(sessionManagement -> sessionManagement.sessionCreationPolicy(STATELESS))
+                .oauth2Login(oauth2Login -> oauth2Login
+                        .successHandler(customOAuth2LoginSuccessHandler)
+                        .authorizationEndpoint(
+                                authorizationEndpoint -> authorizationEndpoint
+                                        .authorizationRequestResolver(customOAuth2AuthorizationRequestResolver)
+                        )
+                )
                 .addFilterBefore(customAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .exceptionHandling(
                         exceptionHandling -> exceptionHandling
