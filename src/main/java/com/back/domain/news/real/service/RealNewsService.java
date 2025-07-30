@@ -60,6 +60,7 @@ public class RealNewsService {
         LocalDateTime start = LocalDate.now().atStartOfDay(); // 오늘 00:00
         LocalDateTime end = LocalDate.now().plusDays(1).atStartOfDay();
 
+//아이디순 정렬할것
         List<RealNews> realNewsList = realNewsRepository.findByOriginCreatedDateBetween(start, end);
         return realNewsList.stream()
                 .map(realNewsMapper::toDto)
