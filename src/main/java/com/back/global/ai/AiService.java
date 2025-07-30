@@ -1,6 +1,6 @@
 package com.back.global.ai;
 
-import com.back.domain.quiz.detail.dto.DetailQuizReqDto;
+import com.back.domain.quiz.detail.dto.DetailQuizCreateReqDto;
 import com.back.domain.quiz.detail.dto.DetailQuizDto;
 import com.back.global.ai.processor.AiRequestProcessor;
 import com.back.global.ai.processor.DetailQuizProcessor;
@@ -40,7 +40,7 @@ public class AiService {
     // AiService 개발이 끝나면 삭제할 예정입니다.
     //@PostConstruct
     public void test() {
-        DetailQuizReqDto req = new DetailQuizReqDto(
+        DetailQuizCreateReqDto req = new DetailQuizCreateReqDto(
                 "알리바바, '클로드' 맞먹는 오픈 소스 AI 코딩 모델 출시",
                 """
                         알리바바가 오픈 소스와 고성능, 상업적 허용이라는 3박자를 갖춘 인공지능(AI) 코딩 모델 ‘큐원3-코더(Qwen3-Coder)’를 공개했다. AI 코딩 모델 시장의 판도를 뒤흔들만하다는 평이다.
