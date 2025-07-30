@@ -56,7 +56,6 @@ public class FakeNewsService {
 
         FakeNews fakeNews = FakeNews.builder()
                 .realNews(mappingNews)
-                .title(fakeNewsDto.title())
                 .content(fakeNewsDto.content())
                 .build();
 
@@ -79,7 +78,6 @@ public class FakeNewsService {
                 .filter(dto -> realNewsMap.containsKey(dto.realNewsId())) // 존재하는 realNewsId만 필터링
                 .map(dto -> FakeNews.builder()
                         .realNews(realNewsMap.get(dto.realNewsId()))
-                        .title(dto.title())
                         .content(dto.content())
                         .build())
                 .collect(Collectors.toList());
@@ -93,7 +91,6 @@ public class FakeNewsService {
         return fakeNewsRepository.findById(realNewsId)
                 .map(fakeNews -> new FakeNewsDto(
                         fakeNews.getRealNews().getId(),
-                        fakeNews.getTitle(),
                         fakeNews.getContent()))
                 .orElseThrow(() -> new IllegalArgumentException("Fake news not found for real news id: " + realNewsId));
 

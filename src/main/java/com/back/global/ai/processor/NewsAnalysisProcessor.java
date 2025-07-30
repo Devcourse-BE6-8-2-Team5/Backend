@@ -83,6 +83,7 @@ public class NewsAnalysisProcessor implements AiRequestProcessor<List<AnalyzedNe
                - 구독 안내나 앱 다운로드 유도 문구
                - 관련 기사 안내나 링크
                - 기타 뉴스 핵심 내용과 무관한 부가 정보
+               - 불필요한 특수문자(▲ 등)
                 
                정제된 본문은 뉴스의 핵심 사실과 내용만 포함해야 합니다.
                         

@@ -1,22 +1,11 @@
 package com.back.global.ai.processor;
 
-import com.back.domain.news.common.dto.KeywordGenerationReqDto;
-import com.back.domain.news.common.dto.KeywordGenerationResDto;
 import com.back.domain.news.fake.dto.FakeNewsDto;
 import com.back.domain.news.real.dto.RealNewsDto;
 import com.back.global.exception.ServiceException;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.json.JsonReadFeature;
-import com.fasterxml.jackson.core.json.JsonWriteFeature;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.json.JsonMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.model.ChatResponse;
-
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * 진짜 뉴스를 기반으로 가짜 뉴스를 생성하는 AI 요청 Processor 입니다.
@@ -25,10 +14,6 @@ import java.util.regex.Pattern;
 public class FakeNewsGeneratorProcessor implements AiRequestProcessor<FakeNewsDto> {
     private final RealNewsDto req;
     private final ObjectMapper objectMapper;
-
-    private static final int MAX_TITLE_LENGTH = 200;
-    private static final int MAX_CONTENT_LENGTH = 10000;
-
 
     public FakeNewsGeneratorProcessor(RealNewsDto req, ObjectMapper objectMapper) {
         this.req = req;
@@ -39,7 +24,7 @@ public class FakeNewsGeneratorProcessor implements AiRequestProcessor<FakeNewsDt
     @Override
     public String buildPrompt() {
         return String.format("""
-               Task: 제공된 진짜 뉴스를 바탕으로 가짜 뉴스를 생성하라.
+               Task: 제공된 진짜 뉴스의 제목을 바탕으로 가짜 뉴스를 생성하라.
                
                목적:
                - 진짜 뉴스와 유사한 형식과 문체로 작성
@@ -49,7 +34,7 @@ public class FakeNewsGeneratorProcessor implements AiRequestProcessor<FakeNewsDt
                ⚠️ 중요한 제약사항:
                - 문체, 문장 구조, 단락 구성을 원본과 유사하게 작성
                - 날짜, 인물명, 기관명 등은 적절히 변경하되 현실성 있게 구성
-               - 원본 뉴스와 같은 카테고리 내에서 다른 주제로 작성
+               - 분량도 원본과 유사하게 작성
                
                [원본 뉴스 정보]
                제목: %s
@@ -57,8 +42,7 @@ public class FakeNewsGeneratorProcessor implements AiRequestProcessor<FakeNewsDt
                카테고리: %s
                
                [가짜 뉴스 생성 요구사항]
-               1. 제목: 원본과 유사한 톤앤매너로 작성
-               2. 내용: 원본의 문체와 구조를 따라 작성하되 완전히 다른 내용
+               1. 내용: 원본의 문체와 구조를 따라 작성하고 비슷한 내용으로 작성
                3. 기사 내 언론사명과 기자 명이 있다면 형식 유지 (예: [데일리안 = 기자명] 형식)
                4. 인용문, 수치, 기관명 등은 그럴듯하게 변경
                
@@ -69,7 +53,6 @@ public class FakeNewsGeneratorProcessor implements AiRequestProcessor<FakeNewsDt
 
                {
                  "realNewsId": %s,
-                 "title": "가짜 뉴스 제목",
                  "content": "가짜 뉴스 본문"
                }
                """,
@@ -123,7 +106,6 @@ public class FakeNewsGeneratorProcessor implements AiRequestProcessor<FakeNewsDt
      */
     private void validateResult(FakeNewsDto result) {
         if (result.realNewsId() == null ||
-                result.title() == null || result.title().trim().isEmpty() ||
                 result.content() == null || result.content().trim().isEmpty()) {
             throw new IllegalArgumentException("필수 필드 누락");
         }
@@ -135,7 +117,6 @@ public class FakeNewsGeneratorProcessor implements AiRequestProcessor<FakeNewsDt
     private FakeNewsDto createFallback() {
         return FakeNewsDto.of(
                 req.id(),
-                req.title() + " (AI 생성 실패)",
                 "이 뉴스는 AI 생성에 실패하여 기본값으로 대체되었습니다."
         );
     }

@@ -41,8 +41,6 @@ public class FakeNews {
     @JoinColumn(name = "real_news_id")
     private RealNews realNews;
 
-    private String title;
-
     @Lob
     private String content;
 
