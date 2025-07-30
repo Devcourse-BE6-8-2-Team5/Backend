@@ -12,6 +12,7 @@ import com.back.domain.news.real.mapper.RealNewsMapper;
 import com.back.domain.news.real.repository.RealNewsRepository;
 import com.back.domain.news.real.repository.TodayNewsRepository;
 import com.back.domain.news.today.entity.TodayNews;
+import com.back.global.exception.ServiceException;
 import com.back.global.util.HtmlEntityDecoder;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -156,7 +157,8 @@ public class AdminNewsService {
             return allRealNewsDtos;
             //return 뉴스 필터하기
         } catch (InterruptedException e) {
-            throw new RuntimeException(e);
+            Thread.currentThread().interrupt(); // 인터럽트 상태 복원
+            throw new ServiceException(500, "뉴스 크롤링이 중단되었습니다");
         }
 
     }
@@ -188,7 +190,7 @@ public class AdminNewsService {
                         .filter(dto -> dto.link().contains("n.news.naver.com"))
                         .toList();
 
-                allNews.addAll(news);
+                allNews.addAll(naverOnlyNews);
 
                 Thread.sleep(1000); // API 제한
             } catch (Exception e) {
@@ -199,10 +201,7 @@ public class AdminNewsService {
         log.info("네이버 API 호출 완료: 총 {}건", allNews.size());
         return allNews;
     }
-
-    //N건 패치
-    //예상되는 문제 : 최신순으로 하면 겹치는 부분이 많을 것 같음
-    //주요기사를 받아오는 로직이 필요할 것 같은데... 쉽지않을듯 자체적으론 힘들듯하고 우선 ai 프롬프트를 잘 만져봐야할 것 같습니다.
+  
     public List<NaverNewsDto> fetchNews(String keyword) {
         try {
             //display는 한 번에 보여줄 뉴스의 개수, sort는 정렬 기준 (date: 최신순, sim: 정확도순)
