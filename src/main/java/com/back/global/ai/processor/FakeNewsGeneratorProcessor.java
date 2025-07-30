@@ -5,21 +5,30 @@ import com.back.domain.news.common.dto.KeywordGenerationResDto;
 import com.back.domain.news.fake.dto.FakeNewsDto;
 import com.back.domain.news.real.dto.RealNewsDto;
 import com.back.global.exception.ServiceException;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.json.JsonReadFeature;
+import com.fasterxml.jackson.core.json.JsonWriteFeature;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.json.JsonMapper;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.model.ChatResponse;
 
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
  * 진짜 뉴스를 기반으로 가짜 뉴스를 생성하는 AI 요청 Processor 입니다.
  */
+@Slf4j
 public class FakeNewsGeneratorProcessor implements AiRequestProcessor<FakeNewsDto> {
     private final RealNewsDto req;
     private final ObjectMapper objectMapper;
 
     private static final int MAX_TITLE_LENGTH = 200;
     private static final int MAX_CONTENT_LENGTH = 10000;
+
 
     public FakeNewsGeneratorProcessor(RealNewsDto req, ObjectMapper objectMapper) {
         this.req = req;
@@ -53,25 +62,19 @@ public class FakeNewsGeneratorProcessor implements AiRequestProcessor<FakeNewsDt
                3. 기사 내 언론사명과 기자 명이 있다면 형식 유지 (예: [데일리안 = 기자명] 형식)
                4. 인용문, 수치, 기관명 등은 그럴듯하게 변경
                
-               [주의사항]
-               - 허위 정보임을 명시하지 말고 자연스럽게 작성
-               - 원본의 논조와 비슷하게 유지
-               - 적당한 길이로 작성 (원본과 비슷한 분량)
-               - 인용문은 자연스럽게 큰따옴표를 사용하되, JSON 형식을 준수하세요
-               - 내용 중 개행문자나 백슬래시는 사용하지 마세요
-               
-               ⚠️ 매우 중요: 반드시 아래 JSON 형식으로만 응답하세요. 다른 텍스트나 설명은 포함하지 마세요.
-               
-               ```json
+               [JSON 출력 규칙 - 매우 중요]
+               - 마크다운 코드 블록 사용 금지
+               - 아래 JSON 형식으로만 응답
+               - 문자열 내 따옴표가 있으면 역슬래시로 이스케이프
+
                {
                  "realNewsId": %s,
-                 "title": "생성된 가짜 뉴스 제목",
-                 "content": "생성된 가짜 뉴스 본문 전체"
+                 "title": "가짜 뉴스 제목",
+                 "content": "가짜 뉴스 본문"
                }
-               ```
                """,
-                escapeForPrompt(req.title()),
-                escapeForPrompt(req.content()),
+                cleanText(req.title()),
+                cleanText(req.content()),
                 req.newsCategory(),
                 req.id());
     }
@@ -85,141 +88,55 @@ public class FakeNewsGeneratorProcessor implements AiRequestProcessor<FakeNewsDt
         }
 
         try {
-            // 1단계: 응답 정리
-            String cleanedResponse = cleanAiResponse(text);
-
-            // 2단계: 파싱 시도
-            FakeNewsDto result = objectMapper.readValue(cleanedResponse, FakeNewsDto.class);
-
-            // 3단계: 결과 검증
+            String cleanedJson = cleanResponse(text);
+            FakeNewsDto result = objectMapper.readValue(cleanedJson, FakeNewsDto.class);
             validateResult(result);
-
             return result;
 
         } catch (Exception e) {
-            // 상세한 에러 정보 제공
-            throw new ServiceException(500,
-                    String.format("가짜 뉴스 생성 실패: %s : %s. 원본 응답: %s",
-                            e.getClass().getSimpleName(),
-                            e.getMessage(),
-                            text.length() > 1000 ? text.substring(0, 1000) + "..." : text));
+            log.warn("JSON 파싱 실패, 폴백 실행. 오류: {}", e.getMessage());
+            return createFallback();
         }
+    }
+    /**
+     * AI 응답 정리 - 마크다운 코드 블록만 제거
+     */
+    private String cleanResponse(String text) {
+        return text.trim()
+                .replaceAll("(?s)```json\\s*(.*?)\\s*```", "$1")
+                .replaceAll("```", "")
+                .trim();
     }
 
     /**
-     * AI 응답을 정리하여 순수한 JSON만 추출
+     * 프롬프트용 텍스트 정리
      */
-    private String cleanAiResponse(String response) {
-        String cleaned = response.trim();
-
-        // 1. 마크다운 코드 블록 제거
-        cleaned = cleaned.replaceAll("(?s)```json\\s*(.*?)\\s*```", "$1");
-        cleaned = cleaned.replaceAll("(?s)```\\s*(.*?)\\s*```", "$1");
-
-        // 2. 앞뒤 불필요한 텍스트 제거
-        cleaned = cleaned.trim();
-
-        // 3. JSON 시작점과 끝점 찾기
-        int jsonStart = cleaned.indexOf('{');
-        int jsonEnd = cleaned.lastIndexOf('}');
-
-        if (jsonStart != -1 && jsonEnd != -1 && jsonEnd > jsonStart) {
-            cleaned = cleaned.substring(jsonStart, jsonEnd + 1);
-        }
-
-        // 4. 위험한 문자들 치환
-        cleaned = cleaned
-                .replace("…", "...")        // 줄임표 치환
-                .replace("\u2018", "'")     // 왼쪽 스마트 쿼트
-                .replace("\u2019", "'")     // 오른쪽 스마트 쿼트
-                .replace("\u201C", "\"")    // 왼쪽 스마트 더블 쿼트
-                .replace("\u201D", "\"");   // 오른쪽 스마트 더블 쿼트
-
-        cleaned = fixJsonQuotes(cleaned);
-
-        return cleaned.trim();
-    }
-
-    /**
-     * JSON 내부 문자열 값의 큰따옴표를 안전하게 처리
-     */
-    private String fixJsonQuotes(String json) {
-        try {
-            // 직접 ObjectMapper로 파싱 시도
-            FakeNewsDto result = objectMapper.readValue(json, FakeNewsDto.class);
-
-            // 성공하면 다시 JSON으로 직렬화 (자동으로 이스케이프됨)
-            return objectMapper.writeValueAsString(result);
-
-        } catch (Exception e) {
-            // 파싱 실패 시: 문자열 값 내부의 따옴표만 이스케이프
-            String fixed = json;
-
-            // title 필드 처리
-            fixed = fixFieldQuotes(fixed, "title");
-
-            // content 필드 처리
-            fixed = fixFieldQuotes(fixed, "content");
-
-            return fixed;
-        }
-    }
-
-    /**
-     * 특정 필드의 값 내부 따옴표를 이스케이프
-     */
-    private String fixFieldQuotes(String json, String fieldName) {
-        // "fieldName": "value" 패턴을 찾아서 value 내부의 따옴표를 이스케이프
-        Pattern pattern = Pattern.compile(
-                "\"" + fieldName + "\"\\s*:\\s*\"((?:[^\"\\\\]|\\\\.)*)\"",
-                Pattern.DOTALL
-        );
-
-        return pattern.matcher(json).replaceAll(matchResult -> {
-            String value = matchResult.group(1);
-            String escapedValue = value.replace("\"", "\\\"");
-            return String.format("\"%s\": \"%s\"", fieldName, escapedValue);
-        });
-    }
-
-    /**
-     * 파싱 결과 검증
-     */
-
-    private void validateResult(FakeNewsDto result) {
-        if (result.realNewsId() == null) {
-            throw new IllegalArgumentException("realNewsId가 누락되었습니다");
-        }
-
-        if (result.title() == null || result.title().trim().isEmpty()) {
-            throw new IllegalArgumentException("title이 누락되었거나 비어있습니다");
-        }
-
-        if (result.content() == null || result.content().trim().isEmpty()) {
-            throw new IllegalArgumentException("content가 누락되었거나 비어있습니다");
-        }
-
-        // 길이 검증
-        if (result.title().length() > MAX_TITLE_LENGTH) {
-            throw new IllegalArgumentException("title이 너무 깁니다");
-        }
-
-        if (result.content().length() > MAX_CONTENT_LENGTH) {
-            throw new IllegalArgumentException("content가 너무 깁니다");
-        }
-    }
-
-    /**
-     * 프롬프트용 문자열 이스케이프
-     */
-    private String escapeForPrompt(String text) {
+    private String cleanText(String text) {
         if (text == null) return "";
-        return text
-                .replace("\"", "'")
-                .replace("\\", "")
-                .replace("\n", " ")
-                .replace("\r", " ")
+        return text.replace("\"", "'")
                 .replaceAll("\\s+", " ")
                 .trim();
+    }
+
+    /**
+     * 결과 검증
+     */
+    private void validateResult(FakeNewsDto result) {
+        if (result.realNewsId() == null ||
+                result.title() == null || result.title().trim().isEmpty() ||
+                result.content() == null || result.content().trim().isEmpty()) {
+            throw new IllegalArgumentException("필수 필드 누락");
+        }
+    }
+
+    /**
+     * 파싱 실패시 폴백
+     */
+    private FakeNewsDto createFallback() {
+        return FakeNewsDto.of(
+                req.id(),
+                req.title() + " (AI 생성 실패)",
+                "이 뉴스는 AI 생성에 실패하여 기본값으로 대체되었습니다."
+        );
     }
 }
