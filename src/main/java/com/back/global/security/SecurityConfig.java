@@ -41,15 +41,15 @@ public class SecurityConfig {
                                 .requestMatchers(HttpMethod.GET,  "/상세퀴즈페이지", "/오늘의퀴즈페이지", "/ox퀴즈상세페이지", "/api/members/info").authenticated()
                                 .requestMatchers(HttpMethod.POST, "/상세퀴즈제출", "/오늘의퀴즈제출", "/ox퀴즈제출").authenticated()
                                 .requestMatchers(HttpMethod.PUT,  "/api/members/info").authenticated() // 내정보 수정 api로 변경해야함.
-                                .requestMatchers(HttpMethod.DELETE, "/마이페이지회원탈퇴").authenticated()
+                                .requestMatchers(HttpMethod.DELETE, "/api/members/withdraw").authenticated()
 
                                 // 관리자만 접근 가능한 API
-                                .requestMatchers(HttpMethod.GET, "/api/admin/**").hasRole("ADMIN")
+                                .requestMatchers(HttpMethod.GET, "/api/admin").hasRole("ADMIN")
                                 .requestMatchers(HttpMethod.DELETE, "/관리자페이지뉴스삭제").hasRole("ADMIN")
 
                                 // 그 외는 모두 인증 필요
-                                .requestMatchers("/api/**").authenticated()
-                                //.requestMatchers("/api/*/**").permitAll()
+//                                .requestMatchers("/api/*/**").authenticated()
+                                .requestMatchers("/api/*/**").permitAll()
 
 
                                 // 그 외는 모두 허용
