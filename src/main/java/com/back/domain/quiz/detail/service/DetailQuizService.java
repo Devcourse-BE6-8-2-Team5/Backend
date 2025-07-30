@@ -121,17 +121,17 @@ public class DetailQuizService {
         DetailQuiz quiz = detailQuizRepository.findById(id)
                 .orElseThrow(() -> new ServiceException(404, "해당 id의 상세 퀴즈가 존재하지 않습니다. id: " + id));
 
+        Member managedActor = memberRepository.findById(actor.getId())
+                .orElseThrow(() -> new ServiceException(404, "회원이 존재하지 않습니다."));
+
         boolean isCorrect = quiz.isCorrect(selectedOption);
 
         int gainExp = isCorrect ? 10 : 0; // 정답 제출 시 경험치 10점 부여
 
-        // 영속 상태로 변경
-        Member managedActor = memberRepository.findById(actor.getId())
-                .orElseThrow(() -> new ServiceException(404, "회원이 존재하지 않습니다."));
 
         managedActor.setExp(managedActor.getExp() + gainExp);
 
-        quizHistoryService.save(actor, id, quiz.getQuizType(), String.valueOf(selectedOption), isCorrect, gainExp); // 퀴즈 히스토리 저장
+        quizHistoryService.save(managedActor, id, quiz.getQuizType(), String.valueOf(selectedOption), isCorrect, gainExp); // 퀴즈 히스토리 저장
 
         return new DetailQuizAnswerDto(
                 quiz.getId(),
