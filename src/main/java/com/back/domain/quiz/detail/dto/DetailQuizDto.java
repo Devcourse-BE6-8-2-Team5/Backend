@@ -4,7 +4,6 @@ import com.back.domain.quiz.detail.entity.DetailQuiz;
 import com.back.domain.quiz.detail.entity.Option;
 
 public record DetailQuizDto(
-        Long id,
         String question,
         String option1,
         String option2,
@@ -13,7 +12,6 @@ public record DetailQuizDto(
 ) {
     public DetailQuizDto(DetailQuiz detailQuiz) {
         this(
-                detailQuiz.getId(),
                 detailQuiz.getQuestion(),
                 detailQuiz.getOption1(),
                 detailQuiz.getOption2(),
