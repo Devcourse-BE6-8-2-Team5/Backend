@@ -49,12 +49,13 @@ public class SecurityConfig {
                                 .requestMatchers(HttpMethod.DELETE, "/api/members/withdraw").authenticated()
 
                                 // 관리자만 접근 가능한 API
-                                .requestMatchers(HttpMethod.GET, "/api/admin").hasRole("ADMIN")
+                                .requestMatchers(HttpMethod.GET, "/api/admin").hasRole("ADMIN") // 관리자 페이지의 모든 HTTP 메서드 요청은 ADMIN 권한이여야함
                                 .requestMatchers(HttpMethod.DELETE, "/관리자페이지뉴스삭제").hasRole("ADMIN")
 
                                 // 그 외는 모두 인증 필요
-//                                .requestMatchers("/api/*/**").authenticated()
+                                //.requestMatchers("/api/*/**").authenticated()
                                 .requestMatchers("/api/*/**").permitAll()
+
                                 // 그 외는 모두 허용
                                 .anyRequest().permitAll()
                 )
