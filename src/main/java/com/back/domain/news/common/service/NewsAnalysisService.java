@@ -7,6 +7,7 @@ import com.back.global.ai.processor.NewsAnalysisProcessor;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -20,6 +21,10 @@ public class NewsAnalysisService {
     private final AiService aiService;
     private final ObjectMapper objectMapper;
 
+    @Value("${news.filter.batch.size:3}") // 배치 크기 설정, 기본값은 3
+    private int batchSize;
+
+
     public List<AnalyzedNewsDto> filterAndScoreNews(List<RealNewsDto> allRealNewsBeforeFilter) {
         if (allRealNewsBeforeFilter == null || allRealNewsBeforeFilter.isEmpty()) {
             log.warn("필터링할 뉴스가 없습니다.");
@@ -31,8 +36,8 @@ public class NewsAnalysisService {
         List<AnalyzedNewsDto> filteredResults = new ArrayList<>();
 
         // 3개씩 나누어서 처리
-        for (int i = 0; i < allRealNewsBeforeFilter.size(); i += 3) {
-            int endIndex = Math.min(i + 3, allRealNewsBeforeFilter.size());
+        for (int i = 0; i < allRealNewsBeforeFilter.size(); i += batchSize) {
+            int endIndex = Math.min(i + batchSize, allRealNewsBeforeFilter.size());
             List<RealNewsDto> batch = allRealNewsBeforeFilter.subList(i, endIndex);
 
             try {
@@ -44,7 +49,7 @@ public class NewsAnalysisService {
                 filteredResults.addAll(analyzedNewsDtos);
 
             } catch (Exception e) {
-                log.error("배치 {}개 처리 중 오류 발생, 건너뜀: {}", batch.size(), e.getMessage());
+                log.error("배치 {}개 처리 중 오류 발생, 건너뜀", batch.size(), e);
                 // 오류 발생 시 해당 배치는 건너뛰고 다음 배치 계속 처리
                 continue;
             }

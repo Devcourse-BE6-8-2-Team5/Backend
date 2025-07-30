@@ -1,10 +1,7 @@
 package com.back.domain.news.real.controller;
 
-import com.back.domain.news.common.dto.AnalyzedNewsDto;
-import com.back.domain.news.common.dto.NaverNewsDto;
 import com.back.domain.news.common.enums.NewsCategory;
 import com.back.domain.news.common.enums.NewsType;
-import com.back.domain.news.common.service.KeywordGenerationService;
 import com.back.domain.news.common.service.NewsPageService;
 import com.back.domain.news.real.dto.RealNewsDto;
 import com.back.domain.news.real.service.AdminNewsService;
@@ -17,8 +14,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Arrays;

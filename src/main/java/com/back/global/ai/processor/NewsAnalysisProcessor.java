@@ -26,12 +26,9 @@ public class NewsAnalysisProcessor implements AiRequestProcessor<List<AnalyzedNe
         StringBuilder newsInput = new StringBuilder();
         for (int i = 0; i < newsToAnalyze.size(); i++) {
             RealNewsDto news = newsToAnalyze.get(i);
-            newsInput.append(String.format("""
-                뉴스 %d:
-
-                내용: %s
-                ---
-                """, i + 1,  cleanText(news.content())));
+            newsInput.append("뉴스 ").append(i + 1).append(":\n\n")
+                    .append("내용: ").append(cleanText(news.content()))
+                    .append("\n---\n");
         }
 
         return String.format("""

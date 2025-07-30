@@ -90,7 +90,7 @@ public class AdminNewsService {
 
         List<RealNewsDto> allRealNewsBeforeFilter = createRealNewsDtoByCrawl(allNews);
 
-        List<AnalyzedNewsDto> allRealNewsAfterFilter = filterAndScoreNews(allRealNewsBeforeFilter);
+        List<AnalyzedNewsDto> allRealNewsAfterFilter = newsAnalysisService.filterAndScoreNews(allRealNewsBeforeFilter);
 
         List<RealNewsDto> selectedNews = selectNewsByScore(allRealNewsAfterFilter);
 
@@ -119,7 +119,7 @@ public class AdminNewsService {
                     realNewsDtoList.add(realNewsDto);
                 }
 
-
+                //TODO : @Async, TaskScheduler 등으로 비동기 처리 고려
                 Thread.sleep(crawlingDelay);
             }
             return saveAllRealNews(realNewsDtoList);
@@ -381,31 +381,6 @@ public class AdminNewsService {
 
     public int count() {
         return (int) realNewsRepository.count();
-    }
-
-    public List<AnalyzedNewsDto> filterAndScoreNews(List<RealNewsDto> allRealNewsBeforeFilter) {
-        if (allRealNewsBeforeFilter == null || allRealNewsBeforeFilter.isEmpty()) {
-            return List.of();
-        }
-
-        List<AnalyzedNewsDto> allRealNewsAfterFilter = new ArrayList<>();
-
-        // 3개씩 나누어서 처리
-        for (int i = 0; i < allRealNewsBeforeFilter.size(); i += 3) {
-            int endIndex = Math.min(i + 3, allRealNewsBeforeFilter.size());
-            List<RealNewsDto> batch = allRealNewsBeforeFilter.subList(i, endIndex);
-
-            try {
-                // NewsFilterService 호출
-                List<AnalyzedNewsDto> batchResults = newsAnalysisService.filterAndScoreNews(batch);
-                allRealNewsAfterFilter.addAll(batchResults);
-
-            } catch (Exception e) {
-                // 오류 발생 시 해당 배치는 건너뛰고 다음 배치 계속 처리
-                continue;
-            }
-        }
-        return allRealNewsAfterFilter;
     }
 
     public List<RealNewsDto> selectNewsByScore(List<AnalyzedNewsDto> allRealNewsAfterFilter) {

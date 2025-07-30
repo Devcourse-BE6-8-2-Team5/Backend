@@ -79,6 +79,9 @@ public class TestController {
     @GetMapping("/fetch")
     public RsData<List<NaverNewsDto>> testFetchNews(@RequestParam String query) {
         try {
+            if (query == null || query.trim().isEmpty()) {
+                return RsData.of(400, "검색어가 비어있습니다.");
+            }
             // 네이버 API 호출
             List<NaverNewsDto> news = adminNewsService.fetchNews(query);
 
@@ -102,6 +105,7 @@ public class TestController {
         try {
             KeywordGenerationResDto keywords = keywordGenerationService.generateTodaysKeywords();
             List<String> keywordList = keywords.getKeywords();
+//            Todo: 키워드 추가
 //            List<String> prefixes = List.of("속보", "긴급", "단독");
 //
 //            keywordList = Stream
