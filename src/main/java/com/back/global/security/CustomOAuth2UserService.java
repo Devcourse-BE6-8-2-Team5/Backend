@@ -29,17 +29,23 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         String oauthUserId = oAuth2User.getName(); // 고유 ID
         String providerTypeCode = userRequest.getClientRegistration().getRegistrationId().toUpperCase();
 
-        Map<String, Object> attributes = oAuth2User.getAttributes();
-        Map<String, Object> attributesProperties = (Map<String, Object>) attributes.get("properties");
-
-        // 사용자 정보 추출
-        String userNicknameAttributeName = "nickname";
-        String profileImgUrlAttributeName = "profile_image";
-
-        String nickname = (String) attributesProperties.get(userNicknameAttributeName);
-        String profileImgUrl = (String) attributesProperties.get(profileImgUrlAttributeName);
-
+        String nickname = "";
+        String profileImgUrl = "";
         String email = oauthUserId + "@" + providerTypeCode.toLowerCase() + ".com";
+
+        switch (providerTypeCode) {
+            case "KAKAO":
+                Map<String, Object> attributes = oAuth2User.getAttributes();
+                Map attributesProperties = (Map) attributes.get("properties");
+
+                nickname = (String) attributesProperties.get("nickname");
+                profileImgUrl = (String) attributesProperties.get("profile_image");
+                break;
+            case "GOOGLE":
+                nickname = (String) oAuth2User.getAttributes().get("name");
+                profileImgUrl = (String) oAuth2User.getAttributes().get("picture");
+                break;
+        }
 
         Member member = memberService.modifyOrJoin(oauthUserId, email, nickname, profileImgUrl).data();
 
