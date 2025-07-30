@@ -103,6 +103,6 @@ public class Rq {
     public Member getActorFromDb() {
         Member actor = getActor();
         if(actor == null) return null;
-        return memberService.findById(actor.getId()).get();
+        return memberService.findById(actor.getId()).orElse(null);
     }
 }

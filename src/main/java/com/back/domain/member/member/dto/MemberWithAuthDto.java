@@ -24,7 +24,7 @@ public class MemberWithAuthDto {
         this.email = member.getEmail();
         this.name = member.getName();
         this.role = member.getRole();
-        this.profileImgUrl = member.getProfileImgUrl();
+        this.profileImgUrl = member.getProfileImgUrlOrDefault();
     }
 }
 
