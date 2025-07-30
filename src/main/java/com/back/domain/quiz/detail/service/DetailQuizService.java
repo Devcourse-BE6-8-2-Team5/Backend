@@ -1,10 +1,15 @@
 package com.back.domain.quiz.detail.service;
 
+import com.back.domain.member.member.entity.Member;
+import com.back.domain.member.member.repository.MemberRepository;
+import com.back.domain.member.quizhistory.service.QuizHistoryService;
 import com.back.domain.news.real.entity.RealNews;
 import com.back.domain.news.real.repository.RealNewsRepository;
+import com.back.domain.quiz.detail.dto.DetailQuizAnswerDto;
 import com.back.domain.quiz.detail.dto.DetailQuizDto;
 import com.back.domain.quiz.detail.dto.DetailQuizReqDto;
 import com.back.domain.quiz.detail.entity.DetailQuiz;
+import com.back.domain.quiz.detail.entity.Option;
 import com.back.domain.quiz.detail.repository.DetailQuizRepository;
 import com.back.global.ai.AiService;
 import com.back.global.ai.processor.DetailQuizProcessor;
@@ -25,6 +30,8 @@ public class DetailQuizService {
     private final RealNewsRepository realNewsRepository;
     private final AiService aiService;
     private final ObjectMapper objectMapper;
+    private final QuizHistoryService quizHistoryService;
+    private final MemberRepository memberRepository;
 
     public long count() {
         return detailQuizRepository.count();
@@ -106,5 +113,34 @@ public class DetailQuizService {
         quiz.setCorrectOption(detailQuizDto.correctOption());
 
         return detailQuizRepository.save(quiz);
+    }
+
+    @Transactional
+    public DetailQuizAnswerDto submitDetailQuizAnswer(Member actor, Long id, Option selectedOption) {
+
+        DetailQuiz quiz = detailQuizRepository.findById(id)
+                .orElseThrow(() -> new ServiceException(404, "해당 id의 상세 퀴즈가 존재하지 않습니다. id: " + id));
+
+        boolean isCorrect = quiz.isCorrect(selectedOption);
+
+        int gainExp = isCorrect ? 10 : 0; // 정답 제출 시 경험치 10점 부여
+
+        // 영속 상태로 변경
+        Member managedActor = memberRepository.findById(actor.getId())
+                .orElseThrow(() -> new ServiceException(404, "회원이 존재하지 않습니다."));
+
+        managedActor.setExp(managedActor.getExp() + gainExp);
+
+        quizHistoryService.save(actor, id, quiz.getQuizType(), String.valueOf(selectedOption), isCorrect, gainExp); // 퀴즈 히스토리 저장
+
+        return new DetailQuizAnswerDto(
+                quiz.getId(),
+                quiz.getQuestion(),
+                quiz.getCorrectOption(),
+                selectedOption,
+                isCorrect,
+                gainExp,
+                quiz.getQuizType()
+        );
     }
 }

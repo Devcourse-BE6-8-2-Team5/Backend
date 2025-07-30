@@ -59,6 +59,11 @@ public class DetailQuiz {
         };
     }
 
+    // 정답 판별 메소드
+    public boolean isCorrect(Option userSelectedOption) {
+        return this.correctOption == userSelectedOption;
+    }
+
     public DetailQuiz(String question, String option1, String option2, String option3, Option correctOption) {
         this.question = question;
         this.option1 = option1;

@@ -72,4 +72,19 @@ public class QuizHistoryService {
                 .map(QuizHistoryDto::new)
                 .toList();
     }
+
+    public void save(Member actor, Long id,QuizType quizType, String answer, boolean isCorrect, int gainExp) {
+        //빌더로해줘
+        QuizHistory quizHistory = QuizHistory.builder()
+                .member(actor)
+                .quizId(id)
+                .quizType(quizType)
+                .answer(answer)
+                .isCorrect(isCorrect)
+                .gainExp(gainExp)
+                .build();
+
+        // 퀴즈 히스토리 저장
+        quizHistoryRepository.save(quizHistory);
+    }
 }
