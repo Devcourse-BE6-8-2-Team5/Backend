@@ -39,7 +39,7 @@ public class TestInitData {
     private final DailyQuizService dailyQuizService;
 
     @Bean
-    ApplicationRunner devInitDataApplicationRunner() {
+    ApplicationRunner testInitDataApplicationRunner() {
         return args -> {
             self.memberInit();
             self.newsInit();

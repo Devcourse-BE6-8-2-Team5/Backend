@@ -39,7 +39,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         "NAVER_CLIENT_SECRET=test_client_secret",
         "GEMINI_API_KEY=apikey"
 })
-//@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 class DetailQuizControllerTest {
     @Autowired
     private DetailQuizService detailQuizService;
