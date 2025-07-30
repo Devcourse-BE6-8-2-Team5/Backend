@@ -39,7 +39,7 @@ public class FakeNewsGeneratorProcessor implements AiRequestProcessor<FakeNewsDt
     @Override
     public String buildPrompt() {
         return String.format("""
-               Task: 제공된 진짜 뉴스를 바탕으로 가짜 뉴스를 생성하라.
+               Task: 제공된 진짜 뉴스의 제목을 바탕으로 가짜 뉴스를 생성하라.
                
                목적:
                - 진짜 뉴스와 유사한 형식과 문체로 작성
@@ -49,7 +49,6 @@ public class FakeNewsGeneratorProcessor implements AiRequestProcessor<FakeNewsDt
                ⚠️ 중요한 제약사항:
                - 문체, 문장 구조, 단락 구성을 원본과 유사하게 작성
                - 날짜, 인물명, 기관명 등은 적절히 변경하되 현실성 있게 구성
-               - 원본 뉴스와 같은 카테고리 내에서 다른 주제로 작성
                
                [원본 뉴스 정보]
                제목: %s
@@ -57,7 +56,7 @@ public class FakeNewsGeneratorProcessor implements AiRequestProcessor<FakeNewsDt
                카테고리: %s
                
                [가짜 뉴스 생성 요구사항]
-               1. 제목: 원본과 유사한 톤앤매너로 작성
+               1. 제목: 진짜 뉴스와 동일하게 작성
                2. 내용: 원본의 문체와 구조를 따라 작성하되 완전히 다른 내용
                3. 기사 내 언론사명과 기자 명이 있다면 형식 유지 (예: [데일리안 = 기자명] 형식)
                4. 인용문, 수치, 기관명 등은 그럴듯하게 변경
@@ -69,7 +68,7 @@ public class FakeNewsGeneratorProcessor implements AiRequestProcessor<FakeNewsDt
 
                {
                  "realNewsId": %s,
-                 "title": "가짜 뉴스 제목",
+                 "title": "그대로 사용",
                  "content": "가짜 뉴스 본문"
                }
                """,

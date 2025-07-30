@@ -1,6 +1,5 @@
 package com.back.domain.news.common.test.controller;
 
-import com.back.domain.news.common.dto.AnalyzedNewsDto;
 import com.back.domain.news.common.dto.KeywordGenerationResDto;
 import com.back.domain.news.common.dto.NaverNewsDto;
 import com.back.domain.news.common.service.KeywordCleanupService;
@@ -8,7 +7,7 @@ import com.back.domain.news.common.service.KeywordGenerationService;
 import com.back.domain.news.fake.dto.FakeNewsDto;
 import com.back.domain.news.fake.service.FakeNewsService;
 import com.back.domain.news.real.dto.RealNewsDto;
-import com.back.domain.news.real.service.AdminNewsService;
+import com.back.domain.news.real.service.NewsDataService;
 import com.back.domain.news.real.service.RealNewsService;
 import com.back.global.rsData.RsData;
 import lombok.RequiredArgsConstructor;
@@ -16,7 +15,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.stream.Stream;
 
 @Slf4j
 @RestController
@@ -28,7 +26,7 @@ public class TestController {
     private final KeywordCleanupService keywordCleanupService;
     private final FakeNewsService fakeNewsService;
     private final RealNewsService realNewsService;
-    private final AdminNewsService adminNewsService;
+    private final NewsDataService newsDataService;
 
     @GetMapping("/keywords")
     public KeywordGenerationResDto testKeywords() {
@@ -83,7 +81,7 @@ public class TestController {
                 return RsData.of(400, "검색어가 비어있습니다.");
             }
             // 네이버 API 호출
-            List<NaverNewsDto> news = adminNewsService.fetchNews(query);
+            List<NaverNewsDto> news = newsDataService.fetchNews(query);
 
             // 속도 제한 준수
             Thread.sleep(1000);

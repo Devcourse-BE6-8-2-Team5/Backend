@@ -33,7 +33,7 @@ public class KeywordCleanupService {
         }
     }
 
-    // 관리자 수동 삭제
+    // 관리자 키워드 수동 삭제
     @Transactional
     public int adminCleanup(int days) {
         LocalDate cutoffDate = LocalDate.now().minusDays(days);

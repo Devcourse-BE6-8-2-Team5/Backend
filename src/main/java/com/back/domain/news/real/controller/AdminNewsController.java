@@ -5,6 +5,7 @@ import com.back.domain.news.common.enums.NewsType;
 import com.back.domain.news.common.service.NewsPageService;
 import com.back.domain.news.real.dto.RealNewsDto;
 import com.back.domain.news.real.service.AdminNewsService;
+import com.back.domain.news.real.service.NewsDataService;
 import com.back.domain.news.real.service.RealNewsService;
 import com.back.global.rsData.RsData;
 import io.swagger.v3.oas.annotations.Operation;
@@ -33,8 +34,29 @@ import static org.springframework.data.domain.Sort.Direction.fromString;
 @Tag(name = "관리자 뉴스 관리", description = "관리자용 뉴스 생성, 조회, 삭제 API")
 public class AdminNewsController {
     private final AdminNewsService adminNewsService;
+    private final NewsDataService newsDataService;
     private final RealNewsService realNewsService;
     private final NewsPageService newsPageService;
+
+
+        //뉴스 생성 (for test)
+    @Operation(summary = "뉴스 생성", description = "네이버 뉴스 API와 데이터 파싱을 통해 뉴스를 생성합니다.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "뉴스 생성 성공"),
+            @ApiResponse(responseCode = "404", description = "검색어로 뉴스를 찾을 수 없음"),
+            @ApiResponse(responseCode = "500", description = "서버 내부 오류")
+    })
+    @PostMapping("/create")
+    public RsData<List<RealNewsDto>> createRealNews(@RequestParam String query) {
+        List<RealNewsDto> realNewsList = newsDataService.createRealNewsDto(query);
+
+        if (realNewsList.isEmpty()) {
+            return RsData.of(404, String.format("'%s' 검색어로 뉴스를 찾을 수 없습니다", query));
+        }
+
+        return RsData.of(200, String.format("뉴스 %d건 생성 완료",realNewsList.size()), realNewsList);
+    }
+
 
 
 //     뉴스 배치 프로세서
@@ -49,25 +71,6 @@ public class AdminNewsController {
         }
     }
 
-    //뉴스 생성
-    @Operation(summary = "뉴스 생성", description = "네이버 뉴스 API와 데이터 파싱을 통해 뉴스를 생성합니다.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "뉴스 생성 성공"),
-            @ApiResponse(responseCode = "404", description = "검색어로 뉴스를 찾을 수 없음"),
-            @ApiResponse(responseCode = "500", description = "서버 내부 오류")
-    })
-    @PostMapping("/create")
-    public RsData<List<RealNewsDto>> createRealNews(@RequestParam String query) {
-        List<RealNewsDto> realNewsList = adminNewsService.createRealNewsDto(query);
-
-        if (realNewsList.isEmpty()) {
-            return RsData.of(404, String.format("'%s' 검색어로 뉴스를 찾을 수 없습니다", query));
-        }
-
-        return RsData.of(200, String.format("뉴스 %d건 생성 완료",realNewsList.size()), realNewsList);
-    }
-
-
     //뉴스 삭제
     @Operation(summary = "뉴스 삭제", description = "ID로 뉴스를 삭제합니다.")
     @ApiResponses(value = {
@@ -77,7 +80,7 @@ public class AdminNewsController {
     })
     @DeleteMapping("/{newsId}")
     public RsData<Void> deleteRealNews(@PathVariable Long newsId) {
-        boolean deleted = adminNewsService.deleteRealNews(newsId);
+        boolean deleted = newsDataService.deleteRealNews(newsId);
 
         if(!deleted){
             return RsData.of(404, String.format("ID %d에 해당하는 뉴스가 존재하지 않습니다", newsId));
@@ -103,11 +106,11 @@ public class AdminNewsController {
                 return RsData.of(404, String.format("ID %d에 해당하는 뉴스가 존재하지 않습니다", newsId));
             }
             // 2. 이미 오늘의 뉴스인지 확인 (서비스에서 처리)
-            if (adminNewsService.isAlreadyTodayNews(newsId)) {
+            if (newsDataService.isAlreadyTodayNews(newsId)) {
                 return RsData.of(400, "이미 오늘의 뉴스로 설정되어 있습니다.", realNewsDto.get());
             }
 
-            adminNewsService.setTodayNews(newsId);
+            newsDataService.setTodayNews(newsId);
 
             return RsData.of(200, "오늘의 뉴스가 설정되었습니다.", realNewsDto.get());
 

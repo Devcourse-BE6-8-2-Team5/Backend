@@ -7,6 +7,7 @@ import com.back.domain.news.fake.dto.FakeNewsDto;
 import com.back.domain.news.fake.service.FakeNewsService;
 import com.back.domain.news.real.dto.RealNewsDto;
 import com.back.domain.news.real.service.AdminNewsService;
+import com.back.domain.news.real.service.NewsDataService;
 import com.back.domain.quiz.daily.service.DailyQuizService;
 import com.back.domain.quiz.detail.dto.DetailQuizDto;
 import com.back.domain.quiz.detail.entity.Option;
@@ -32,7 +33,7 @@ public class DevInitData {
     @Lazy
     private DevInitData self;
     private final MemberService memberService;
-    private final AdminNewsService adminNewsService;
+    private final NewsDataService newsDataService;
     private final FakeNewsService fakeNewsService;
     private final DetailQuizService detailQuizService;
     private final FactQuizService factQuizService;
@@ -69,7 +70,7 @@ public class DevInitData {
     @Transactional
     public void newsInit() {
         // 뉴스가 이미 있으면 초기화 생략
-        if (adminNewsService.count() > 0) {
+        if (newsDataService.count() > 0) {
             return;
         }
 
@@ -176,11 +177,11 @@ public class DevInitData {
         List<RealNewsDto> newsList = List.of(news1, news2, news3, news4, news5, news6, news7);
 
         // 뉴스 저장
-        List<RealNewsDto> savedNewsList = adminNewsService.saveAllRealNews(newsList);
+        List<RealNewsDto> savedNewsList = newsDataService.saveAllRealNews(newsList);
 
         // 첫 번째 뉴스를 오늘의 뉴스로 설정 (저장된 뉴스의 ID 사용)
         if (!savedNewsList.isEmpty()) {
-            adminNewsService.setTodayNews(savedNewsList.get(1).id());
+            newsDataService.setTodayNews(savedNewsList.get(1).id());
         }
     }
 
@@ -192,7 +193,7 @@ public class DevInitData {
         }
 
         // 실제 뉴스가 있는지 확인
-        if (adminNewsService.count() == 0) {
+        if (newsDataService.count() == 0) {
             throw new IllegalStateException("실제 뉴스가 먼저 생성되어야 합니다.");
         }
 
