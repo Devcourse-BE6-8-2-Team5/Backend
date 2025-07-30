@@ -3,7 +3,7 @@ package com.back.domain.quiz.detail.service;
 import com.back.domain.news.real.entity.RealNews;
 import com.back.domain.news.real.repository.RealNewsRepository;
 import com.back.domain.quiz.detail.dto.DetailQuizDto;
-import com.back.domain.quiz.detail.dto.DetailQuizReqDto;
+import com.back.domain.quiz.detail.dto.DetailQuizCreateReqDto;
 import com.back.domain.quiz.detail.entity.DetailQuiz;
 import com.back.domain.quiz.detail.repository.DetailQuizRepository;
 import com.back.global.ai.AiService;
@@ -61,7 +61,7 @@ public class DetailQuizService {
         RealNews news = realNewsRepository.findById(newsId)
                 .orElseThrow(() -> new ServiceException(404, "해당 id의 뉴스가 존재하지 않습니다. id: " + newsId));
 
-        DetailQuizReqDto req = new DetailQuizReqDto(
+        DetailQuizCreateReqDto req = new DetailQuizCreateReqDto(
                 news.getTitle(),
                 news.getContent()
         );

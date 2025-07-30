@@ -1,7 +1,7 @@
 package com.back.global.ai.processor;
 
 import com.back.domain.quiz.detail.dto.DetailQuizDto;
-import com.back.domain.quiz.detail.dto.DetailQuizReqDto;
+import com.back.domain.quiz.detail.dto.DetailQuizCreateReqDto;
 import com.back.global.exception.ServiceException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.ai.chat.model.ChatResponse;
@@ -12,10 +12,10 @@ import java.util.List;
  * 뉴스 제목과 본문을 기반 상세 퀴즈 3개를 생성하는 AI 요청 Processor 입니다.
  */
 public class DetailQuizProcessor implements AiRequestProcessor<List<DetailQuizDto>> {
-    private final DetailQuizReqDto req;
+    private final DetailQuizCreateReqDto req;
     private final ObjectMapper objectMapper;
 
-    public DetailQuizProcessor(DetailQuizReqDto req, ObjectMapper objectMapper) {
+    public DetailQuizProcessor(DetailQuizCreateReqDto req, ObjectMapper objectMapper) {
         this.req = req;
         this.objectMapper = objectMapper;
     }
