@@ -87,6 +87,7 @@ public class DailyQuizService {
 
     }
 
+    @Transactional
     public DailyQuizAnswerDto submitDetailQuizAnswer(Member actor, Long id, Option selectedOption) {
         DailyQuiz dailyQuiz = dailyQuizRepository.findById(id)
                 .orElseThrow(() -> new ServiceException(404, "오늘의 퀴즈를 찾을 수 없습니다."));
