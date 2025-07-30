@@ -16,6 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.stream.Stream;
 
 @Slf4j
 @RestController
@@ -94,27 +95,7 @@ public class TestController {
         }
     }
 
-    @GetMapping("/process")
-    public RsData<List<RealNewsDto>> newsProcess() {
-        try {
-            List<String> keywords = keywordGenerationService.generateTodaysKeywords().getKeywords();
-            //   속보랑 기타키워드 추가
 
-            List<NaverNewsDto> allNews = adminNewsService.collectMetaDataFromNaver(keywords);
-
-            List<RealNewsDto> allRealNewsBeforeFilter = adminNewsService.createRealNewsDtoByCrawl(allNews);
-
-            List<AnalyzedNewsDto> allRealNewsAfterFilter = adminNewsService.filterAndScoreNews(allRealNewsBeforeFilter);
-
-            List<RealNewsDto> selectedNews = adminNewsService.selectNewsByScore(allRealNewsAfterFilter);
-
-            List<RealNewsDto> res = adminNewsService.saveAllRealNews(selectedNews);
-
-            return RsData.of(200, "성공", res);
-        } catch (Exception e) {
-            return RsData.of(500, "실패: " + e.getMessage());
-        }
-    }
 
     @GetMapping("/keyword/create")
     public RsData<List<String>> testCreateKeyword() {

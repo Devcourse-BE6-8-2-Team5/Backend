@@ -4,6 +4,7 @@ import com.back.domain.news.common.dto.AnalyzedNewsDto;
 import com.back.domain.news.common.dto.NaverNewsDto;
 import com.back.domain.news.common.dto.NewsDetailDto;
 import com.back.domain.news.common.enums.NewsCategory;
+import com.back.domain.news.common.service.KeywordGenerationService;
 import com.back.domain.news.common.service.NewsAnalysisService;
 import com.back.domain.news.real.dto.RealNewsDto;
 import com.back.domain.news.real.entity.RealNews;
@@ -43,6 +44,7 @@ public class AdminNewsService {
     private final TodayNewsRepository todayNewsRepository;
     private final RealNewsMapper realNewsMapper;
     private final NewsAnalysisService newsAnalysisService;
+    private final KeywordGenerationService keywordGenerationService;
 
     // HTTP 요청을 보내기 위한 Spring의 HTTP 클라이언트(외부 API 호출 시 사용)
     private final RestTemplate restTemplate;
@@ -79,6 +81,21 @@ public class AdminNewsService {
         }
     }
 
+    @Transactional
+    public List<RealNewsDto> dailyNewsProcess(){
+        List<String> keywords = keywordGenerationService.generateTodaysKeywords().getKeywords();
+        //   속보랑 기타키워드 추가
+
+        List<NaverNewsDto> allNews = collectMetaDataFromNaver(keywords);
+
+        List<RealNewsDto> allRealNewsBeforeFilter = createRealNewsDtoByCrawl(allNews);
+
+        List<AnalyzedNewsDto> allRealNewsAfterFilter = filterAndScoreNews(allRealNewsBeforeFilter);
+
+        List<RealNewsDto> selectedNews = selectNewsByScore(allRealNewsAfterFilter);
+
+        return saveAllRealNews(selectedNews);
+    }
     // RealNewsDto를 생성하는 메서드
     @Transactional
     public List<RealNewsDto> createRealNewsDto(String query) {

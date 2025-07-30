@@ -1,7 +1,10 @@
 package com.back.domain.news.real.controller;
 
+import com.back.domain.news.common.dto.AnalyzedNewsDto;
+import com.back.domain.news.common.dto.NaverNewsDto;
 import com.back.domain.news.common.enums.NewsCategory;
 import com.back.domain.news.common.enums.NewsType;
+import com.back.domain.news.common.service.KeywordGenerationService;
 import com.back.domain.news.common.service.NewsPageService;
 import com.back.domain.news.real.dto.RealNewsDto;
 import com.back.domain.news.real.service.AdminNewsService;
@@ -33,6 +36,18 @@ public class AdminNewsController {
     private final RealNewsService realNewsService;
     private final NewsPageService newsPageService;
 
+
+//     뉴스 배치 프로세서
+    @GetMapping("/process")
+    public RsData<List<RealNewsDto>> newsProcess() {
+        try {
+            List<RealNewsDto> result = adminNewsService.dailyNewsProcess();
+
+            return RsData.of(200, "성공", result);
+        } catch (Exception e) {
+            return RsData.of(500, "실패: " + e.getMessage());
+        }
+    }
 
     //뉴스 생성
     @Operation(summary = "뉴스 생성", description = "네이버 뉴스 API와 데이터 파싱을 통해 뉴스를 생성합니다.")
