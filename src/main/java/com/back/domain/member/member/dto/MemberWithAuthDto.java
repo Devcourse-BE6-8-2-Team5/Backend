@@ -10,6 +10,7 @@ public class MemberWithAuthDto {
     private String name;
     private String email;
     private String role;
+    private String profileImgUrl;
 
     public MemberWithAuthDto(Long id, String email, String name) {
         this.id = id;
@@ -23,6 +24,7 @@ public class MemberWithAuthDto {
         this.email = member.getEmail();
         this.name = member.getName();
         this.role = member.getRole();
+        this.profileImgUrl = member.getProfileImgUrl();
     }
 }
 
