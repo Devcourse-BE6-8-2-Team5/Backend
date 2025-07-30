@@ -23,7 +23,7 @@ public class CustomOAuth2LoginSuccessHandler implements AuthenticationSuccessHan
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
-        Member actor = rq.getActor();
+        Member actor = rq.getActorFromDb();
 
         String accessToken = memberService.genAccessToken(actor);
 

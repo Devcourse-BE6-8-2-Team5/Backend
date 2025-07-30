@@ -108,4 +108,12 @@ public class Member {
                 .map(auth -> new SimpleGrantedAuthority("ROLE_" + auth))
                 .toList();
     }
+
+    // 소셜로그인 프사
+    public String getProfileImgUrlOrDefault() {
+        if (profileImgUrl == null)
+            return "https://placehold.co/600x600?text=U_U";
+
+        return profileImgUrl;
+    }
 }
