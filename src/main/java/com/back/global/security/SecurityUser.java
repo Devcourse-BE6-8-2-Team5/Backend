@@ -25,7 +25,7 @@ public class SecurityUser extends User implements OAuth2User {
             String password,
             Collection<? extends GrantedAuthority> authorities
     ) {
-        super(email != null ? email : "", password != null ? password : "1234", authorities);
+        super(email, password , authorities);
         this.id = id;
         this.name = name;
         this.email = email;

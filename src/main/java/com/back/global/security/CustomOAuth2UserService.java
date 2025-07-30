@@ -27,12 +27,9 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         OAuth2User oAuth2User = super.loadUser(userRequest);
 
         String oauthUserId = "";
-
         String providerTypeCode = userRequest.getClientRegistration().getRegistrationId().toUpperCase();
-
         String nickname = "";
         String profileImgUrl = "";
-        String email = oauthUserId + "@" + providerTypeCode.toLowerCase() + ".com";
 
         switch (providerTypeCode) {
             case "KAKAO" -> {
@@ -57,6 +54,8 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                 profileImgUrl = (String) attributesProperties.get("profile_image");
             }
         }
+
+        String email = oauthUserId + "@" + providerTypeCode.toLowerCase() + ".com";
 
         Member member = memberService.modifyOrJoin(oauthUserId, email, nickname, profileImgUrl).data();
 
