@@ -33,7 +33,7 @@ public class DailyQuizService {
     public List<DailyQuiz> getDailyQuizzes(Long todayNewsId) {
         List<DailyQuiz> quizzes = dailyQuizRepository.findByTodayNewsId(todayNewsId);
         if( quizzes.isEmpty()) {
-            throw new ServiceException(404, "오늘의 뉴스에 해당하는 오늘 퀴즈가 존재하지 않습니다.");
+            throw new ServiceException(404, "오늘의 뉴스에 해당하는 오늘의 퀴즈가 존재하지 않습니다.");
         }
         return quizzes;
     }
