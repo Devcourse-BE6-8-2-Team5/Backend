@@ -400,10 +400,10 @@ public class NewsDataService {
         return new ArrayList<>(uniqueNewsMap.values());
     }
 
+
     @Transactional(readOnly = true)
     public Page<RealNewsDto> getAllRealNewsList(Pageable pageable) {
         return realNewsRepository.findAll(pageable)
                 .map(realNewsMapper::toDto);
     }
-
 }
