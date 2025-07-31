@@ -2,12 +2,17 @@ package com.back.domain.quiz.fact.service;
 
 import com.back.domain.member.member.entity.Member;
 import com.back.domain.member.member.repository.MemberRepository;
+import com.back.domain.member.quizhistory.entity.QuizHistory;
+import com.back.domain.member.quizhistory.repository.QuizHistoryRepository;
 import com.back.domain.member.quizhistory.service.QuizHistoryService;
 import com.back.domain.news.common.enums.NewsCategory;
 import com.back.domain.news.fake.entity.FakeNews;
 import com.back.domain.news.real.entity.RealNews;
 import com.back.domain.news.real.repository.RealNewsRepository;
+import com.back.domain.quiz.QuizType;
 import com.back.domain.quiz.fact.dto.FactQuizAnswerDto;
+import com.back.domain.quiz.fact.dto.FactQuizDtoWithNewsContent;
+import com.back.domain.quiz.fact.dto.FactQuizWithHistoryDto;
 import com.back.domain.quiz.fact.entity.CorrectNewsType;
 import com.back.domain.quiz.fact.entity.FactQuiz;
 import com.back.domain.quiz.fact.repository.FactQuizRepository;
@@ -28,6 +33,7 @@ public class FactQuizService {
     private final RealNewsRepository realNewsRepository;
     private final MemberRepository memberRepository;
     private final QuizHistoryService quizHistoryService;
+    private final QuizHistoryRepository quizHistoryRepository;
 
     @Transactional(readOnly = true)
     public List<FactQuiz> findAll() {
@@ -40,9 +46,37 @@ public class FactQuizService {
     }
 
     @Transactional(readOnly = true)
-    public FactQuiz findById(Long id) {
-        return factQuizRepository.findByIdWithNews(id)
+    public FactQuizWithHistoryDto findById(Long id, Member actor) {
+        FactQuiz factQuiz =  factQuizRepository.findByIdWithNews(id)
                 .orElseThrow(() -> new ServiceException(404, "팩트 퀴즈를 찾을 수 없습니다. ID: " + id));
+
+        FactQuizDtoWithNewsContent factQuizDto = new FactQuizDtoWithNewsContent(factQuiz);
+
+        List<QuizHistory> histories = quizHistoryRepository.findByMember(actor);
+
+        // 필터링: 퀴즈 ID가 일치하고, 퀴즈 타입이 FACT인 히스토리만 추출
+        QuizHistory quizHistory = histories.stream()
+                .filter(h -> h.getQuizId().equals(id) && h.getQuizType() == QuizType.FACT)
+                .findFirst()
+                .orElse(null);
+
+        // 퀴즈 히스토리가 없으면 null 반환
+        if (quizHistory == null) {
+            return new FactQuizWithHistoryDto(
+                    factQuizDto,
+                    null,
+                    false,
+                    0
+            );
+        }
+
+        return new FactQuizWithHistoryDto(
+                factQuizDto,
+                quizHistory.getAnswer(),
+                quizHistory.isCorrect(),
+                quizHistory.getGainExp()
+        );
+
     }
 
     @Transactional
