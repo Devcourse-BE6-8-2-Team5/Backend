@@ -6,7 +6,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -43,9 +42,19 @@ public interface KeywordHistoryRepository extends JpaRepository<KeywordHistory,L
     @Query("DELETE FROM KeywordHistory kh WHERE kh.usedDate < :cutoffDate")
     int deleteByUsedDateBefore(@Param("cutoffDate") LocalDate cutoffDate);
 
-    Optional<KeywordHistory> findByKeywordAndCategoryAndUsedDate(
-            String keyword,
-            NewsCategory category,
-            LocalDate usedDate
+    @Query("""
+    SELECT kh
+    FROM KeywordHistory kh
+    WHERE kh.keyword IN :keywords 
+    AND kh.category = :category 
+    AND kh.usedDate = :usedDate
+    """)
+    List<KeywordHistory> findByKeywordsAndCategoryAndUsedDate(
+            @Param("keywords") List<String> keywords,
+            @Param("category") NewsCategory category,
+            @Param("usedDate") LocalDate usedDate
     );
+
+    List<KeywordHistory> findByUsedDateGreaterThanEqual(LocalDate startDate);
+
 }
