@@ -49,12 +49,23 @@ public class CustomAuthenticationFilter extends OncePerRequestFilter {
 
     private void work(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         String uri = request.getRequestURI();
+        String method = request.getMethod();
 
-        // Swagger, H2 콘솔 등의 경로는 바로 필터 통과시키기
-        if (uri.startsWith("/swagger-ui/") || uri.startsWith("/v3/api-docs/") || uri.startsWith("/swagger-resources/") || uri.startsWith("/h2-console")) {
+        if (
+                uri.startsWith("/swagger-ui/") ||
+                        uri.startsWith("/v3/api-docs/") ||
+                        uri.startsWith("/swagger-resources/") ||
+                        uri.startsWith("/h2-console") ||
+                        (method.equals("GET") && uri.startsWith("/api/news/")) ||
+                        (method.equals("GET") && uri.equals("/api/quiz/fact")) ||
+                        (method.equals("GET") && uri.equals("/api/quiz/fact/category")) ||
+                        (method.equals("POST") && uri.equals("/api/members/login")) ||
+                        (method.equals("POST") && uri.equals("/api/members/join"))
+        ) {
             filterChain.doFilter(request, response);
             return;
         }
+
 
         String apiKey;
         String accessToken;
