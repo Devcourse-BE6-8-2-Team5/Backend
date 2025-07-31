@@ -65,6 +65,7 @@ public class CustomAuthenticationFilter extends OncePerRequestFilter {
 
         // 아래 API 요청이면 인증 필수 (추후 진짜 api로 변경 예정)
         if (
+                !uri.startsWith("/api/histories") &&
                 !uri.startsWith("/api/quiz/detail/") && // 상세퀴즈 관련된 모든 요청
                         !uri.startsWith("/api/quiz/fact/") && // OX 퀴즈 단건 조회
                         !uri.startsWith("/ox퀴즈제출") &&
