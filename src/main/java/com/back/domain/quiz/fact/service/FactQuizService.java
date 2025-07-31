@@ -97,6 +97,7 @@ public class FactQuizService {
         return new FactQuiz(question, real, fake, answerType);
     }
 
+    @Transactional
     public FactQuizAnswerDto submitDetailQuizAnswer(Member actor, Long id,CorrectNewsType selectedNewsType) {
 
         FactQuiz factQuiz = factQuizRepository.findById(id)

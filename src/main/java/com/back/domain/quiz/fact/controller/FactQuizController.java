@@ -22,6 +22,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -132,7 +133,8 @@ public class FactQuizController {
                                                     }
                                                     """ )
     @PostMapping("/submit/{id}")
-    public RsData<FactQuizAnswerDto> submitFactQuizAnswer(@PathVariable Long id, @RequestBody @Valid @NotNull CorrectNewsType selectedNewsType) {
+    @Transactional
+    public RsData<FactQuizAnswerDto> submitFactQuizAnswer(@PathVariable Long id, @RequestParam @Valid @NotNull CorrectNewsType selectedNewsType) {
 
         Member actor = rq.getActor();
         if (actor == null) {
