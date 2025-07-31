@@ -32,24 +32,6 @@ public class DetailQuizController {
     private final DetailQuizService detailQuizService;
     private final Rq rq;
 
-    // 상세 퀴즈 목록 조회(전체 조회)
-    @Operation(summary = "전체 조회", description = "상세 퀴즈 목록을 조회합니다.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "상세 퀴즈 전체 조회 성공"),
-    })
-    @GetMapping
-    public RsData<List<DetailQuizResDto>> getDetailQuizzes() {
-        List<DetailQuiz> detailQuizzes = detailQuizService.findAll();
-
-        return new RsData<>(
-                200,
-                "상세 퀴즈 목록 조회 성공",
-                detailQuizzes.stream()
-                        .map(DetailQuizResDto::new)
-                        .toList()
-        );
-    }
-
     // 상세 퀴즈 단건 조회(퀴즈 ID로 조회)
     @Operation(summary = "단건 조회", description = "퀴즈 ID로 상세 퀴즈를 조회합니다.")
     @ApiResponses(value = {
@@ -82,8 +64,8 @@ public class DetailQuizController {
                             mediaType = "application/json",
                             schema = @Schema(implementation = RsData.class),
                             examples = {
-                                    @ExampleObject(value = "{\"resultCode\": 404, \"msg\": \"해당 id의 뉴스가 존재하지 않습니다. id: \", \"data\": null}"),
-                                    @ExampleObject(value = "{\"resultCode\": 404, \"msg\": \"해당 뉴스에 대한 상세 퀴즈가 존재하지 않습니다. newsId: \", \"data\": null}")
+                                    @ExampleObject(name = "뉴스 없음", value = "{\"resultCode\": 404, \"msg\": \"해당 id의 뉴스가 존재하지 않습니다. id: \", \"data\": null}"),
+                                    @ExampleObject(name = "퀴즈 없음", value = "{\"resultCode\": 404, \"msg\": \"해당 뉴스에 대한 상세 퀴즈가 존재하지 않습니다. newsId: \", \"data\": null}")
                             }
                     )
             )}
