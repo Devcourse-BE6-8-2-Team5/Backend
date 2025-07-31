@@ -34,10 +34,7 @@ public class DailyQuizController {
     @Operation(summary = "오늘의 퀴즈 조회", description = "오늘의 뉴스 ID로 오늘의 퀴즈(3개)를 조회합니다.")
     @ApiResponses(
             value = {
-                    @ApiResponse(responseCode = "200", description = "오늘의 퀴즈 조회 성공",
-                            content = @Content(mediaType = "application/json",
-                                    schema = @Schema(implementation = RsData.class),
-                                    examples = @ExampleObject(value = "{\"resultCode\": 200, \"msg\": \"오늘의 퀴즈 조회 성공\", \"data\": [{\"id\": 1, \"question\": \"문제1\", \"option1\": \"선택지1\", \"option2\": \"선택지2\", \"option3\": \"선택지3\", \"correctOption\": \"OPTION1\"}]}"))),
+                    @ApiResponse(responseCode = "200", description = "오늘의 퀴즈 조회 성공"),
                     @ApiResponse(responseCode = "404", description = "오늘의 뉴스에 해당하는 오늘의 퀴즈가 존재하지 않음",
                             content = @Content(mediaType = "application/json",
                                     schema = @Schema(implementation = RsData.class),
