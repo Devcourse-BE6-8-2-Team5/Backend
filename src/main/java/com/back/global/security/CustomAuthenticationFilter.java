@@ -51,12 +51,14 @@ public class CustomAuthenticationFilter extends OncePerRequestFilter {
         String uri = request.getRequestURI();
         String method = request.getMethod();
 
+        // SecurityConfig에서 permitAll()로 설정된 경로들은 필터를 통과시키기
         if (
                 uri.startsWith("/swagger-ui/") ||
                         uri.startsWith("/v3/api-docs/") ||
                         uri.startsWith("/swagger-resources/") ||
                         uri.startsWith("/h2-console") ||
-                        (method.equals("GET") && uri.startsWith("/api/news")) ||
+                        (method.equals("GET") && uri.equals("/api/news")) ||
+                        (method.equals("GET") && uri.startsWith("/api/news/")) ||
                         (method.equals("GET") && uri.equals("/api/quiz/fact")) ||
                         (method.equals("GET") && uri.equals("/api/quiz/fact/category")) ||
                         (method.equals("POST") && uri.equals("/api/members/login")) ||
@@ -66,6 +68,22 @@ public class CustomAuthenticationFilter extends OncePerRequestFilter {
             return;
         }
 
+        // 인증 필수 URL (authenticated, hasRole)
+        boolean requiresAuth =
+                uri.startsWith("/api/quiz/detail/") ||
+                        uri.startsWith("/api/quiz/daily/") ||
+                        uri.startsWith("/api/admin/") ||
+                        uri.equals("/api/members/info") ||
+                        uri.equals("/api/members/logout") ||
+                        uri.equals("/api/members/withdraw") ||
+                        (method.equals("GET") && uri.matches("/api/quiz/fact/\\d+")) ||
+                        (method.equals("POST") && uri.matches("/api/quiz/fact/submit/\\d+"));
+
+        // 인증이 필요하지 않은 URL이면 그냥 통과
+        if (!requiresAuth) {
+            filterChain.doFilter(request, response);
+            return;
+        }
 
         String apiKey;
         String accessToken;

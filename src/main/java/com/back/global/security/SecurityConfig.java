@@ -36,9 +36,10 @@ public class SecurityConfig {
                         auth -> auth
                                 .requestMatchers("/favicon.ico").permitAll()
                                 .requestMatchers("/h2-console/**").permitAll()
+                                .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-resources/**").permitAll()
 
                                 //모두 접근 가능한 API
-                                .requestMatchers(HttpMethod.GET, "/api/news", "/api/news/*/**", "/api/quiz/fact", "/api/quiz/fact/category").permitAll() // 모든 뉴스 조회, fact퀴즈 다건조회/카테고리별 조회는 모두 허용
+                                .requestMatchers(HttpMethod.GET, "/api/news", "/api/news/*/**", "/api/quiz/fact","/api/quiz/fact/category").permitAll() // 모든 뉴스 조회, fact퀴즈 다건조회/카테고리별 조회는 모두 허용
                                 .requestMatchers(HttpMethod.POST, "/api/members/login", "/api/members/join").permitAll() // 로그인, 회원가입은 모두 허용
 
                                 // 회원만 접근 가능한 API
@@ -46,7 +47,7 @@ public class SecurityConfig {
                                 .requestMatchers("/api/quiz/daily/*/**").authenticated() // 오늘의퀴즈에 대한 모든 HTTP 메서드 요청은 로그인한 사용자만 허용
                                 .requestMatchers(HttpMethod.GET, "/api/quiz/fact/{id}").authenticated() // fact퀴즈 단건 조회 GET 요청은 로그인한 사용자만 허용
                                 .requestMatchers(HttpMethod.POST, "/api/quiz/fact/submit/{id}").authenticated() // fact퀴즈 제출 POST 요청은 로그인한 사용자만 허용
-                                .requestMatchers("/api/members/info").authenticated() // 마이페이지 조회, 수정
+                                .requestMatchers( "/api/members/info").authenticated() // 마이페이지 조회, 수정
                                 .requestMatchers(HttpMethod.DELETE, "/api/members/withdraw", "/api/members/logout").authenticated() // 회원탈퇴, 로그아웃
 
                                 // 관리자만 접근 가능한 API
