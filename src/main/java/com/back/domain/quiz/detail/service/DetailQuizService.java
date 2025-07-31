@@ -38,11 +38,6 @@ public class DetailQuizService {
     }
 
     @Transactional(readOnly = true)
-    public List<DetailQuiz> findAll() {
-        return detailQuizRepository.findAll();
-    }
-
-    @Transactional(readOnly = true)
     public DetailQuiz findById(Long id) {
         return detailQuizRepository.findById(id)
                 .orElseThrow(() -> new ServiceException(404, "해당 id의 상세 퀴즈가 존재하지 않습니다. id: " + id));

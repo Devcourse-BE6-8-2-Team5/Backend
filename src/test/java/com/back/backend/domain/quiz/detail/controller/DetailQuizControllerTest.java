@@ -63,25 +63,6 @@ class DetailQuizControllerTest {
     }
 
     @Test
-    @DisplayName("GET /api/quiz/detail - 상세 퀴즈 목록 조회")
-    void t1() throws Exception {
-        //Given
-        int quizCount = (int) detailQuizService.count();
-
-        //When
-        ResultActions resultActions = mvc.perform(get("/api/quiz/detail")
-        ).andDo(print());
-
-        //Then
-        resultActions
-                .andExpect(status().isOk())
-                .andExpect(handler().methodName("getDetailQuizzes"))
-                .andExpect(jsonPath("$.code").value(200))
-                .andExpect(jsonPath("$.message").value("상세 퀴즈 목록 조회 성공"))
-                .andExpect(jsonPath("$.data.length()").value(quizCount));
-    }
-
-    @Test
     @DisplayName("GET /api/quiz/detail/{id} - 상세 퀴즈 단건 조회 성공")
     void t2() throws Exception {
         //Given
