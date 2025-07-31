@@ -36,14 +36,28 @@ public class RealNewsService {
 
     @Transactional(readOnly = true)
     public Page<RealNewsDto> getRealNewsList(Pageable pageable) {
-        Page<RealNews> realNewsPage = realNewsRepository.findAll(pageable);
-        return realNewsPage.map(realNewsMapper::toDto);
+        Optional<Long> todayNewsId = getTodayNews().map(RealNewsDto::id);
+
+        if (todayNewsId.isPresent()) {
+            // 오늘 뉴스가 있다면, 해당 뉴스는 제외하고 나머지 뉴스만 조회
+            return realNewsRepository.findByIdNot(todayNewsId.get(), pageable)
+                    .map(realNewsMapper::toDto);
+        }
+
+        return realNewsRepository.findAll(pageable)
+                .map(realNewsMapper::toDto);
     }
 
     @Transactional(readOnly = true)
     public Page<RealNewsDto> searchRealNewsByTitle(String title, Pageable pageable) {
-        Page<RealNews> realNewsPage = realNewsRepository.findByTitleContaining(title, pageable);
-        return realNewsPage.map(realNewsMapper::toDto);
+        Optional<Long> todayNewsId = getTodayNews().map(RealNewsDto::id);
+        if (todayNewsId.isPresent()) {
+            return realNewsRepository.findByTitleContainingAndIdNot(title, todayNewsId.get(), pageable)
+                    .map(realNewsMapper::toDto);
+        }
+
+        return realNewsRepository.findByTitleContaining(title, pageable)
+                .map(realNewsMapper::toDto);
     }
 
     @Transactional(readOnly = true)
@@ -69,7 +83,15 @@ public class RealNewsService {
 
     @Transactional(readOnly = true)
     public Page<RealNewsDto> getRealNewsByCategory(NewsCategory category, Pageable pageable) {
-        Page<RealNews> realNewsPage = realNewsRepository.findByNewsCategory(category, pageable);
-        return realNewsPage.map(realNewsMapper::toDto);
+        Optional<Long> todayNewsId = getTodayNews().map(RealNewsDto::id);
+
+        if (todayNewsId.isPresent()) {
+            // 오늘 뉴스가 있다면, 해당 뉴스는 제외하고 나머지 뉴스만 조회
+            return realNewsRepository.findByNewsCategoryAndIdNot(category, todayNewsId.get(), pageable)
+                    .map(realNewsMapper::toDto);
+        }
+        return realNewsRepository.findByNewsCategory(category, pageable)
+                .map(realNewsMapper::toDto);
     }
+
 }

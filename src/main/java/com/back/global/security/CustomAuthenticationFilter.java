@@ -58,7 +58,7 @@ public class CustomAuthenticationFilter extends OncePerRequestFilter {
                 "/api/members/join",
                 "/api/quiz/fact",         // OX퀴즈 전체 목록
                 "/api/quiz/fact/category" // OX퀴즈 카테고리별 목록
-        ).contains(uri)) {
+        ).contains(uri) || uri.startsWith("/api/")) {
             filterChain.doFilter(request, response);
             return;
         }
