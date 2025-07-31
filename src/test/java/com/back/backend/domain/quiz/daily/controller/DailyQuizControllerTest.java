@@ -4,7 +4,6 @@ import com.back.backend.global.config.TestRqConfig;
 import com.back.backend.global.rq.TestRq;
 import com.back.domain.member.member.entity.Member;
 import com.back.domain.member.member.service.MemberService;
-import com.back.domain.quiz.detail.entity.Option;
 import com.back.domain.quiz.detail.service.DetailQuizService;
 import com.back.global.rq.Rq;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -15,7 +14,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
-import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
@@ -26,11 +24,10 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 
 @ActiveProfiles("test")
 @SpringBootTest
-@AutoConfigureMockMvc
+@AutoConfigureMockMvc(addFilters = false)
 @Transactional
 @TestPropertySource(properties = {
         "NAVER_CLIENT_ID=test_client_id",
@@ -109,12 +106,11 @@ public class DailyQuizControllerTest {
     void t3() throws Exception {
         // Given
         Long quizId = 1L;
-        Option selectedOption = Option.OPTION2;
+        String selectedOption = "OPTION2";
 
         // When
         ResultActions resultActions = mvc.perform(post("/api/quiz/daily/submit/{id}", quizId)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(selectedOption)))
+                        .param("selectedOption", selectedOption))
                 .andDo(print());
 
         // Then
@@ -135,12 +131,11 @@ public class DailyQuizControllerTest {
     void t4() throws Exception {
         // Given
         Long quizId = 1L;
-        Option selectedOption = Option.OPTION1;
+        String selectedOption = "OPTION1";
 
         // When
         ResultActions resultActions = mvc.perform(post("/api/quiz/daily/submit/{id}", quizId)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(selectedOption)))
+                        .param("selectedOption", selectedOption))
                 .andDo(print());
 
         // Then
