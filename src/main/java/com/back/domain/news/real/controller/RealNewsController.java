@@ -1,14 +1,10 @@
 package com.back.domain.news.real.controller;
 
 import com.back.domain.news.common.enums.NewsCategory;
-import com.back.domain.news.real.dto.RealNewsDto;
-import com.back.domain.news.real.entity.RealNews;
-import com.back.domain.news.real.mapper.RealNewsMapper;
-import com.back.domain.news.real.repository.TodayNewsRepository;
-import com.back.domain.news.real.service.RealNewsService;
-import com.back.domain.news.common.service.NewsPageService;
 import com.back.domain.news.common.enums.NewsType;
-import com.back.domain.news.today.entity.TodayNews;
+import com.back.domain.news.common.service.NewsPageService;
+import com.back.domain.news.real.dto.RealNewsDto;
+import com.back.domain.news.real.service.RealNewsService;
 import com.back.global.rsData.RsData;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -20,18 +16,13 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDate;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Optional;
 
-import static org.springframework.data.domain.Sort.*;
-import static org.springframework.data.domain.Sort.Direction.*;
+import static org.springframework.data.domain.Sort.Direction;
+import static org.springframework.data.domain.Sort.Direction.fromString;
 
 @Tag(name = "RealNewsController", description = "Real News API")
 @RestController
@@ -41,7 +32,6 @@ public class RealNewsController {
 
     private final RealNewsService realNewsService;
     private final NewsPageService newsPageService;
-    private final TodayNewsRepository todayNewsRepository;
 
     //단건조회
     @Operation(summary = "단건 뉴스 조회", description = "ID로 단건 뉴스를 조회합니다.")

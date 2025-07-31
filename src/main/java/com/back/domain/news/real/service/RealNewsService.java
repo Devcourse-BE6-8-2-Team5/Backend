@@ -62,7 +62,8 @@ public class RealNewsService {
 
     @Transactional(readOnly = true)
     public Optional<RealNewsDto> getTodayNews() {
-        return todayNewsRepository.findFirstByOrderBySelectedDateDesc()
+        LocalDate today = LocalDate.now();
+        return todayNewsRepository.findBySelectedDate(today)
                 .map(TodayNews::getRealNews)        // TodayNews -> RealNews
                 .map(realNewsMapper::toDto);
 
