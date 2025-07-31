@@ -4,6 +4,7 @@ import com.back.domain.news.common.dto.AnalyzedNewsDto;
 import com.back.domain.news.common.enums.NewsCategory;
 import com.back.domain.news.real.dto.RealNewsDto;
 import com.back.global.exception.ServiceException;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
@@ -37,88 +38,73 @@ public class NewsAnalysisProcessor implements AiRequestProcessor<List<AnalyzedNe
         }
 
         return String.format("""
-               Task: 제공된 뉴스들을 분석하여 품질 점수와 카테고리를 분류하세요.
-               
-               목적:
-               - 각 뉴스의 품질을 1-100점으로 평가
-               - 뉴스를 5개 카테고리 중 하나로 분류
-               - 본문에서 불필요한 내용을 제거하여 정제된 내용 제공
-               - 사용자에게 가치 있는 뉴스를 선별하기 위함
-               
-               [품질 평가 기준]
-               점수는 다음 기준으로 종합 평가하세요:
-               1. 정보의 완성도와 구체성 (30점)
-                  - 구체적인 사실, 수치, 날짜, 장소가 포함되어 있는가?
-                  - 정보가 충분히 상세하고 이해하기 쉬운가?
-               
-               2. 뉴스 가치와 중요성 (25점)
-                  - 사회적으로 의미 있는 내용인가?
-                  - 많은 사람들에게 영향을 미치는 이슈인가?
-                  - 시의성이 있는 내용인가?
-               
-               3. 내용의 신뢰성과 객관성 (25점)
-                  - 사실에 기반한 내용인가?
-                  - 균형 잡힌 시각으로 작성되었는가?
-                  - 선정적이거나 과장되지 않았는가?
-               
-               4. 기사 품질과 완성도 (20점)
-                  - 문장이 자연스럽고 이해하기 쉬운가?
-                  - 논리적 구조를 가지고 있는가?
-                  - 오탈자나 어색한 표현이 없는가?
-               
-               [카테고리 분류 기준]
-               다음 5개 카테고리 중 가장 적합한 하나를 선택하세요:
-               - POLITICS: 정치, 선거, 정부 정책, 외교, 국회, 지방자치 관련
-               - ECONOMY: 경제, 금융, 기업, 산업, 무역, 주식, 부동산, 고용 관련
-               - SOCIETY: 사회 이슈, 교육, 복지, 범죄, 사고, 환경, 인구, 지역 사회 관련
-               - CULTURE: 문화, 예술, 스포츠, 연예, 관광, 여행, 축제, 종교 관련
-               - IT: 과학기술, IT, 인공지능, 바이오, 우주, 통신, 게임, 디지털 관련
-               
-               [본문 정제 요구사항]
-               다음과 같은 불필요한 내용들을 제거하고 핵심 뉴스 내용만 남기세요:
-               - 제보 안내 (이메일, 카카오톡, 전화번호, 사이트 링크)
-               - 저작권 관련 안내 ([DB 및 재배포 금지], 무단전재, 재배포금지 등)
-               - 기자 정보나 매체 정보 ([기자명], (기자명) 등)
-               - 광고성 문구나 홍보 내용
-               - 구독 안내나 앱 다운로드 유도 문구
-               - 관련 기사 안내나 링크
-               - 기타 뉴스 핵심 내용과 무관한 부가 정보
-               - 불필요한 특수문자(▲ 등)
+                당신은 뉴스 분석 전문가입니다. 다음 3가지 작업을 동시에 수행하되, 각각의 중요도에 맞게 처리하라:
                 
-               정제된 본문은 뉴스의 핵심 사실과 내용만 포함해야 합니다.
-                        
-               [주의사항]
-               - 점수는 반드시 1-100 사이의 정수로 제공
-               - 카테고리는 반드시 위의 5개 중 하나만 선택 (대문자로 정확히 표기)
-               - 객관적이고 공정한 평가를 수행
-               - 개인적 편견이나 주관적 취향을 배제
-               - 정제된 본문에서 뉴스의 핵심 내용은 절대 삭제하지 마세요
-               
-               [출력 규칙]
-               - 마크다운 코드 블록 사용 금지
-               - 아래 JSON 형식으로만 응답
-               - 다른 텍스트나 설명 포함 금지
-               
-               응답 형식:
-               [
-                 {
-                   "newsIndex": 1,
-                   "qualityScore": 85,
-                   "category": "POLITICS",
-                   "cleanedContent": "정제된 뉴스 본문 내용"
-                 },
-                 {
-                   "newsIndex": 2,
-                   "qualityScore": 72,
-                   "category": "ECONOMY",
-                   "cleanedContent": "정제된 뉴스 본문 내용"
-                 }
-               ]
-               
-               분석할 뉴스:
-               %s
-               """, newsInput);
+                === 작업 1: 품질 평가 (가중치 40점) ===
+                [신뢰도 분석] 다음 기준에 따라 각 뉴스의 품질을 평가하고 점수를 매겨라 (0-100점):
+                - 출처 명확성 (25점): 구체적 출처나 발언자 명시 여부
+                - 사실 검증성 (25점): 확인 가능한 구체적 정보 포함 여부
+                - 객관성 (25점): 편향되지 않은 중립적 서술인지
+                - 완성도 (25점): 5W1H 정보 충실성
+                
+                === 작업 2: 카테고리 분류 (가중치 20점) ===
+                [키워드 기반 분류] 다음 카테고리 중 하나로 분류하라:
+                - POLITICS: 정부, 국회, 정책, 선거, 정치인
+                - ECONOMY: 기업, 주식, 금리, GDP, 산업
+                - SOCIETY: 사건사고, 복지, 교육, 환경
+                - CULTURE: 문화, 예술, 스포츠, 연예
+                - IT: 기술, 인터넷, AI, 디지털
+                
+                === 작업 3: 불필요한 메타데이터 삭제 (가중치 40점) ===
+                [불필요한 항목 삭제] 다음 메타데이터를 제거하라:
+                - 기자 이름 및 이메일 (예: "홍길동 기자", "gil@example.com")
+                - 이미지 캡션 및 설명 (예: "[사진]", "이미지 출처", "사진=OO일보")
+                - 뉴스 발행일, 수정일 등 날짜 정보
+                - 본문과 무관한 홍보 문구, 링크, SNS 공유 안내
+                - 괄호로 처리된 메타정보 (예: "(서울=연합뉴스)")
+                
+                ---
+                매우 중요:
+                - 이미 포함된 개행은 삭제하지 않는다.
+                - 각 뉴스 본문 내용은 최대한 유지한다.
+                - 줄바꿈은 실제 줄바꿈 문자("\\n")를 사용한다.
+                - 문단이 바뀔 때는 문장 사이에 빈 줄(두 줄 개행)을 반드시 넣어 시각적으로 구분한다.
+                - 한 문단 내에서는 문장들을 붙여서 한 줄 개행으로 연결하되, 문장이 너무 길거나 내용상 자연스럽게 나누는 경우에만 적절히 개행해도 무방하다. \s
+                - 너무 자주 개행하지 말고, 실제 뉴스 기사 형태처럼 의미 단위별 적절한 간격을 유지하라.
+                - 모든 문장이 붙어서 나오지 않도록 가독성을 최우선으로 고려한다.
+                
+                작업 완료 후 다음 항목을 자체 점검하라:
+                
+                1. JSON 구조가 정확히 맞는가? (newsIndex, qualityScore, category, cleanedContent 필드가 모두 포함)
+                2. category 값은 사전에 주어진 5개 카테고리 중 하나인가? (POLITICS, ECONOMY, SOCIETY, CULTURE, IT)
+                3. cleanedContent에 적절한 개행과 단락 구분이 포함되어 있는가?
+                4. 편향적 표현이나 주관적 판단이 없는가?
+                5. 불필요한 메타데이터가 삭제되어 있는가?
+                
+                검증 실패 시 해당 부분을 수정하여 최종 응답을 생성하라.
+                
+                응답은 반드시 다음 JSON 구조를 정확히 따라야 한다. 이 외의 정보는 포함하지 않는다.:
+                
+                [
+                  {
+                    "newsIndex": 1,
+                    "qualityScore": 85,
+                    "category": "POLITICS",
+                    "cleanedContent": "정제된 뉴스 본문 내용"
+                  },
+                  {
+                    "newsIndex": 2,
+                    "qualityScore": 72,
+                    "category": "ECONOMY",
+                    "cleanedContent": "정제된 뉴스 본문 내용"
+                  }
+                ]
+                
+                분석할 뉴스:
+                %s
+                """, newsInput);
     }
+
 
     @Override
     public List<AnalyzedNewsDto> parseResponse(ChatResponse response) {
@@ -199,9 +185,9 @@ public class NewsAnalysisProcessor implements AiRequestProcessor<List<AnalyzedNe
 
     // AI 응답 파싱용 내부 클래스
     private record NewsAnalyzedRes(
-            int newsIndex,
-            int qualityScore,
-            NewsCategory category,
-            String cleanedContent
+            @JsonProperty("newsIndex") int newsIndex,
+            @JsonProperty("qualityScore") int qualityScore,
+            @JsonProperty("category") NewsCategory category,
+            @JsonProperty("cleanedContent") String cleanedContent
     ) {}
 }

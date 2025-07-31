@@ -1,19 +1,17 @@
 package com.back.domain.news.common.test.controller;
 
+import com.back.domain.news.common.dto.AnalyzedNewsDto;
 import com.back.domain.news.common.dto.KeywordGenerationResDto;
 import com.back.domain.news.common.dto.NaverNewsDto;
 import com.back.domain.news.common.service.KeywordCleanupService;
 import com.back.domain.news.common.service.KeywordGenerationService;
+import com.back.domain.news.common.service.AnalysisNewsService;
 import com.back.domain.news.fake.dto.FakeNewsDto;
 import com.back.domain.news.fake.service.FakeNewsService;
 import com.back.domain.news.real.dto.RealNewsDto;
-import com.back.domain.news.real.service.AdminNewsService;
 import com.back.domain.news.real.service.NewsDataService;
 import com.back.domain.news.real.service.RealNewsService;
 import com.back.global.rsData.RsData;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
@@ -31,7 +29,7 @@ public class TestController {
     private final FakeNewsService fakeNewsService;
     private final RealNewsService realNewsService;
     private final NewsDataService newsDataService;
-    private final AdminNewsService adminNewsService;
+    private final AnalysisNewsService analysisNewsService;
 
     @GetMapping("/keywords")
     public KeywordGenerationResDto testKeywords() {
@@ -41,11 +39,26 @@ public class TestController {
 
     //     뉴스 배치 프로세서
     @GetMapping("/process")
-    public RsData<Void> newsProcess() {
+    public RsData<List<RealNewsDto>> newsProcess() {
         try {
-            adminNewsService.dailyNewsProcess();
+//            adminNewsService.dailyNewsProcess();
 
-            return RsData.of(200, "성공");
+
+            //   속보랑 기타키워드 추가
+            List<String> newsKeywords = List.of("속보", "한은", "경제");
+
+            List<NaverNewsDto> newsKeywordsAfterAdd = newsDataService.collectMetaDataFromNaver(newsKeywords);
+
+            List<RealNewsDto> NewsBeforeFilter = newsDataService.createRealNewsDtoByCrawl(newsKeywordsAfterAdd);
+
+            List<RealNewsDto> NewsRemovedDuplicateTitles = newsDataService.removeDuplicateTitles(NewsBeforeFilter);
+
+            List<AnalyzedNewsDto> newsAfterFilter = analysisNewsService.filterAndScoreNews(NewsRemovedDuplicateTitles);
+
+            List<RealNewsDto> selectedNews = newsDataService.selectNewsByScore(newsAfterFilter);
+
+            List<RealNewsDto> savedNews = newsDataService.saveAllRealNews(selectedNews);
+            return RsData.of(200, "성공", savedNews);
         } catch (Exception e) {
             return RsData.of(500, "실패: " + e.getMessage());
         }

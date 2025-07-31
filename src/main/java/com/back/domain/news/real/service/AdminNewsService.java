@@ -3,7 +3,7 @@ package com.back.domain.news.real.service;
 import com.back.domain.news.common.dto.AnalyzedNewsDto;
 import com.back.domain.news.common.dto.NaverNewsDto;
 import com.back.domain.news.common.service.KeywordGenerationService;
-import com.back.domain.news.common.service.NewsAnalysisService;
+import com.back.domain.news.common.service.AnalysisNewsService;
 import com.back.domain.news.real.dto.RealNewsDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,7 +21,7 @@ public class AdminNewsService {
 
     private final NewsDataService newsDataService;
     private final KeywordGenerationService keywordGenerationService;
-    private final NewsAnalysisService newsAnalysisService;
+    private final AnalysisNewsService analysisNewsService;
     private final static List<String> STATIC_KEYWORD = Arrays.asList("속보", "긴급", "단독", "충격");
 
     @Scheduled(cron = "0 0 0 * * *") // 매일 자정에 실행
@@ -37,7 +37,7 @@ public class AdminNewsService {
 
         List<RealNewsDto> NewsRemovedDuplicateTitles = newsDataService.removeDuplicateTitles(NewsBeforeFilter);
 
-        List<AnalyzedNewsDto> newsAfterFilter = newsAnalysisService.filterAndScoreNews(NewsRemovedDuplicateTitles);
+        List<AnalyzedNewsDto> newsAfterFilter = analysisNewsService.filterAndScoreNews(NewsRemovedDuplicateTitles);
 
         List<RealNewsDto> selectedNews = newsDataService.selectNewsByScore(newsAfterFilter);
 

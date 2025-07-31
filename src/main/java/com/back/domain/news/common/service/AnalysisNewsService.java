@@ -16,12 +16,12 @@ import java.util.List;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class NewsAnalysisService {
+public class AnalysisNewsService {
 
     private final AiService aiService;
     private final ObjectMapper objectMapper;
 
-    @Value("${news.filter.batch.size:3}") // 배치 크기 설정, 기본값은 3
+    @Value("${news.filter.batch.size:2}") // 배치 크기 설정, 3으로 하면 본문 길면 깨짐
     private int batchSize;
 
 
