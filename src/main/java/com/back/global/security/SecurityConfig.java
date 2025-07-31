@@ -34,8 +34,11 @@ public class SecurityConfig {
         http
                 .authorizeHttpRequests(
                         auth -> auth
+                                .requestMatchers("/", "/error").permitAll()
                                 .requestMatchers("/favicon.ico").permitAll()
                                 .requestMatchers("/h2-console/**").permitAll()
+                                .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-resources/**").permitAll()
+                                .requestMatchers("/actuator/**").permitAll()
 
                                 //모두 접근 가능한 API
                                 .requestMatchers(HttpMethod.GET, "/api/news/*/**", "/api/quiz/fact","/api/quiz/fact/category").permitAll() // 모든 뉴스 조회, fact퀴즈 다건조회/카테고리별 조회는 모두 허용
