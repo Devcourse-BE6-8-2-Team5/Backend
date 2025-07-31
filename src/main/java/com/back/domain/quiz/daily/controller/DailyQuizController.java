@@ -2,8 +2,7 @@ package com.back.domain.quiz.daily.controller;
 
 import com.back.domain.member.member.entity.Member;
 import com.back.domain.quiz.daily.dto.DailyQuizAnswerDto;
-import com.back.domain.quiz.daily.dto.DailyQuizDto;
-import com.back.domain.quiz.daily.entity.DailyQuiz;
+import com.back.domain.quiz.daily.dto.DailyQuizWithHistoryDto;
 import com.back.domain.quiz.daily.service.DailyQuizService;
 import com.back.domain.quiz.detail.entity.Option;
 import com.back.global.exception.ServiceException;
@@ -42,14 +41,20 @@ public class DailyQuizController {
             }
     )
     @GetMapping("/{todayNewsId}")
-    public RsData<List<DailyQuizDto>> getDailyQuizzes(@PathVariable Long todayNewsId) {
-        List<DailyQuiz> dailyQuizzes = dailyQuizService.getDailyQuizzes(todayNewsId);
-        return RsData.of(
+    public RsData<List<DailyQuizWithHistoryDto>> getDailyQuizzes(@PathVariable Long todayNewsId) {
+
+        Member actor = rq.getActor();
+
+        if (actor == null) {
+            throw new ServiceException(401, "로그인이 필요합니다.");
+        }
+
+        List<DailyQuizWithHistoryDto> dailyQuizzes = dailyQuizService.getDailyQuizzes(todayNewsId, actor);
+
+        return new RsData<>(
                 200,
                 "오늘의 퀴즈 조회 성공",
-                dailyQuizzes.stream()
-                        .map(DailyQuizDto::new)
-                        .toList()
+                        dailyQuizzes
         );
     }
 
