@@ -105,7 +105,7 @@ public class DetailQuizController {
     // 상세 퀴즈 생성(뉴스 ID로 찾은 뉴스의 퀴즈 모두 삭제 후 새로 생성해서 저장)
     @Operation(summary = "뉴스 ID 기반 상세 퀴즈 생성", description = "뉴스 ID로 해당 뉴스의 상세 퀴즈를 3개 생성합니다. 기존 퀴즈는 삭제 후 새로 생성합니다.")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "상세 퀴즈 생성 성공"),
+            @ApiResponse(responseCode = "201", description = "상세 퀴즈 생성 성공"),
             @ApiResponse(responseCode = "404", description = "해당 ID의 뉴스를 찾을 수 없음",
                     content = @Content(
                             mediaType = "application/json",
