@@ -57,7 +57,7 @@ public class FactQuizControllerTest {
     }
 
     @Test
-    @DisplayName("GET /api/quiz/detail - 상세 퀴즈 목록 조회")
+    @DisplayName("GET /api/quiz/detail - 팩트 퀴즈 목록 조회")
     void t1() throws Exception {
         //Given
         int quizCount = (int) factQuizService.count();
@@ -107,7 +107,7 @@ public class FactQuizControllerTest {
 //        String category = "SUMMER"; // 존재하지 않는 카테고리
 //
 //        //When
-//        ResultActions resultActions = mvc.perform(get("/api/quiz/detail/category/")
+//        ResultActions resultActions = mvc.perform(get("/api/quiz/fact/category")
 //                .param("category", category)
 //        ).andDo(print());
 //
