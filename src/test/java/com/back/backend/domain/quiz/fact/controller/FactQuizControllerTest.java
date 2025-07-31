@@ -27,7 +27,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @ActiveProfiles("test")
 @SpringBootTest
-@AutoConfigureMockMvc
+@AutoConfigureMockMvc(addFilters = false)
 @Transactional
 @TestPropertySource(properties = {
         "NAVER_CLIENT_ID=test_client_id",
@@ -197,5 +197,31 @@ public class FactQuizControllerTest {
                 .andExpect(handler().methodName("deleteFactQuiz"))
                 .andExpect(jsonPath("$.code").value(404))
                 .andExpect(jsonPath("$.message").value("팩트 퀴즈를 찾을 수 없습니다. ID: " + quizId));
+    }
+
+    @Test
+    @DisplayName("POST /api/quiz/fact/submit/{id} - 퀴즈 정답 제출")
+    void t8() throws Exception {
+        // Given
+        Long quizId = 1L;
+        String selectedNewsType = "REAL";
+
+        // When
+        ResultActions resultActions = mvc.perform(post("/api/quiz/fact/submit/{id}", quizId)
+                        .param("selectedNewsType", selectedNewsType))
+                .andDo(print());
+
+        // Then
+        resultActions
+                .andExpect(status().isOk())
+                .andExpect(handler().methodName("submitFactQuizAnswer"))
+                .andExpect(jsonPath("$.code").value(200))
+                .andExpect(jsonPath("$.message").value("퀴즈 정답 제출 성공"))
+                .andExpect(jsonPath("$.data.quizId").value(quizId))
+                .andExpect(jsonPath("$.data.selectedNewsType").value("REAL"))
+                .andExpect(jsonPath("$.data.correctNewsType").exists())
+                .andExpect(jsonPath("$.data.correct").isBoolean())
+                .andExpect(jsonPath("$.data.gainExp").isNumber())
+                .andExpect(jsonPath("$.data.quizType").value("FACT"));
     }
 }

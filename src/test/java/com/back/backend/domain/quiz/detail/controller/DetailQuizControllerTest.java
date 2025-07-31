@@ -29,7 +29,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @ActiveProfiles("test")
 @SpringBootTest
-@AutoConfigureMockMvc
+@AutoConfigureMockMvc(addFilters = false)
 @Transactional
 @TestPropertySource(properties = {
         "NAVER_CLIENT_ID=test_client_id",
@@ -210,12 +210,11 @@ class DetailQuizControllerTest {
     void t9() throws Exception {
         // Given
         Long quizId = 1L;
-        Option selectedOption = Option.OPTION2;
+        String selectedOption = "OPTION2";
 
         // When
         ResultActions resultActions = mvc.perform(post("/api/quiz/detail/submit/{id}", quizId)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(selectedOption)))
+                        .param("selectedOption", selectedOption))
                 .andDo(print());
 
         // Then
@@ -236,12 +235,11 @@ class DetailQuizControllerTest {
     void t10() throws Exception {
         // Given
         Long quizId = 1L;
-        Option selectedOption = Option.OPTION1;
+        String selectedOption = "OPTION1";
 
         // When
         ResultActions resultActions = mvc.perform(post("/api/quiz/detail/submit/{id}", quizId)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(selectedOption)))
+                        .param("selectedOption", selectedOption))
                 .andDo(print());
 
         // Then
