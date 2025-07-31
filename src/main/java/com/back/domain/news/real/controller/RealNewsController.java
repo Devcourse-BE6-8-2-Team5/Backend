@@ -4,9 +4,11 @@ import com.back.domain.news.common.enums.NewsCategory;
 import com.back.domain.news.real.dto.RealNewsDto;
 import com.back.domain.news.real.entity.RealNews;
 import com.back.domain.news.real.mapper.RealNewsMapper;
+import com.back.domain.news.real.repository.TodayNewsRepository;
 import com.back.domain.news.real.service.RealNewsService;
 import com.back.domain.news.common.service.NewsPageService;
 import com.back.domain.news.common.enums.NewsType;
+import com.back.domain.news.today.entity.TodayNews;
 import com.back.global.rsData.RsData;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -23,6 +25,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -38,7 +41,7 @@ public class RealNewsController {
 
     private final RealNewsService realNewsService;
     private final NewsPageService newsPageService;
-
+    private final TodayNewsRepository todayNewsRepository;
 
     //단건조회
     @Operation(summary = "단건 뉴스 조회", description = "ID로 단건 뉴스를 조회합니다.")
@@ -56,13 +59,19 @@ public class RealNewsController {
             return RsData.of(400, "잘못된 뉴스 ID입니다. 1 이상의 숫자를 입력해주세요.");
         }
 
+        Optional<Long> todayNewsId = realNewsService.getTodayNews()
+                .map(RealNewsDto::id);
+
+        if (todayNewsId.isPresent() && newsId.equals(todayNewsId.get())) {
+            return RsData.of(403, "오늘의 뉴스는 탭을 통해 조회해주세요.");
+        }
+
         Optional<RealNewsDto> realNewsDto = realNewsService.getRealNewsDtoById(newsId);
 
         if (realNewsDto.isEmpty()) {
             return RsData.of(404,
                     String.format("ID %d에 해당하는 뉴스를 찾을 수 없습니다. 올바른 뉴스 ID인지 확인해주세요.", newsId));
         }
-
 
         return newsPageService.getSingleNews(realNewsDto, NewsType.REAL, newsId);
     }

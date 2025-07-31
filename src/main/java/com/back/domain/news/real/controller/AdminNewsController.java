@@ -31,7 +31,7 @@ import static org.springframework.data.domain.Sort.Direction.fromString;
 @RequestMapping("/api/admin/news")
 @RequiredArgsConstructor
 @PreAuthorize("hasRole('ADMIN')")
-@Tag(name = "관리자 뉴스 관리", description = "관리자용 뉴스 생성, 조회, 삭제 API")
+@Tag(name = "AdminNewsController", description = "관리자용 뉴스 생성, 조회, 삭제 API")
 public class AdminNewsController {
     private final AdminNewsService adminNewsService;
     private final NewsDataService newsDataService;
@@ -39,25 +39,28 @@ public class AdminNewsController {
     private final NewsPageService newsPageService;
 
 
-        //뉴스 생성 (for test)
-    @Operation(summary = "뉴스 생성", description = "네이버 뉴스 API와 데이터 파싱을 통해 뉴스를 생성합니다.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "뉴스 생성 성공"),
-            @ApiResponse(responseCode = "404", description = "검색어로 뉴스를 찾을 수 없음"),
-            @ApiResponse(responseCode = "500", description = "서버 내부 오류")
-    })
-    @PostMapping("/create")
-    public RsData<List<RealNewsDto>> createRealNews(@RequestParam String query) {
-        List<RealNewsDto> realNewsList = newsDataService.createRealNewsDto(query);
-
-        if (realNewsList.isEmpty()) {
-            return RsData.of(404, String.format("'%s' 검색어로 뉴스를 찾을 수 없습니다", query));
+    @GetMapping("/all")
+    @Operation(summary = "전체 뉴스 조회 (관리자용)", description = "오늘의 뉴스를 포함한 모든 뉴스를 조회합니다")
+    public RsData<Page<RealNewsDto>> getAllRealNewsList(
+            @Parameter(description = "페이지 번호 (1부터 시작)", example = "1")
+            @RequestParam(defaultValue = "1") int page,
+            @Parameter(description = "페이지 크기 (1~100)", example = "10")
+            @RequestParam(defaultValue = "10") int size,
+            @Parameter(description = "정렬 방향 (asc/desc)", example = "desc")
+            @RequestParam(defaultValue = "desc") String direction
+    ) {
+        if (!isValidPageParam(page, size, direction)) {
+            return RsData.of(400, "잘못된 페이지 파라미터입니다");
         }
 
-        return RsData.of(200, String.format("뉴스 %d건 생성 완료",realNewsList.size()), realNewsList);
+        Sort.Direction sortDirection = fromString(direction);
+        Sort sortBy = Sort.by(sortDirection, "originCreatedDate");
+
+        Pageable pageable = PageRequest.of(page-1, size, sortBy);
+        Page<RealNewsDto> realNewsPage = newsDataService.getAllRealNewsList(pageable);  // 새 서비스 메서드
+
+        return newsPageService.getPagedNews(realNewsPage, NewsType.REAL);
     }
-
-
 
 //     뉴스 배치 프로세서
     @GetMapping("/process")
@@ -134,6 +137,13 @@ public class AdminNewsController {
 
         if (newsId == null || newsId <= 0) {
             return RsData.of(400, "잘못된 뉴스 ID입니다. 1 이상의 숫자를 입력해주세요.");
+        }
+
+        Optional<Long> todayNewsId = realNewsService.getTodayNews()
+                .map(RealNewsDto::id);
+
+        if (todayNewsId.isPresent() && newsId.equals(todayNewsId.get())) {
+            return RsData.of(403, "오늘의 뉴스는 탭을 통해 조회해주세요.");
         }
 
         Optional<RealNewsDto> realNewsDto = realNewsService.getRealNewsDtoById(newsId);

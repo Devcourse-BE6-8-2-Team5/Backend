@@ -11,6 +11,9 @@ import com.back.domain.news.real.service.AdminNewsService;
 import com.back.domain.news.real.service.NewsDataService;
 import com.back.domain.news.real.service.RealNewsService;
 import com.back.global.rsData.RsData;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
@@ -62,6 +65,18 @@ public class TestController {
             log.error("Cleanup failed: {}", e.getMessage());
             return new RsData<>(500, "Cleanup failed", null);
         }
+    }
+
+    //뉴스 생성 (for test)
+    @PostMapping("/create")
+    public RsData<List<RealNewsDto>> createRealNews(@RequestParam String query) {
+        List<RealNewsDto> realNewsList = newsDataService.createRealNewsDto(query);
+
+        if (realNewsList.isEmpty()) {
+            return RsData.of(404, String.format("'%s' 검색어로 뉴스를 찾을 수 없습니다", query));
+        }
+
+        return RsData.of(200, String.format("뉴스 %d건 생성 완료",realNewsList.size()), realNewsList);
     }
 
     @PostMapping("/create/fake")

@@ -24,5 +24,11 @@ public interface RealNewsRepository extends JpaRepository<RealNews, Long> {
     List<RealNews> findByOriginCreatedDateBetween(LocalDateTime start, LocalDateTime end);
 
     Page<RealNews> findByNewsCategory(NewsCategory category, Pageable pageable);
+
+    Page<RealNews> findByTitleContainingAndIdNot(String title, Long excludeId, Pageable pageable);
+
+    Page<RealNews> findByIdNot(Long excludeId, Pageable pageable);
+
+    Page<RealNews> findByNewsCategoryAndIdNot(NewsCategory category, Long excludeId, Pageable pageable);
 }
 

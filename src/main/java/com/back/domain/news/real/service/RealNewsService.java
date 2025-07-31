@@ -36,20 +36,33 @@ public class RealNewsService {
 
     @Transactional(readOnly = true)
     public Page<RealNewsDto> getRealNewsList(Pageable pageable) {
-        Page<RealNews> realNewsPage = realNewsRepository.findAll(pageable);
-        return realNewsPage.map(realNewsMapper::toDto);
+        Optional<Long> todayNewsId = getTodayNews().map(RealNewsDto::id);
+
+        if (todayNewsId.isPresent()) {
+            // 오늘 뉴스가 있다면, 해당 뉴스는 제외하고 나머지 뉴스만 조회
+            return realNewsRepository.findByIdNot(todayNewsId.get(), pageable)
+                    .map(realNewsMapper::toDto);
+        }
+
+        return realNewsRepository.findAll(pageable)
+                .map(realNewsMapper::toDto);
     }
 
     @Transactional(readOnly = true)
     public Page<RealNewsDto> searchRealNewsByTitle(String title, Pageable pageable) {
-        Page<RealNews> realNewsPage = realNewsRepository.findByTitleContaining(title, pageable);
-        return realNewsPage.map(realNewsMapper::toDto);
+        Optional<Long> todayNewsId = getTodayNews().map(RealNewsDto::id);
+        if (todayNewsId.isPresent()) {
+            return realNewsRepository.findByTitleContainingAndIdNot(title, todayNewsId.get(), pageable)
+                    .map(realNewsMapper::toDto);
+        }
+
+        return realNewsRepository.findByTitleContaining(title, pageable)
+                .map(realNewsMapper::toDto);
     }
 
     @Transactional(readOnly = true)
     public Optional<RealNewsDto> getTodayNews() {
-        LocalDate today = LocalDate.now();
-        return todayNewsRepository.findBySelectedDate(today)
+        return todayNewsRepository.findFirstByOrderBySelectedDateDesc()
                 .map(TodayNews::getRealNews)        // TodayNews -> RealNews
                 .map(realNewsMapper::toDto);
 
@@ -60,7 +73,6 @@ public class RealNewsService {
         LocalDateTime start = LocalDate.now().atStartOfDay(); // 오늘 00:00
         LocalDateTime end = LocalDate.now().plusDays(1).atStartOfDay();
 
-//아이디순 정렬할것
         List<RealNews> realNewsList = realNewsRepository.findByOriginCreatedDateBetween(start, end);
         return realNewsList.stream()
                 .map(realNewsMapper::toDto)
@@ -69,7 +81,15 @@ public class RealNewsService {
 
     @Transactional(readOnly = true)
     public Page<RealNewsDto> getRealNewsByCategory(NewsCategory category, Pageable pageable) {
-        Page<RealNews> realNewsPage = realNewsRepository.findByNewsCategory(category, pageable);
-        return realNewsPage.map(realNewsMapper::toDto);
+        Optional<Long> todayNewsId = getTodayNews().map(RealNewsDto::id);
+
+        if (todayNewsId.isPresent()) {
+            // 오늘 뉴스가 있다면, 해당 뉴스는 제외하고 나머지 뉴스만 조회
+            return realNewsRepository.findByNewsCategoryAndIdNot(category, todayNewsId.get(), pageable)
+                    .map(realNewsMapper::toDto);
+        }
+        return realNewsRepository.findByNewsCategory(category, pageable)
+                .map(realNewsMapper::toDto);
     }
+
 }
