@@ -11,6 +11,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Comparator;
 import java.util.List;
 
 @Service
@@ -21,11 +22,10 @@ public class QuizHistoryService {
 
     @Transactional(readOnly = true)
     public List<QuizHistoryDto> getQuizHistoriesByMember(Member actor) {
-        // Member의 quizHistories 리스트를 바로 가져오기 (Lazy라면 강제로 초기화 필요)
-        List<QuizHistory> quizHistories = actor.getQuizHistories();
+        List<QuizHistory> quizHistories = quizHistoryRepository.findByMember(actor);
 
-        // 필요하면 정렬 - createdDate 내림차순으로 정렬
-        quizHistories.sort((a, b) -> b.getCreatedDate().compareTo(a.getCreatedDate()));
+        quizHistories.sort(Comparator.comparing(QuizHistory::getQuizType)); // 퀴즈타입별 정렬
+
 
         return quizHistories.stream()
                 .map(QuizHistoryDto::new)
