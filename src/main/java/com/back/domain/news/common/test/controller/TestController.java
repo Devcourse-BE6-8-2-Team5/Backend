@@ -45,7 +45,7 @@ public class TestController {
 
 
             //   속보랑 기타키워드 추가
-            List<String> newsKeywords = List.of("속보", "한은", "경제");
+            List<String> newsKeywords = List.of("K팝", "IT", "경제");
 
             List<NaverNewsDto> newsKeywordsAfterAdd = newsDataService.collectMetaDataFromNaver(newsKeywords);
 
@@ -81,7 +81,7 @@ public class TestController {
     }
 
     //뉴스 생성 (for test)
-    @PostMapping("/create")
+    @GetMapping("/create")
     public RsData<List<RealNewsDto>> createRealNews(@RequestParam String query) {
         List<RealNewsDto> realNewsList = newsDataService.createRealNewsDto(query);
 
@@ -92,7 +92,7 @@ public class TestController {
         return RsData.of(200, String.format("뉴스 %d건 생성 완료",realNewsList.size()), realNewsList);
     }
 
-    @PostMapping("/create/fake")
+    @GetMapping("/create/fake")
     public RsData<List<FakeNewsDto>> testCreateFake() {
 
         List<RealNewsDto> realNewsDtos = realNewsService.getRealNewsListCreatedToday();
