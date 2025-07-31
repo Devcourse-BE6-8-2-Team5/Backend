@@ -64,8 +64,8 @@ public class FakeNewsGeneratorProcessor implements AiRequestProcessor<FakeNewsDt
            %s
            
            **중요: 반드시 정확한 ID 사용**
-           realNewsId는 반드시 %s을 사용해야 합니다. 다른 숫자를 사용하지 마세요!
-           
+           realNewsId는 반드시 %s을 사용해야 합니다. 다른 숫자를 사용하지 마세요
+           원본과 비슷한 분량으로 작성하세요
 
            === JSON 작성 규칙 ===
            매우 중요 - 다음 규칙을 절대 위반하지 마세요:
@@ -87,7 +87,8 @@ public class FakeNewsGeneratorProcessor implements AiRequestProcessor<FakeNewsDt
            3. content에 제목이 포함되지 않았는가?
            4. 개행이 자연스럽게 적용되었는가?
            5. 현실적이고 그럴듯한 내용인가?
-           6. JSON 형식이 정확한가??
+           6. 분량이 원본과 비슷한가?
+           7. JSON 형식이 정확한가??
 
            === 응답 형식 ===
            {

@@ -41,7 +41,7 @@ public class AdminNewsService {
 
         List<RealNewsDto> selectedNews = newsDataService.selectNewsByScore(newsAfterFilter);
 
-        List<RealNewsDto> savedNews = newsDataService.saveAllRealNews(selectedNews);
+        newsDataService.saveAllRealNews(selectedNews);
     }
 
 }

@@ -9,6 +9,7 @@ import com.back.domain.news.common.service.AnalysisNewsService;
 import com.back.domain.news.fake.dto.FakeNewsDto;
 import com.back.domain.news.fake.service.FakeNewsService;
 import com.back.domain.news.real.dto.RealNewsDto;
+import com.back.domain.news.real.service.AdminNewsService;
 import com.back.domain.news.real.service.NewsDataService;
 import com.back.domain.news.real.service.RealNewsService;
 import com.back.global.rsData.RsData;
@@ -30,6 +31,7 @@ public class TestController {
     private final RealNewsService realNewsService;
     private final NewsDataService newsDataService;
     private final AnalysisNewsService analysisNewsService;
+    private final AdminNewsService adminNewsService;
 
     @GetMapping("/keywords")
     public KeywordGenerationResDto testKeywords() {
@@ -41,24 +43,25 @@ public class TestController {
     @GetMapping("/process")
     public RsData<List<RealNewsDto>> newsProcess() {
         try {
-//            adminNewsService.dailyNewsProcess();
+            adminNewsService.dailyNewsProcess();
 
 
             //   속보랑 기타키워드 추가
-            List<String> newsKeywords = List.of("K팝", "IT", "경제");
-
-            List<NaverNewsDto> newsKeywordsAfterAdd = newsDataService.collectMetaDataFromNaver(newsKeywords);
-
-            List<RealNewsDto> NewsBeforeFilter = newsDataService.createRealNewsDtoByCrawl(newsKeywordsAfterAdd);
-
-            List<RealNewsDto> NewsRemovedDuplicateTitles = newsDataService.removeDuplicateTitles(NewsBeforeFilter);
-
-            List<AnalyzedNewsDto> newsAfterFilter = analysisNewsService.filterAndScoreNews(NewsRemovedDuplicateTitles);
-
-            List<RealNewsDto> selectedNews = newsDataService.selectNewsByScore(newsAfterFilter);
-
-            List<RealNewsDto> savedNews = newsDataService.saveAllRealNews(selectedNews);
-            return RsData.of(200, "성공", savedNews);
+//            List<String> newsKeywords = List.of("K팝", "IT", "경제");
+//
+//            List<NaverNewsDto> newsKeywordsAfterAdd = newsDataService.collectMetaDataFromNaver(newsKeywords);
+//
+//            List<RealNewsDto> NewsBeforeFilter = newsDataService.createRealNewsDtoByCrawl(newsKeywordsAfterAdd);
+//
+//            List<RealNewsDto> NewsRemovedDuplicateTitles = newsDataService.removeDuplicateTitles(NewsBeforeFilter);
+//
+//            List<AnalyzedNewsDto> newsAfterFilter = analysisNewsService.filterAndScoreNews(NewsRemovedDuplicateTitles);
+//
+//            List<RealNewsDto> selectedNews = newsDataService.selectNewsByScore(newsAfterFilter);
+//
+//            List<RealNewsDto> savedNews = newsDataService.saveAllRealNews(selectedNews);
+            return RsData.of(200, "뉴스 프로세스 성공", null); // savedNews
+//            return RsData.of(200, "성공", savedNews);
         } catch (Exception e) {
             return RsData.of(500, "실패: " + e.getMessage());
         }
