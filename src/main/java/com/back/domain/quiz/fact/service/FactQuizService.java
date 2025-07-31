@@ -1,9 +1,13 @@
 package com.back.domain.quiz.fact.service;
 
+import com.back.domain.member.member.entity.Member;
+import com.back.domain.member.member.repository.MemberRepository;
+import com.back.domain.member.quizhistory.service.QuizHistoryService;
 import com.back.domain.news.common.enums.NewsCategory;
 import com.back.domain.news.fake.entity.FakeNews;
 import com.back.domain.news.real.entity.RealNews;
 import com.back.domain.news.real.repository.RealNewsRepository;
+import com.back.domain.quiz.fact.dto.FactQuizAnswerDto;
 import com.back.domain.quiz.fact.entity.CorrectNewsType;
 import com.back.domain.quiz.fact.entity.FactQuiz;
 import com.back.domain.quiz.fact.repository.FactQuizRepository;
@@ -22,6 +26,8 @@ import java.util.concurrent.ThreadLocalRandom;
 public class FactQuizService {
     private final FactQuizRepository factQuizRepository;
     private final RealNewsRepository realNewsRepository;
+    private final MemberRepository memberRepository;
+    private final QuizHistoryService quizHistoryService;
 
     @Transactional(readOnly = true)
     public List<FactQuiz> findAll() {
@@ -89,5 +95,39 @@ public class FactQuizService {
                 : "다음 중 가짜 뉴스는?";
 
         return new FactQuiz(question, real, fake, answerType);
+    }
+
+    public FactQuizAnswerDto submitDetailQuizAnswer(Member actor, Long id,CorrectNewsType selectedNewsType) {
+
+        FactQuiz factQuiz = factQuizRepository.findById(id)
+                .orElseThrow(() -> new ServiceException(404, "팩트 퀴즈를 찾을 수 없습니다"));
+
+        Member managedActor = memberRepository.findById(actor.getId())
+                .orElseThrow(() -> new ServiceException(404, "회원이 존재하지 않습니다."));
+
+        boolean isCorrect = factQuiz.getCorrectNewsType() == selectedNewsType;
+        int gainExp = isCorrect ? 10 : 0;
+
+        managedActor.setExp(managedActor.getExp() + gainExp);
+
+        quizHistoryService.save(
+                managedActor,
+                id,
+                factQuiz.getQuizType(),
+                String.valueOf(selectedNewsType),
+                isCorrect,
+                gainExp
+        );
+
+        return new FactQuizAnswerDto(
+                factQuiz.getId(),
+                factQuiz.getQuestion(),
+                selectedNewsType,
+                factQuiz.getCorrectNewsType(),
+                isCorrect,
+                gainExp,
+                factQuiz.getQuizType()
+        );
+
     }
 }
