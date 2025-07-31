@@ -1,6 +1,7 @@
 package com.back.domain.news.common.entity;
 
 import com.back.domain.news.common.dto.KeywordWithType;
+import com.back.domain.news.common.enums.KeywordType;
 import com.back.domain.news.common.enums.NewsCategory;
 import jakarta.persistence.*;
 import lombok.Builder;
@@ -20,9 +21,10 @@ public class KeywordHistory {
     @GeneratedValue(strategy = IDENTITY)
     private Long id;
 
-    // 키워드랑 타입 한번에 관리
-    @Embedded
-    private KeywordWithType keywordWithType;
+    private String keyword;
+
+    @Enumerated(EnumType.STRING)
+    private KeywordType keywordType;
 
     @Enumerated(EnumType.STRING)
     private NewsCategory category;
@@ -31,14 +33,21 @@ public class KeywordHistory {
 
     private LocalDateTime createAt; // 키워드가 생성된 시간
 
+    private int useCount = 1;
+
+    public void incrementUseCount() {
+        this.useCount++;
+    }
 
     @Builder
     public KeywordHistory(
-            KeywordWithType keywordWithType,
+            String keyword,
+            KeywordType keywordType,
             NewsCategory category,
             LocalDate usedDate
             ){
-        this.keywordWithType = keywordWithType;
+        this.keyword = keyword;
+        this.keywordType = keywordType;
         this.category = category;
         this.usedDate = usedDate;
         this.createAt = LocalDateTime.now();

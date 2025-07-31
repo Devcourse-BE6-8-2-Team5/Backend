@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -37,15 +38,28 @@ public class KeywordHistoryService {
             NewsCategory category,
             LocalDate usedDate) {
 
-        List<KeywordHistory> keywordHistories = keywords.stream()
-                .map(keyword -> KeywordHistory.builder()
-                        .keywordWithType(keyword)
+        for (KeywordWithType keyword : keywords) {
+            Optional<KeywordHistory> existingKeyword =  keywordHistoryRepository.findByKeywordAndCategoryAndUsedDate(
+                    keyword.keyword(),
+                    category,
+                    usedDate
+            );
+
+            if(existingKeyword.isPresent()){
+                KeywordHistory existing = existingKeyword.get();
+                existing.incrementUseCount(); // 키워드 사용 횟수 증가
+                keywordHistoryRepository.save(existing);
+            } else {
+                KeywordHistory keywordHistory = KeywordHistory.builder()
+                        .keyword(keyword.keyword())
+                        .keywordType(keyword.keywordType())
                         .category(category)
                         .usedDate(usedDate)
-                        .build())
-                .toList();
+                        .build();
 
-        keywordHistoryRepository.saveAll(keywordHistories);
+                keywordHistoryRepository.save(keywordHistory);
+            }
+        }
     }
 
         // 1. 최근 5일간 3회 이상 사용된 키워드 (과도한 반복 방지)

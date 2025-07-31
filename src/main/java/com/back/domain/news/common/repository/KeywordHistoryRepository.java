@@ -1,6 +1,7 @@
 package com.back.domain.news.common.repository;
 
 import com.back.domain.news.common.entity.KeywordHistory;
+import com.back.domain.news.common.enums.NewsCategory;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -17,28 +18,34 @@ public interface KeywordHistoryRepository extends JpaRepository<KeywordHistory,L
      * 최근 N일간 M회 이상 사용된 키워드 조회 (과도 사용 키워드)
      */
     @Query("""
-        SELECT kh.keywordWithType.keyword 
+        SELECT kh.keyword 
         FROM KeywordHistory kh 
         WHERE kh.usedDate >= :startDate 
-        GROUP BY kh.keywordWithType.keyword
-        HAVING COUNT(kh.keywordWithType.keyword) >= :threshold
+        GROUP BY kh.keyword
+        HAVING COUNT(kh.keyword) >= :threshold
         """)
-    List<String> findOverusedKeywords(@Param("startDate") LocalDate startDate,
-                                      @Param("threshold") int threshold);
-
-
+    List<String> findOverusedKeywords(
+            @Param("startDate") LocalDate startDate,
+            @Param("threshold") int threshold
+    );
 
     /**
      * 특정 날짜에 사용된 키워드들 조회(해당 날짜만)
      */
     @Query("""
-        SELECT DISTINCT kh.keywordWithType.keyword 
-        FROM KeywordHistory kh 
-        WHERE kh.usedDate = :date 
+        SELECT DISTINCT kh.keyword
+        FROM KeywordHistory kh
+        WHERE kh.usedDate = :date
         """)
     List<String> findKeywordsByUsedDate(@Param("date") LocalDate date);
 
     @Modifying
     @Query("DELETE FROM KeywordHistory kh WHERE kh.usedDate < :cutoffDate")
     int deleteByUsedDateBefore(@Param("cutoffDate") LocalDate cutoffDate);
+
+    Optional<KeywordHistory> findByKeywordAndCategoryAndUsedDate(
+            String keyword,
+            NewsCategory category,
+            LocalDate usedDate
+    );
 }
