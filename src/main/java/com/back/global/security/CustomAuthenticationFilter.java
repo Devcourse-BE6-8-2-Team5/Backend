@@ -19,7 +19,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.Map;
 
 @Component
@@ -49,40 +48,6 @@ public class CustomAuthenticationFilter extends OncePerRequestFilter {
     }
 
     private void work(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        String uri = request.getRequestURI();
-
-        // 아래 API 요청이라면 인증하지 않고 패스
-        if (List.of(
-                "/api/members/login",
-                "/api/members/logout",
-                "/api/members/join",
-                "/api/quiz/fact",         // OX퀴즈 전체 목록
-                "/api/quiz/fact/category" // OX퀴즈 카테고리별 목록
-        ).contains(uri) || uri.startsWith("/api/")) {
-            filterChain.doFilter(request, response);
-            return;
-        }
-
-        // 아래 API 요청이면 인증 필수 (추후 진짜 api로 변경 예정)
-        if (
-                !uri.startsWith("/api/histories") &&
-                !uri.startsWith("/api/quiz/detail/") && // 상세퀴즈 관련된 모든 요청
-                        !uri.startsWith("/api/quiz/fact/") && // OX 퀴즈 단건 조회
-                        !uri.startsWith("/ox퀴즈제출") &&
-                        !uri.startsWith("/오늘의퀴즈페이지") &&
-                        !uri.startsWith("/api/quiz/daily/") &&
-                        !uri.startsWith("/ox퀴즈제출") &&
-                        !uri.startsWith("/api/members/info") &&
-                        !uri.startsWith("/마이페이지내정보수정") &&
-                        !uri.startsWith("/api/members/withdraw") &&
-                        !uri.startsWith("/api/admin") &&
-                        !uri.startsWith("/관리자페이지뉴스삭제")
-
-        ) {
-            filterChain.doFilter(request, response);
-            return;
-        }
-
 
         String apiKey;
         String accessToken;
