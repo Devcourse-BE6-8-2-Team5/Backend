@@ -2,12 +2,13 @@ package com.back.domain.quiz.detail.service;
 
 import com.back.domain.member.member.entity.Member;
 import com.back.domain.member.member.repository.MemberRepository;
+import com.back.domain.member.quizhistory.entity.QuizHistory;
+import com.back.domain.member.quizhistory.repository.QuizHistoryRepository;
 import com.back.domain.member.quizhistory.service.QuizHistoryService;
 import com.back.domain.news.real.entity.RealNews;
 import com.back.domain.news.real.repository.RealNewsRepository;
-import com.back.domain.quiz.detail.dto.DetailQuizAnswerDto;
-import com.back.domain.quiz.detail.dto.DetailQuizDto;
-import com.back.domain.quiz.detail.dto.DetailQuizCreateReqDto;
+import com.back.domain.quiz.QuizType;
+import com.back.domain.quiz.detail.dto.*;
 import com.back.domain.quiz.detail.entity.DetailQuiz;
 import com.back.domain.quiz.detail.entity.Option;
 import com.back.domain.quiz.detail.repository.DetailQuizRepository;
@@ -31,6 +32,7 @@ public class DetailQuizService {
     private final AiService aiService;
     private final ObjectMapper objectMapper;
     private final QuizHistoryService quizHistoryService;
+    private final QuizHistoryRepository quizHistoryRepository;
     private final MemberRepository memberRepository;
 
     public long count() {
@@ -38,9 +40,42 @@ public class DetailQuizService {
     }
 
     @Transactional(readOnly = true)
-    public DetailQuiz findById(Long id) {
-        return detailQuizRepository.findById(id)
+    public DetailQuizWithHistoryDto findById(Long id, Member actor) {
+        // 퀴즈 가져오기
+        DetailQuiz quiz = detailQuizRepository.findById(id)
                 .orElseThrow(() -> new ServiceException(404, "해당 id의 상세 퀴즈가 존재하지 않습니다. id: " + id));
+
+        //dto로 변환
+        DetailQuizResDto detailQuizResDto = new DetailQuizResDto(quiz);
+
+        List<QuizHistory> histories = quizHistoryRepository.findByMember(actor);
+
+        // 필터링: 퀴즈 ID가 일치하고, 퀴즈 타입이 DETAIL인 히스토리만 추출
+        QuizHistory quizHistory = histories.stream()
+                .filter(h -> h.getQuizId().equals(id) && h.getQuizType() == QuizType.DETAIL)
+                .findFirst()
+                .orElse(null);
+
+        // 퀴즈 히스토리가 없으면 null 반환
+        if (quizHistory == null) {
+            return new DetailQuizWithHistoryDto(
+                    detailQuizResDto,
+                    null,
+                    false,
+                    0,
+                    QuizType.DETAIL
+            );
+        }
+
+
+        return new DetailQuizWithHistoryDto(
+                detailQuizResDto,
+                quizHistory.getAnswer(),
+                quizHistory.isCorrect(),
+                quizHistory.getGainExp(),
+                quizHistory.getQuizType()
+        );
+
     }
 
     @Transactional(readOnly = true)
