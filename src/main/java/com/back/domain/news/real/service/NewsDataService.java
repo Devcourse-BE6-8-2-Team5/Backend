@@ -11,20 +11,24 @@ import com.back.domain.news.real.repository.RealNewsRepository;
 import com.back.domain.news.real.repository.TodayNewsRepository;
 import com.back.domain.news.today.entity.TodayNews;
 import com.back.global.exception.ServiceException;
+import com.back.global.rateLimiter.RateLimiter;
 import com.back.global.util.HtmlEntityDecoder;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.github.bucket4j.Bucket;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.*;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
@@ -35,6 +39,8 @@ import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -46,9 +52,14 @@ public class NewsDataService {
     private final RealNewsRepository realNewsRepository;
     private final TodayNewsRepository todayNewsRepository;
     private final RealNewsMapper realNewsMapper;
+    private final ObjectMapper objectMapper;
+    private final RateLimiter rateLimiter;
 
     // HTTP 요청을 보내기 위한 Spring의 HTTP 클라이언트(외부 API 호출 시 사용)
     private final RestTemplate restTemplate;
+
+    @Qualifier("bucket")
+    private final Bucket bucket;
 
     @Value("${NAVER_CLIENT_ID}")
     private String clientId;
@@ -93,7 +104,8 @@ public class NewsDataService {
     public List<RealNewsDto> createRealNewsDto(String query) {
 
         try {
-            List<NaverNewsDto> naverMetaDataList = fetchNews(query);
+            CompletableFuture<List<NaverNewsDto>> future = fetchNews(query);
+            List<NaverNewsDto> naverMetaDataList = future.get();
             List<RealNewsDto> realNewsDtoList = new ArrayList<>();
 
             for (NaverNewsDto naverMetaData : naverMetaDataList) {
@@ -118,6 +130,8 @@ public class NewsDataService {
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             throw new RuntimeException("런타임 인터럽트 발생");
+        } catch (ExecutionException e) {
+            throw new RuntimeException("뉴스 조회 중 오류 발생", e.getCause());
         }
     }
 
@@ -171,7 +185,8 @@ public class NewsDataService {
 
         for (String keyword : keywords) {
             try {
-                List<NaverNewsDto> news = fetchNews(keyword);
+                CompletableFuture<List<NaverNewsDto>> data = fetchNews(keyword);
+                List<NaverNewsDto> news = data.get();
                 log.info("키워드 '{}': {}건 조회", keyword, news.size());
 
                 // 네이버 뉴스만 필터링
@@ -182,8 +197,11 @@ public class NewsDataService {
                 allNews.addAll(naverOnlyNews);
 
                 Thread.sleep(1000); // API 제한
-            } catch (Exception e) {
-                log.error("키워드 '{}' 조회 실패: {}", keyword, e.getMessage());
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                throw new RuntimeException("런타임 인터럽트 발생");
+            } catch (ExecutionException e) {
+                throw new RuntimeException("뉴스 조회 중 오류 발생", e.getCause());
             }
         }
 
@@ -191,45 +209,47 @@ public class NewsDataService {
         return allNews;
     }
 
-    public List<NaverNewsDto> fetchNews(String keyword) {
-        try {
-            //display는 한 번에 보여줄 뉴스의 개수, sort는 정렬 기준 (date: 최신순, sim: 정확도순)
-            //일단 3건 패치하도록 해놨습니다. yml 에서 작성해서 사용하세요(10건 이상 x)
+    //
+    @Async("newsExecutor")
+    public CompletableFuture<List<NaverNewsDto>> fetchNews(String keyword) {
+            try {
+                rateLimiter.waitForRateLimit();
 
-            String url = naverUrl + keyword + "&display=" + newsDisplayCount + "&sort=" + newsSortOrder;
+                String url = naverUrl + keyword + "&display=" + newsDisplayCount + "&sort=" + newsSortOrder;
 
-            // http 요청 헤더 설정 (아래는 네이버 디폴트 형식)
-            HttpHeaders headers = new HttpHeaders();
-            headers.set("X-Naver-Client-Id", clientId);
-            headers.set("X-Naver-Client-Secret", clientSecret);
+                // http 요청 헤더 설정 (아래는 네이버 디폴트 형식)
+                HttpHeaders headers = new HttpHeaders();
+                headers.set("X-Naver-Client-Id", clientId);
+                headers.set("X-Naver-Client-Secret", clientSecret);
 
-            // http 요청 엔티티(헤더+바디) 생성
-            // get이라 본문은 없고 헤더만 포함 -> 아래에서 string = null로 설정
-            HttpEntity<String> entity = new HttpEntity<>(headers);
+                // http 요청 엔티티(헤더+바디) 생성
+                // get이라 본문은 없고 헤더만 포함 -> 아래에서 string = null로 설정
+                HttpEntity<String> entity = new HttpEntity<>(headers);
 
-            //http 요청 수행
-            ResponseEntity<String> response = restTemplate.exchange(
-                    url, HttpMethod.GET, entity, String.class, keyword);
+                //http 요청 수행
+                ResponseEntity<String> response = restTemplate.exchange(
+                        url, HttpMethod.GET, entity, String.class, keyword);
 
-            if (response.getStatusCode() == HttpStatus.OK) {
-                // JsonNode: json 구조를 트리 형태로 표현. json의 중첩 구조를 탐색할 때 사용
-                // readTree(): json 문자열을 JsonNode 트리로 변환
-                ObjectMapper mapper = new ObjectMapper();
-                JsonNode items = mapper.readTree(response.getBody()).get("items");
+                if (response.getStatusCode() == HttpStatus.OK) {
+                    // JsonNode: json 구조를 트리 형태로 표현. json의 중첩 구조를 탐색할 때 사용
+                    // readTree(): json 문자열을 JsonNode 트리로 변환
+                    JsonNode items = objectMapper.readTree(response.getBody()).get("items");
 
-                if (items != null) {
-                    return getNewsMetaDataFromNaverApi(items);
+                    if (items != null) {
+                        return CompletableFuture.completedFuture(getNewsMetaDataFromNaverApi(items));
+                    }
+                    return CompletableFuture.completedFuture(new ArrayList<>());
                 }
-                return new ArrayList<>();
+                throw new ServiceException(500, "네이버 API 호출 실패: " + response.getStatusCode());
+
+            } catch (JsonProcessingException e) {
+                throw new ServiceException(500, "네이버 API 응답 파싱 실패");
+            } catch (Exception e) {
+                throw new RuntimeException("네이버 뉴스 조회 중 오류 발생", e);
             }
-            throw new ServiceException(500, "네이버 API 요청 실패");
-
-        }
-        catch (JsonProcessingException e) {
-            throw new ServiceException(500, "JSON 파싱 실패");
-        }
-
     }
+
+
 
     // 단건 크롤링
     public Optional<NewsDetailDto> crawladditionalInfo(String naverNewsUrl) {
