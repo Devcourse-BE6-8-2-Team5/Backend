@@ -4,6 +4,7 @@ import com.back.domain.news.common.dto.AnalyzedNewsDto;
 import com.back.domain.news.common.enums.NewsCategory;
 import com.back.domain.news.real.dto.RealNewsDto;
 import com.back.global.exception.ServiceException;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
@@ -29,6 +30,7 @@ public class NewsAnalysisProcessor implements AiRequestProcessor<List<AnalyzedNe
     @Override
     public String buildPrompt() {
         StringBuilder newsInput = new StringBuilder();
+
         for (int i = 0; i < newsToAnalyze.size(); i++) {
             RealNewsDto news = newsToAnalyze.get(i);
             newsInput.append("뉴스 ").append(i + 1).append(":\n\n")
@@ -37,88 +39,111 @@ public class NewsAnalysisProcessor implements AiRequestProcessor<List<AnalyzedNe
         }
 
         return String.format("""
-               Task: 제공된 뉴스들을 분석하여 품질 점수와 카테고리를 분류하세요.
-               
-               목적:
-               - 각 뉴스의 품질을 1-100점으로 평가
-               - 뉴스를 5개 카테고리 중 하나로 분류
-               - 본문에서 불필요한 내용을 제거하여 정제된 내용 제공
-               - 사용자에게 가치 있는 뉴스를 선별하기 위함
-               
-               [품질 평가 기준]
-               점수는 다음 기준으로 종합 평가하세요:
-               1. 정보의 완성도와 구체성 (30점)
-                  - 구체적인 사실, 수치, 날짜, 장소가 포함되어 있는가?
-                  - 정보가 충분히 상세하고 이해하기 쉬운가?
-               
-               2. 뉴스 가치와 중요성 (25점)
-                  - 사회적으로 의미 있는 내용인가?
-                  - 많은 사람들에게 영향을 미치는 이슈인가?
-                  - 시의성이 있는 내용인가?
-               
-               3. 내용의 신뢰성과 객관성 (25점)
-                  - 사실에 기반한 내용인가?
-                  - 균형 잡힌 시각으로 작성되었는가?
-                  - 선정적이거나 과장되지 않았는가?
-               
-               4. 기사 품질과 완성도 (20점)
-                  - 문장이 자연스럽고 이해하기 쉬운가?
-                  - 논리적 구조를 가지고 있는가?
-                  - 오탈자나 어색한 표현이 없는가?
-               
-               [카테고리 분류 기준]
-               다음 5개 카테고리 중 가장 적합한 하나를 선택하세요:
-               - POLITICS: 정치, 선거, 정부 정책, 외교, 국회, 지방자치 관련
-               - ECONOMY: 경제, 금융, 기업, 산업, 무역, 주식, 부동산, 고용 관련
-               - SOCIETY: 사회 이슈, 교육, 복지, 범죄, 사고, 환경, 인구, 지역 사회 관련
-               - CULTURE: 문화, 예술, 스포츠, 연예, 관광, 여행, 축제, 종교 관련
-               - IT: 과학기술, IT, 인공지능, 바이오, 우주, 통신, 게임, 디지털 관련
-               
-               [본문 정제 요구사항]
-               다음과 같은 불필요한 내용들을 제거하고 핵심 뉴스 내용만 남기세요:
-               - 제보 안내 (이메일, 카카오톡, 전화번호, 사이트 링크)
-               - 저작권 관련 안내 ([DB 및 재배포 금지], 무단전재, 재배포금지 등)
-               - 기자 정보나 매체 정보 ([기자명], (기자명) 등)
-               - 광고성 문구나 홍보 내용
-               - 구독 안내나 앱 다운로드 유도 문구
-               - 관련 기사 안내나 링크
-               - 기타 뉴스 핵심 내용과 무관한 부가 정보
-               - 불필요한 특수문자(▲ 등)
+                당신은 뉴스 분석 전문가입니다. 다음 %d개 뉴스를 모두 분석하여 JSON으로 응답하세요.
                 
-               정제된 본문은 뉴스의 핵심 사실과 내용만 포함해야 합니다.
-                        
-               [주의사항]
-               - 점수는 반드시 1-100 사이의 정수로 제공
-               - 카테고리는 반드시 위의 5개 중 하나만 선택 (대문자로 정확히 표기)
-               - 객관적이고 공정한 평가를 수행
-               - 개인적 편견이나 주관적 취향을 배제
-               - 정제된 본문에서 뉴스의 핵심 내용은 절대 삭제하지 마세요
-               
-               [출력 규칙]
-               - 마크다운 코드 블록 사용 금지
-               - 아래 JSON 형식으로만 응답
-               - 다른 텍스트나 설명 포함 금지
-               
-               응답 형식:
-               [
-                 {
-                   "newsIndex": 1,
-                   "qualityScore": 85,
-                   "category": "POLITICS",
-                   "cleanedContent": "정제된 뉴스 본문 내용"
-                 },
-                 {
-                   "newsIndex": 2,
-                   "qualityScore": 72,
-                   "category": "ECONOMY",
-                   "cleanedContent": "정제된 뉴스 본문 내용"
-                 }
-               ]
-               
-               분석할 뉴스:
-               %s
-               """, newsInput);
+                === 반드시 수행해야 할 작업 ===
+                
+                1. **품질 평가** (0-100점 기준)
+                   - 출처 명확성: 구체적 출처나 발언자가 명시되어 있는가?
+                   - 사실 검증성: 확인 가능한 구체적 정보가 포함되어 있는가?
+                   - 객관성: 편향되지 않은 중립적 서술인가?
+                   - 완성도: 5W1H(누가, 언제, 어디서, 무엇을, 왜, 어떻게) 정보가 충실한가?
+                
+                2. **카테고리 분류** (반드시 다음 중 하나 선택)
+                   - POLITICS: 정부, 국회, 정책, 선거, 정치인 관련
+                   - ECONOMY: 기업, 주식, 금리, GDP, 산업, 경제 관련
+                   - SOCIETY: 사건사고, 복지, 교육, 환경, 사회 문제
+                   - CULTURE: 문화, 예술, 스포츠, 연예, 엔터테인먼트
+                   - IT: 기술, 인터넷, AI, 디지털, 컴퓨터 관련
+                
+                3. **본문 정제 작업**
+                
+                   **반드시 제거해야 할 내용:**
+                   - 기자 이름 및 이메일 (예: "홍길동 기자", "reporter@news.com")
+                   - 이미지 캡션 및 설명 (예: "[사진]", "이미지 출처", "사진=연합뉴스")
+                   - 뉴스 발행일, 수정일 등 날짜 정보
+                   - 본문과 무관한 홍보 문구, 링크, SNS 공유 안내
+                   - 괄호로 처리된 메타정보 (예: "(서울=연합뉴스)", "(사진=EPA)")
+                   - **본문 앞부분의 요약문/리드문** (예: "가계부채·환율은 부담…", "특검 내일 오전 9시 尹체포하러 간다…")
+                   - **제목을 부연설명하는 서두 문장들**
+                   - **상황 묘사문** (예: "31일 오전 서울역에서 뉴스가 나오고 있다")
+                
+                   **본문 시작 규칙:**
+                   - 구체적인 사실이나 인용문부터 시작해야 함
+                   - 육하원칙(5W1H)에 따른 구체적 내용부터 시작
+                   - 올바른 예시: "김건희 여사 관련 의혹을 수사하는 민중기 특별검사팀이...", "대한상공회의소 등 경제6단체는 31일..."
+                
+                   **문단 구분 규칙:**
+                   - 같은 주제의 연관된 문장들: 한 문단으로 묶어서 한 줄 개행(\\n) 또는 공백 없이 연결
+                   - 문단이 바뀔 때만: 두 줄 개행(\\n\\n) 사용
+                   - 문단 구분 기준:
+                     * 시간이 바뀔 때 (어제 일 → 오늘 일)
+                     * 화자가 바뀔 때 (정부 발표 → 전문가 의견)
+                     * 주제가 전환될 때 (현황 설명 → 배경 설명 → 향후 전망)
+                     * 인용문이 끝나고 새로운 내용이 시작될 때
+                
+                   **올바른 문단 구분 예시:**
+                   "대한상공회의소 등 경제6단체는 31일 논평을 통해 환영 의사를 밝혔다. 이들은 '수출 환경 불확실성이 해소됐다'고 평가했다.\\n\\n앞서 한국과 미국은 상호관세율을 25%%에서 15%%로 인하하는 합의를 체결했다. 이는 일본, EU와 동일한 수준이다.\\n\\n경제6단체는 또한 국회의 신중한 검토를 요청했다."
+                
+                === JSON 작성 규칙 ===
+                **매우 중요 - 다음 규칙을 절대 위반하지 마세요:**
+                
+                1. **JSON 구조**: 정확한 배열 형태로 작성
+                2. **필수 필드**: newsIndex, qualityScore, category, cleanedContent 모두 포함
+                3. **newsIndex**: 따옴표 없는 숫자 (1, 2, 3...)
+                4. **qualityScore**: 따옴표 없는 숫자 (0-100)
+                5. **category**: 따옴표로 감싼 문자열, 위 5개 중 정확히 하나
+                6. **cleanedContent**: 따옴표로 감싼 문자열
+                
+                **cleanedContent 작성 시 이스케이프 규칙:**
+                - 내부 따옴표: \\" (백슬래시 + 따옴표)
+                - 개행 문자: \\n (백슬래시 + n)
+                - 백슬래시: \\\\ (백슬래시 + 백슬래시)
+                - 한글, 영문, 숫자: 그대로 사용 (유니코드 변환 금지)
+                - 특수문자, 이모지: 그대로 사용 (이스케이프 금지)
+                
+                **금지 사항:**
+                - JSON 외부에 다른 텍스트 추가 금지
+                - 코드 블록(```) 사용 금지
+                - 설명이나 주석 추가 금지
+                
+                === 최종 검증 체크리스트 ===
+                응답 전 반드시 확인하세요:
+                1. %d개 뉴스 모두 처리했는가?
+                2. JSON 구조가 정확한가?
+                3. 모든 필수 필드가 포함되었는가?
+                4. category가 5개 중 하나인가?
+                5. cleanedContent가 올바르게 이스케이프되었는가?
+                6. 요약문/리드문이 제거되었는가?
+                7. 문단 구분이 자연스러운가?
+                
+                === 개행 규칙 (절대 무시하지 말 것) ===
+                **모든 뉴스에 대해 동일하게 적용:**
+                - 관련 문장들: 붙여서 작성
+                - 주제 바뀔 때: 반드시 \\\\n\\\\n 사용
+                - 예시: "첫 문장. 두 번째 문장.\\\\n\\\\n새 주제 첫 문장."
+                
+                === 응답 형식 ===
+                [
+                  {
+                    "newsIndex": 1,
+                    "qualityScore": 85,
+                    "category": "POLITICS",
+                    "cleanedContent": "정제된 뉴스 본문 내용"
+                  },
+                  {
+                    "newsIndex": 2,
+                    "qualityScore": 72,
+                    "category": "ECONOMY",
+                    "cleanedContent": "정제된 뉴스 본문 내용"
+                  }
+                ]
+                
+                분석할 뉴스:
+                %s
+                """, newsToAnalyze.size(), newsToAnalyze.size(), newsInput);
     }
+
 
     @Override
     public List<AnalyzedNewsDto> parseResponse(ChatResponse response) {
@@ -199,9 +224,9 @@ public class NewsAnalysisProcessor implements AiRequestProcessor<List<AnalyzedNe
 
     // AI 응답 파싱용 내부 클래스
     private record NewsAnalyzedRes(
-            int newsIndex,
-            int qualityScore,
-            NewsCategory category,
-            String cleanedContent
+            @JsonProperty("newsIndex") int newsIndex,
+            @JsonProperty("qualityScore") int qualityScore,
+            @JsonProperty("category") NewsCategory category,
+            @JsonProperty("cleanedContent") String cleanedContent
     ) {}
 }

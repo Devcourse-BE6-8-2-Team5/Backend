@@ -29,6 +29,8 @@ public class KeywordGenerationService {
     @Value("${keyword.overuse.threshold}")
     private int overuseThreshold;
 
+    @Value("${keyword.history.recent-days}")
+    private int recentDays;
     /**
      * 오늘 날짜에 맞춰 키워드를 생성합니다.
      * - 최근 5일간 3회 이상 사용된 키워드 제외 (yml에서 overuseDays, overuseThreshold 설정값을 통해 조절)
@@ -41,11 +43,12 @@ public class KeywordGenerationService {
 
         List<String> excludeKeywords = getExcludeKeywords();
 
-        KeywordGenerationReqDto req = new KeywordGenerationReqDto(today, excludeKeywords);
+        List<String> recentKeywords = keywordHistoryService.getRecentKeywords(recentDays);
+        KeywordGenerationReqDto keywordGenerationReqDto = new KeywordGenerationReqDto(today,recentKeywords, excludeKeywords);
 
         log.info("키워드 생성 요청 - 날짜 :  {} , 제외 키워드 : {}", today, excludeKeywords);
 
-        KeywordGeneratorProcessor processor = new KeywordGeneratorProcessor(req, objectMapper);
+        KeywordGeneratorProcessor processor = new KeywordGeneratorProcessor(keywordGenerationReqDto, objectMapper);
         KeywordGenerationResDto result = aiService.process(processor);
 
         log.info("키워드 생성 결과 - {}", result);

@@ -1,9 +1,11 @@
 package com.back.domain.news.common.test.controller;
 
+import com.back.domain.news.common.dto.AnalyzedNewsDto;
 import com.back.domain.news.common.dto.KeywordGenerationResDto;
 import com.back.domain.news.common.dto.NaverNewsDto;
 import com.back.domain.news.common.service.KeywordCleanupService;
 import com.back.domain.news.common.service.KeywordGenerationService;
+import com.back.domain.news.common.service.AnalysisNewsService;
 import com.back.domain.news.fake.dto.FakeNewsDto;
 import com.back.domain.news.fake.service.FakeNewsService;
 import com.back.domain.news.real.dto.RealNewsDto;
@@ -31,6 +33,7 @@ public class TestController {
     private final FakeNewsService fakeNewsService;
     private final RealNewsService realNewsService;
     private final NewsDataService newsDataService;
+    private final AnalysisNewsService analysisNewsService;
     private final AdminNewsService adminNewsService;
 
     @GetMapping("/keywords")
@@ -41,11 +44,27 @@ public class TestController {
 
     //     뉴스 배치 프로세서
     @GetMapping("/process")
-    public RsData<Void> newsProcess() {
+    public RsData<List<RealNewsDto>> newsProcess() {
         try {
             adminNewsService.dailyNewsProcess();
 
-            return RsData.of(200, "성공");
+            //   속보랑 기타키워드 추가
+//            List<String> newsKeywords = List.of("K팝", "IT", "경제");
+//
+//            List<NaverNewsDto> newsKeywordsAfterAdd = newsDataService.collectMetaDataFromNaver(newsKeywords);
+//
+//            List<RealNewsDto> NewsBeforeFilter = newsDataService.createRealNewsDtoByCrawl(newsKeywordsAfterAdd);
+//
+//            List<RealNewsDto> NewsRemovedDuplicateTitles = newsDataService.removeDuplicateTitles(NewsBeforeFilter);
+//
+//            List<AnalyzedNewsDto> newsAfterFilter = analysisNewsService.filterAndScoreNews(NewsRemovedDuplicateTitles);
+//
+//            List<RealNewsDto> selectedNews = newsDataService.selectNewsByScore(newsAfterFilter);
+//
+//            List<RealNewsDto> savedNews = newsDataService.saveAllRealNews(selectedNews);
+            return RsData.of(200, "뉴스 프로세스 성공", null); // savedNews
+//            return RsData.of(200, "성공", savedNews);
+
         } catch (Exception e) {
             return RsData.of(500, "실패: " + e.getMessage());
         }
@@ -68,7 +87,8 @@ public class TestController {
     }
 
     //뉴스 생성 (for test)
-    @PostMapping("/create")
+
+    @GetMapping("/create")
     public RsData<List<RealNewsDto>> createRealNews(@RequestParam String query) {
         List<RealNewsDto> realNewsList = newsDataService.createRealNewsDto(query);
 
@@ -79,7 +99,7 @@ public class TestController {
         return RsData.of(200, String.format("뉴스 %d건 생성 완료",realNewsList.size()), realNewsList);
     }
 
-    @PostMapping("/create/fake")
+    @GetMapping("/create/fake")
     public RsData<List<FakeNewsDto>> testCreateFake() {
 
         List<RealNewsDto> realNewsDtos = realNewsService.getRealNewsListCreatedToday();

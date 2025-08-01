@@ -11,7 +11,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
+import static java.util.function.Function.*;
 
 @Service
 @RequiredArgsConstructor
@@ -37,15 +44,37 @@ public class KeywordHistoryService {
             NewsCategory category,
             LocalDate usedDate) {
 
-        List<KeywordHistory> keywordHistories = keywords.stream()
-                .map(keyword -> KeywordHistory.builder()
-                        .keywordWithType(keyword)
-                        .category(category)
-                        .usedDate(usedDate)
-                        .build())
+        List<String> keywordStrings = keywords.stream()
+                .map(KeywordWithType::keyword)
                 .toList();
 
+        List<KeywordHistory> existingKeywords =  keywordHistoryRepository.findByKeywordsAndCategoryAndUsedDate(
+                    keywordStrings,
+                    category,
+                    usedDate
+            );
+
+        Map<String, KeywordHistory> existingMap = existingKeywords.stream()
+                .collect(Collectors.toMap(KeywordHistory::getKeyword, identity()));
+
+        // 4. 처리할 데이터 준비
+        List<KeywordHistory> keywordHistories = new ArrayList<>();
+        for (KeywordWithType keyword : keywords) {
+            KeywordHistory existing = existingMap.get(keyword.keyword());
+            if (existing != null) {
+                existing.incrementUseCount();
+                keywordHistories.add(existing);
+            } else {
+                keywordHistories.add(KeywordHistory.builder()
+                        .keyword(keyword.keyword())
+                        .keywordType(keyword.keywordType())
+                        .category(category)
+                        .usedDate(usedDate)
+                        .build());
+            }
+        }
         keywordHistoryRepository.saveAll(keywordHistories);
+
     }
 
         // 1. 최근 5일간 3회 이상 사용된 키워드 (과도한 반복 방지)
@@ -62,4 +91,14 @@ public class KeywordHistoryService {
         return keywordHistoryRepository.findKeywordsByUsedDate(yesterday);
     }
 
+    public List<String> getRecentKeywords(int recentDays) {
+        //recentdays이전까지
+        LocalDate startDate = LocalDate.now().minusDays(recentDays);
+        List<KeywordHistory> histories = keywordHistoryRepository.findByUsedDateGreaterThanEqual(startDate);
+
+        return histories.stream()
+                .map(KeywordHistory::getKeyword)
+                .distinct()
+                .toList();
+    }
 }

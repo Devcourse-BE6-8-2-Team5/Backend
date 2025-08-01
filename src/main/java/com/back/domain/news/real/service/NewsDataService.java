@@ -4,8 +4,6 @@ import com.back.domain.news.common.dto.AnalyzedNewsDto;
 import com.back.domain.news.common.dto.NaverNewsDto;
 import com.back.domain.news.common.dto.NewsDetailDto;
 import com.back.domain.news.common.enums.NewsCategory;
-import com.back.domain.news.common.service.KeywordGenerationService;
-import com.back.domain.news.common.service.NewsAnalysisService;
 import com.back.domain.news.real.dto.RealNewsDto;
 import com.back.domain.news.real.entity.RealNews;
 import com.back.domain.news.real.mapper.RealNewsMapper;
@@ -240,9 +238,11 @@ public class NewsDataService {
                     .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64)")  // 브라우저인 척
                     .get();  // GET 요청으로 HTML 가져오기 (robots.txt에 걸리지 않도록)
 
+
             String content = Optional.ofNullable(doc.selectFirst("article#dic_area"))
-                    .map(Element::text)
+                    .map(this::extractTextWithLineBreaks)
                     .orElse("");
+
             String imgUrl = Optional.ofNullable(doc.selectFirst("#img1"))
                     .map(element -> element.attr("data-src"))
                     .orElse("");
@@ -265,6 +265,13 @@ public class NewsDataService {
             log.warn("크롤링 실패: {}", naverNewsUrl);
             return Optional.empty();  // 예외 던지지 않고 빈 값 반환
         }
+    }
+
+    private String extractTextWithLineBreaks(Element element) {
+        element.select("p").before("\n\n");
+        element.select("div").before("\n\n");
+        element.select("br").before("\n");
+        return element.text().replace("\\n", "\n");
     }
 
     // 네이버 api에서 받아온 정보와 크롤링한 상세 정보를 바탕으로 RealNewsDto 생성
@@ -381,7 +388,7 @@ public class NewsDataService {
                                 .sorted(Comparator.comparing(AnalyzedNewsDto::score).reversed())
                                 .limit(3)
                 )
-                .map(AnalyzedNewsDto::realNewsDto)  // RealNewsDto로 변환
+                .map(AnalyzedNewsDto::realNewsDto)
                 .toList();
     }
 
@@ -393,6 +400,7 @@ public class NewsDataService {
 
     public List<RealNewsDto> removeDuplicateTitles(List<RealNewsDto> newsBeforeFilter) {
         // 제목을 기준으로 중복 제거
+
         Map<String, RealNewsDto> uniqueNewsMap = new LinkedHashMap<>();
         for (RealNewsDto news : newsBeforeFilter) {
             uniqueNewsMap.put(news.title(), news);
@@ -406,4 +414,5 @@ public class NewsDataService {
         return realNewsRepository.findAll(pageable)
                 .map(realNewsMapper::toDto);
     }
+
 }

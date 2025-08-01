@@ -51,6 +51,15 @@ public class CustomAuthenticationFilter extends OncePerRequestFilter {
         String uri = request.getRequestURI();
         String method = request.getMethod();
 
+        // 아래 API 요청이라면 인증하지 않고 패스
+        if (List.of(
+                "/api/members/login",
+                "/api/members/logout",
+                "/api/members/join",
+                "/api/quiz/fact",         // OX퀴즈 전체 목록
+                "/api/quiz/fact/category" // OX퀴즈 카테고리별 목록
+        ).contains(uri) || uri.startsWith("/api/")) {
+
         // SecurityConfig에서 permitAll()로 설정된 경로들은 필터를 통과시키기
         if (
                 uri.startsWith("/swagger-ui/") ||
@@ -64,6 +73,7 @@ public class CustomAuthenticationFilter extends OncePerRequestFilter {
                         (method.equals("POST") && uri.equals("/api/members/login")) ||
                         (method.equals("POST") && uri.equals("/api/members/join"))
         ) {
+
             filterChain.doFilter(request, response);
             return;
         }

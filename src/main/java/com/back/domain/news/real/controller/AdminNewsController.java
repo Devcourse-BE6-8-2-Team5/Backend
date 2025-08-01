@@ -39,6 +39,7 @@ public class AdminNewsController {
     private final NewsPageService newsPageService;
 
 
+    // 오늘의 뉴스 설정용 뉴스 조회
     @GetMapping("/all")
     @Operation(summary = "전체 뉴스 조회 (관리자용)", description = "오늘의 뉴스를 포함한 모든 뉴스를 조회합니다")
     public RsData<Page<RealNewsDto>> getAllRealNewsList(
@@ -108,7 +109,7 @@ public class AdminNewsController {
             if (realNewsDto.isEmpty()) {
                 return RsData.of(404, String.format("ID %d에 해당하는 뉴스가 존재하지 않습니다", newsId));
             }
-            // 2. 이미 오늘의 뉴스인지 확인 (서비스에서 처리)
+            // 2. 이미 오늘의 뉴스인지 확인
             if (newsDataService.isAlreadyTodayNews(newsId)) {
                 return RsData.of(400, "이미 오늘의 뉴스로 설정되어 있습니다.", realNewsDto.get());
             }
