@@ -58,7 +58,7 @@ public class AnalysisNewsService {
                 .toList();
     }
 
-    @Async("analysisExecutor")
+    @Async("newsExecutor")
     public CompletableFuture<List<AnalyzedNewsDto>> processBatchAsync(List<RealNewsDto> batch) {
         try {
             // Rate limiting - 토큰 얻을 때까지 계속 시도

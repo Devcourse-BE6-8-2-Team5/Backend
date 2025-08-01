@@ -66,6 +66,10 @@ public class FakeNewsGeneratorProcessor implements AiRequestProcessor<FakeNewsDt
            **중요: 반드시 정확한 ID 사용**
            realNewsId는 반드시 %s을 사용해야 합니다. 다른 숫자를 사용하지 마세요
            원본과 비슷한 분량으로 작성하세요
+           **모든 뉴스에 대해 동일하게 적용:**
+           - 관련 문장들: 붙여서 작성
+           - 주제 바뀔 때: 반드시 \\\\n\\\\n 사용
+           - 예시: "첫 문장. 두 번째 문장.\\\\n\\\\n새 주제 첫 문장."
 
            === JSON 작성 규칙 ===
            매우 중요 - 다음 규칙을 절대 위반하지 마세요:
