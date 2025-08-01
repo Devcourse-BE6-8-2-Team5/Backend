@@ -23,7 +23,6 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -51,6 +50,8 @@ public class DailyQuizService {
         //이제 여기서 퀴즈 저장소에서 memberid로 퀴즈 히스토리를 가져와야 함
         List<QuizHistory> quizHistories = quizHistoryRepository.findByMember(actor);
 
+
+
         // 1. 기준이 되는 DailyQuiz 리스트에서 ID만 추출
         Set<Long> quizIdSet = quizzes.stream()
                 .map(DailyQuiz::getId)
@@ -69,7 +70,7 @@ public class DailyQuizService {
                 .map(quiz -> {
                     QuizHistory history = historyMap.get(quiz.getId());
                     return new DailyQuizWithHistoryDto(
-                            Collections.singletonList(new DailyQuizDto(quiz)),
+                            (new DailyQuizDto(quiz)),
                             history != null ? history.getAnswer() : null,
                             history != null && history.isCorrect(),
                             history != null ? history.getGainExp() : 0,
