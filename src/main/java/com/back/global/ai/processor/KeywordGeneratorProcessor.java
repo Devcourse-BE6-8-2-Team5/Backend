@@ -124,7 +124,7 @@ public class KeywordGeneratorProcessor implements AiRequestProcessor<KeywordGene
                 6. **중복성 검토**: 기존 레포지토리나 제외 키워드와 겹치지 않는가?
                 
                 응답 형식:
-                반드시 JSON 형식으로만 응답하세요. 각 키워드의 실제 특성에 맞는 타입을 정확히 판단하여 지정하세요.
+                반드시 아래의 JSON 형식으로만 응답하세요. 설명 없이 JSON만 반환하세요.
                 
                 ```json
                 {
