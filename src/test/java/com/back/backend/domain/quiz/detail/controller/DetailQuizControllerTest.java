@@ -78,11 +78,17 @@ class DetailQuizControllerTest {
                 .andExpect(handler().methodName("getDetailQuiz"))
                 .andExpect(jsonPath("$.code").value(200))
                 .andExpect(jsonPath("$.message").value("상세 퀴즈 조회 성공"))
-                .andExpect(jsonPath("$.data.question").value("뉴스에서 언급된 장소는 어디인가요?"))
-                .andExpect(jsonPath("$.data.option1").value("서울 강남구 농협유통 하나로마트"))
-                .andExpect(jsonPath("$.data.option2").value("서울 서초구 농협유통 하나로마트 양재점"))
-                .andExpect(jsonPath("$.data.option3").value("경기도 성남시 농협유통 하나로마트"))
-                .andExpect(jsonPath("$.data.correctOption").value("OPTION2"));
+                .andExpect(jsonPath("$.data.detailQuizResDto.question").value("뉴스에서 언급된 장소는 어디인가요?"))
+                .andExpect(jsonPath("$.data.detailQuizResDto.option1").value("서울 강남구 농협유통 하나로마트"))
+                .andExpect(jsonPath("$.data.detailQuizResDto.option2").value("서울 서초구 농협유통 하나로마트 양재점"))
+                .andExpect(jsonPath("$.data.detailQuizResDto.option3").value("경기도 성남시 농협유통 하나로마트"))
+                .andExpect(jsonPath("$.data.detailQuizResDto.correctOption").value("OPTION2"))
+
+                .andExpect(jsonPath("$.data.answer").doesNotExist())
+                .andExpect(jsonPath("$.data.gainExp").exists())
+                .andExpect(jsonPath("$.data.correct").exists())
+                .andExpect(jsonPath("$.data.quizType").value("DETAIL"));
+
     }
 
     @Test
