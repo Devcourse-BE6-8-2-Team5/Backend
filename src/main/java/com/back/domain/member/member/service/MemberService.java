@@ -145,11 +145,7 @@ public class MemberService {
         List<Member> members = memberRepository.findTop5ByOrderByExpDesc();
 
         return members.stream()
-                .map(member -> new MemberWithRankDto(
-                        member.getName(),
-                        member.getEmail(),
-                        member.getExp(),
-                        member.getLevel()))
+                .map(MemberWithRankDto::new)
                 .toList();
     }
 }
