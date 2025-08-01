@@ -37,7 +37,7 @@ public class FakeNewsGeneratorProcessor implements AiRequestProcessor<FakeNewsDt
 
            === 창작 규칙 ===
            1. **제목 기반 창작**: 제목에서 유추할 수 있는 내용으로 자유롭게 창작
-           2. **현실적 세부사항**:\s
+           2. **현실적 세부사항**:
               - 구체적인 날짜, 장소, 인물명
               - 현실적인 수치와 데이터
               - 실제 있을 법한 인용문과 발언
