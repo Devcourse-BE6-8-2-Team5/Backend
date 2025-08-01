@@ -40,47 +40,45 @@ public class DailyQuizService {
 
     @Transactional(readOnly = true)
     public List<DailyQuizWithHistoryDto> getDailyQuizzes(Long todayNewsId, Member actor) {
-        //퀴즈 가져오기
-        List<DailyQuiz> quizzes = dailyQuizRepository.findByTodayNewsId(todayNewsId);
+        List<DailyQuiz> quizzes = getDailyQuizzesByTodayNews(todayNewsId);
 
-        if( quizzes.isEmpty()) {
-            throw new ServiceException(404, "오늘의 뉴스에 해당하는 오늘의 퀴즈가 존재하지 않습니다.");
-        }
-
-        //이제 여기서 퀴즈 저장소에서 memberid로 퀴즈 히스토리를 가져와야 함
-        List<QuizHistory> quizHistories = quizHistoryRepository.findByMember(actor);
-
-
-
-        // 1. 기준이 되는 DailyQuiz 리스트에서 ID만 추출
-        Set<Long> quizIdSet = quizzes.stream()
+        Set<Long> quizIds = quizzes.stream()
                 .map(DailyQuiz::getId)
                 .collect(Collectors.toSet());
 
-        // 2. 퀴즈 히스토리 중에서 quizId가 일치하고, 타입이 DAILY인 것만 필터링
-        List<QuizHistory> filteredHistories = quizHistories.stream()
-                .filter(h -> h.getQuizType() == QuizType.DAILY && quizIdSet.contains(h.getQuizId()))
-                .toList();
+        Map<Long, QuizHistory> historyMap = getQuizHistoryMapByMemberAndQuizIds(actor, quizIds);
 
-        Map<Long, QuizHistory> historyMap = filteredHistories.stream()
-                .collect(Collectors.toMap(QuizHistory::getQuizId, h -> h));
-
-        // 3. DailyQuizWithHistoryDto로 변환
-        List<DailyQuizWithHistoryDto> result = quizzes.stream()
-                .map(quiz -> {
-                    QuizHistory history = historyMap.get(quiz.getId());
-                    return new DailyQuizWithHistoryDto(
-                            (new DailyQuizDto(quiz)),
-                            history != null ? history.getAnswer() : null,
-                            history != null && history.isCorrect(),
-                            history != null ? history.getGainExp() : 0,
-                            QuizType.DAILY
-                    );
-                })
-                .toList();
-
-        return result;
+        return quizzes.stream()
+                .map(quiz -> convertToDto(quiz, historyMap.get(quiz.getId())))
+                .collect(Collectors.toList());
     }
+
+    private List<DailyQuiz> getDailyQuizzesByTodayNews(Long todayNewsId) {
+        List<DailyQuiz> quizzes = dailyQuizRepository.findByTodayNewsId(todayNewsId);
+        if (quizzes.isEmpty()) {
+            throw new ServiceException(404, "오늘의 뉴스에 해당하는 오늘의 퀴즈가 존재하지 않습니다.");
+        }
+        return quizzes;
+    }
+
+    private Map<Long, QuizHistory> getQuizHistoryMapByMemberAndQuizIds(Member member, Set<Long> quizIds) {
+        List<QuizHistory> histories = quizHistoryRepository.findByMemberAndQuizTypeAndQuizIdIn(
+                member, QuizType.DAILY, quizIds
+        );
+        return histories.stream()
+                .collect(Collectors.toMap(QuizHistory::getQuizId, h -> h));
+    }
+
+    private DailyQuizWithHistoryDto convertToDto(DailyQuiz quiz, QuizHistory history) {
+        return new DailyQuizWithHistoryDto(
+                new DailyQuizDto(quiz),
+                history != null ? history.getAnswer() : null,
+                history != null && history.isCorrect(),
+                history != null ? history.getGainExp() : 0,
+                QuizType.DAILY
+        );
+    }
+
 
     @Scheduled(cron = "0 0 3 * * *", zone = "Asia/Seoul")
     public void createDailyQuiz() {
