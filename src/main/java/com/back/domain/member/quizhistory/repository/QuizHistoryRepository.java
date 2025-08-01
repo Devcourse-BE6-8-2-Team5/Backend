@@ -8,4 +8,7 @@ import java.util.List;
 
 public interface QuizHistoryRepository extends JpaRepository<QuizHistory, Long> {
     List<QuizHistory> findAllByMemberOrderByCreatedDateDesc(Member actor);
+    List<QuizHistory> findByMemberOrderByCreatedDateDesc(Member actor);
+
+    List<QuizHistory> findByMember(Member actor);
 }

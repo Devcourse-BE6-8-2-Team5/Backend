@@ -19,7 +19,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.Map;
 
 @Component
@@ -50,6 +49,7 @@ public class CustomAuthenticationFilter extends OncePerRequestFilter {
 
     private void work(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         String uri = request.getRequestURI();
+        String method = request.getMethod();
 
         // 아래 API 요청이라면 인증하지 않고 패스
         if (List.of(
@@ -59,29 +59,41 @@ public class CustomAuthenticationFilter extends OncePerRequestFilter {
                 "/api/quiz/fact",         // OX퀴즈 전체 목록
                 "/api/quiz/fact/category" // OX퀴즈 카테고리별 목록
         ).contains(uri) || uri.startsWith("/api/")) {
-            filterChain.doFilter(request, response);
-            return;
-        }
 
-        // 아래 API 요청이면 인증 필수 (추후 진짜 api로 변경 예정)
+        // SecurityConfig에서 permitAll()로 설정된 경로들은 필터를 통과시키기
         if (
-                !uri.startsWith("/api/quiz/detail/") && // 상세퀴즈 관련된 모든 요청
-                        !uri.startsWith("/api/quiz/fact/") && // OX 퀴즈 단건 조회
-                        !uri.startsWith("/ox퀴즈제출") &&
-                        !uri.startsWith("/오늘의퀴즈페이지") &&
-                        !uri.startsWith("/오늘의퀴즈제출") &&
-                        !uri.startsWith("/ox퀴즈제출") &&
-                        !uri.startsWith("/api/members/info") &&
-                        !uri.startsWith("/마이페이지내정보수정") &&
-                        !uri.startsWith("/api/members/withdraw") &&
-                        !uri.startsWith("/api/admin") &&
-                        !uri.startsWith("/관리자페이지뉴스삭제")
-
+                uri.startsWith("/swagger-ui/") ||
+                        uri.startsWith("/v3/api-docs/") ||
+                        uri.startsWith("/swagger-resources/") ||
+                        uri.startsWith("/h2-console") ||
+                        (method.equals("GET") && uri.equals("/api/news")) ||
+                        (method.equals("GET") && uri.startsWith("/api/news/")) ||
+                        (method.equals("GET") && uri.equals("/api/quiz/fact")) ||
+                        (method.equals("GET") && uri.equals("/api/quiz/fact/category")) ||
+                        (method.equals("POST") && uri.equals("/api/members/login")) ||
+                        (method.equals("POST") && uri.equals("/api/members/join"))
         ) {
+
             filterChain.doFilter(request, response);
             return;
         }
 
+        // 인증 필수 URL (authenticated, hasRole)
+        boolean requiresAuth =
+                uri.startsWith("/api/quiz/detail/") ||
+                        uri.startsWith("/api/quiz/daily/") ||
+                        uri.startsWith("/api/admin/") ||
+                        uri.equals("/api/members/info") ||
+                        uri.equals("/api/members/logout") ||
+                        uri.equals("/api/members/withdraw") ||
+                        (method.equals("GET") && uri.matches("/api/quiz/fact/\\d+")) ||
+                        (method.equals("POST") && uri.matches("/api/quiz/fact/submit/\\d+"));
+
+        // 인증이 필요하지 않은 URL이면 그냥 통과
+        if (!requiresAuth) {
+            filterChain.doFilter(request, response);
+            return;
+        }
 
         String apiKey;
         String accessToken;

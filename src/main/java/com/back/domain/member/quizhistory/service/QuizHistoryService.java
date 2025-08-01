@@ -5,10 +5,13 @@ import com.back.domain.member.quizhistory.dto.QuizHistoryDto;
 import com.back.domain.member.quizhistory.entity.QuizHistory;
 import com.back.domain.member.quizhistory.repository.QuizHistoryRepository;
 import com.back.domain.quiz.QuizType;
+import com.back.global.exception.ServiceException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Comparator;
 import java.util.List;
 
 @Service
@@ -19,11 +22,10 @@ public class QuizHistoryService {
 
     @Transactional(readOnly = true)
     public List<QuizHistoryDto> getQuizHistoriesByMember(Member actor) {
-        // Member의 quizHistories 리스트를 바로 가져오기 (Lazy라면 강제로 초기화 필요)
-        List<QuizHistory> quizHistories = actor.getQuizHistories();
+        List<QuizHistory> quizHistories = quizHistoryRepository.findByMember(actor);
 
-        // 필요하면 정렬 - createdDate 내림차순으로 정렬
-        quizHistories.sort((a, b) -> b.getCreatedDate().compareTo(a.getCreatedDate()));
+        quizHistories.sort(Comparator.comparing(QuizHistory::getQuizType)); // 퀴즈타입별 정렬
+
 
         return quizHistories.stream()
                 .map(QuizHistoryDto::new)
@@ -43,6 +45,10 @@ public class QuizHistoryService {
                 .build();
 
         // 퀴즈 히스토리 저장
-        quizHistoryRepository.save(quizHistory);
+        try {
+            quizHistoryRepository.save(quizHistory);
+        } catch (DataIntegrityViolationException e) {
+            throw new ServiceException(400, "이미 푼 문제입니다.");
+        }
     }
 }

@@ -13,6 +13,9 @@ import com.back.domain.news.real.service.AdminNewsService;
 import com.back.domain.news.real.service.NewsDataService;
 import com.back.domain.news.real.service.RealNewsService;
 import com.back.global.rsData.RsData;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
@@ -45,7 +48,6 @@ public class TestController {
         try {
             adminNewsService.dailyNewsProcess();
 
-
             //   속보랑 기타키워드 추가
 //            List<String> newsKeywords = List.of("K팝", "IT", "경제");
 //
@@ -62,6 +64,7 @@ public class TestController {
 //            List<RealNewsDto> savedNews = newsDataService.saveAllRealNews(selectedNews);
             return RsData.of(200, "뉴스 프로세스 성공", null); // savedNews
 //            return RsData.of(200, "성공", savedNews);
+
         } catch (Exception e) {
             return RsData.of(500, "실패: " + e.getMessage());
         }
@@ -84,6 +87,7 @@ public class TestController {
     }
 
     //뉴스 생성 (for test)
+
     @GetMapping("/create")
     public RsData<List<RealNewsDto>> createRealNews(@RequestParam String query) {
         List<RealNewsDto> realNewsList = newsDataService.createRealNewsDto(query);

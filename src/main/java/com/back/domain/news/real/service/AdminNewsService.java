@@ -37,11 +37,13 @@ public class AdminNewsService {
 
         List<RealNewsDto> NewsRemovedDuplicateTitles = newsDataService.removeDuplicateTitles(NewsBeforeFilter);
 
+
         List<AnalyzedNewsDto> newsAfterFilter = analysisNewsService.filterAndScoreNews(NewsRemovedDuplicateTitles);
 
         List<RealNewsDto> selectedNews = newsDataService.selectNewsByScore(newsAfterFilter);
 
         newsDataService.saveAllRealNews(selectedNews);
+
     }
 
 }

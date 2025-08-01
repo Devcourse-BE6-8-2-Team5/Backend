@@ -38,6 +38,7 @@ public class AdminNewsController {
     private final RealNewsService realNewsService;
     private final NewsPageService newsPageService;
 
+
     // 오늘의 뉴스 설정용 뉴스 조회
     @GetMapping("/all")
     @Operation(summary = "전체 뉴스 조회 (관리자용)", description = "오늘의 뉴스를 포함한 모든 뉴스를 조회합니다")
@@ -60,6 +61,18 @@ public class AdminNewsController {
         Page<RealNewsDto> realNewsPage = newsDataService.getAllRealNewsList(pageable);  // 새 서비스 메서드
 
         return newsPageService.getPagedNews(realNewsPage, NewsType.REAL);
+    }
+
+//     뉴스 배치 프로세서
+    @GetMapping("/process")
+    public RsData<List<RealNewsDto>> newsProcess() {
+        try {
+            adminNewsService.dailyNewsProcess();
+
+            return RsData.of(200, "뉴스 생성 성공");
+        } catch (Exception e) {
+            return RsData.of(500, "뉴스 생성 실패 : " + e.getMessage());
+        }
     }
 
     //뉴스 삭제
