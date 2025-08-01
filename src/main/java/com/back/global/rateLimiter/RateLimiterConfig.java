@@ -12,7 +12,7 @@ public class RateLimiterConfig {
     public Bucket bucket() {
         return Bucket.builder()
                 .addLimit(limit ->
-                        limit.capacity(30).refillGreedy(30, Duration.ofMinutes(1))) // 1분에 30번 요청 가능
+                        limit.capacity(15).refillIntervally(1, Duration.ofSeconds(4))) // 1분에 30번 요청 가능
                 .build();
     }
 }

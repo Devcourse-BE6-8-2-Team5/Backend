@@ -22,7 +22,7 @@ public class DetailQuizRateLimitedService {
         for(int i=0; i<maxRetries; i++){
             if (!bucket.tryConsume(1)) {
                 log.warn("Rate limit 제한으로 재시도 대기중... 시도 횟수: {} - newsId: {} ", i+1, newsId);
-                Thread.sleep(2000);
+                Thread.sleep(60000);
                 continue;
             }
             try {
@@ -30,7 +30,7 @@ public class DetailQuizRateLimitedService {
                 return detailQuizService.generateQuizzes(newsId);
             } catch (Exception e) {
                 log.warn("AI 호출 중 오류 발생. 재시도합니다. 시도 횟수: {} - newsId: {}, error: {}", i+1, newsId, e.getMessage());
-                Thread.sleep(2000);
+                Thread.sleep(60000);
             }
         }
         log.error("퀴즈 생성 최종 실패. 뉴스 ID: {}", newsId);
