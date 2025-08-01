@@ -11,6 +11,7 @@ import com.back.domain.news.real.repository.RealNewsRepository;
 import com.back.domain.news.real.repository.TodayNewsRepository;
 import com.back.domain.news.today.entity.TodayNews;
 import com.back.global.exception.ServiceException;
+import com.back.global.rateLimiter.RateLimiter;
 import com.back.global.util.HtmlEntityDecoder;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -52,6 +53,7 @@ public class NewsDataService {
     private final TodayNewsRepository todayNewsRepository;
     private final RealNewsMapper realNewsMapper;
     private final ObjectMapper objectMapper;
+    private final RateLimiter rateLimiter;
 
     // HTTP 요청을 보내기 위한 Spring의 HTTP 클라이언트(외부 API 호출 시 사용)
     private final RestTemplate restTemplate;
@@ -211,7 +213,7 @@ public class NewsDataService {
     @Async("newsExecutor")
     public CompletableFuture<List<NaverNewsDto>> fetchNews(String keyword) {
             try {
-                waitForRateLimit();
+                rateLimiter.waitForRateLimit();
 
                 String url = naverUrl + keyword + "&display=" + newsDisplayCount + "&sort=" + newsSortOrder;
 
@@ -247,23 +249,7 @@ public class NewsDataService {
             }
     }
 
-    private void waitForRateLimit() throws InterruptedException {
-        int attempts = 0;
-        while (!bucket.tryConsume(1)) {
-            attempts++;
-            log.debug("Rate limit 대기 중... 시도 횟수: {}", attempts);
-            Thread.sleep(2000); // 2초 대기
 
-            // 너무 오래 기다리면 경고 (하지만 포기하지 않음)
-            if (attempts % 10 == 0) {
-                log.warn("Rate limit 대기가 길어지고 있습니다. 대기 횟수: {}", attempts);
-            }
-        }
-
-        if (attempts > 0) {
-            log.debug("Rate limit 토큰 획득 - 대기 횟수: {}", attempts);
-        }
-    }
 
     // 단건 크롤링
     public Optional<NewsDetailDto> crawladditionalInfo(String naverNewsUrl) {

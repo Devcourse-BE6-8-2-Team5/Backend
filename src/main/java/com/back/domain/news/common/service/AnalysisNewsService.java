@@ -4,6 +4,7 @@ import com.back.domain.news.common.dto.AnalyzedNewsDto;
 import com.back.domain.news.real.dto.RealNewsDto;
 import com.back.global.ai.AiService;
 import com.back.global.ai.processor.NewsAnalysisProcessor;
+import com.back.global.rateLimiter.RateLimiter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.bucket4j.Bucket;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +25,7 @@ public class AnalysisNewsService {
 
     private final AiService aiService;
     private final ObjectMapper objectMapper;
+    private final RateLimiter rateLimiter;
 
     @Qualifier("bucket")
     private final Bucket bucket;
@@ -62,8 +64,7 @@ public class AnalysisNewsService {
     public CompletableFuture<List<AnalyzedNewsDto>> processBatchAsync(List<RealNewsDto> batch) {
         try {
             // Rate limiting - 토큰 얻을 때까지 계속 시도
-            waitForRateLimit();
-
+            rateLimiter.waitForRateLimit();
             log.debug("배치 처리 시작 - 기사 수: {}", batch.size());
 
             NewsAnalysisProcessor processor = new NewsAnalysisProcessor(batch, objectMapper);
@@ -78,22 +79,4 @@ public class AnalysisNewsService {
         }
     }
 
-    // 토큰 얻을때까지 대기
-    private void waitForRateLimit() throws InterruptedException {
-        int attempts = 0;
-        while (!bucket.tryConsume(1)) {
-            attempts++;
-            log.debug("Rate limit 대기 중... 시도 횟수: {}", attempts);
-            Thread.sleep(2000); // 2초 대기
-
-            // 너무 오래 기다리면 경고 (하지만 포기하지 않음)
-            if (attempts % 10 == 0) {
-                log.warn("Rate limit 대기가 길어지고 있습니다. 대기 횟수: {}", attempts);
-            }
-        }
-
-        if (attempts > 0) {
-            log.debug("Rate limit 토큰 획득 - 대기 횟수: {}", attempts);
-        }
-    }
 }

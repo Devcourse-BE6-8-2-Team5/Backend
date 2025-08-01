@@ -1,5 +1,4 @@
 package com.back.domain.news.fake.service;
-
 import com.back.domain.news.fake.dto.FakeNewsDto;
 import com.back.domain.news.fake.entity.FakeNews;
 import com.back.domain.news.fake.repository.FakeNewsRepository;
@@ -8,6 +7,7 @@ import com.back.domain.news.real.entity.RealNews;
 import com.back.domain.news.real.repository.RealNewsRepository;
 import com.back.global.ai.AiService;
 import com.back.global.ai.processor.FakeNewsGeneratorProcessor;
+import com.back.global.rateLimiter.RateLimiter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.bucket4j.Bucket;
 import lombok.RequiredArgsConstructor;
@@ -33,6 +33,7 @@ public class FakeNewsService {
     private final ObjectMapper objectMapper;
     private final FakeNewsRepository fakeNewsRepository;
     private final RealNewsRepository realNewsRepository;
+    private final RateLimiter rateLimiter;
 
     @Qualifier("bucket")
     private final Bucket bucket;
@@ -43,7 +44,7 @@ public class FakeNewsService {
     public CompletableFuture<FakeNewsDto> generateFakeNewsAsync(RealNewsDto realNewsDto) {
         try {
             // Rate limiting
-            waitForRateLimit();
+            rateLimiter.waitForRateLimit();
 
             log.debug("가짜뉴스 생성 시작 - 실제뉴스 ID: {}", realNewsDto.id());
 
@@ -56,24 +57,6 @@ public class FakeNewsService {
         } catch (Exception e) {
             log.error("가짜뉴스 생성 실패 - 실제뉴스 ID: {}", realNewsDto.id(), e);
             throw new RuntimeException("가짜뉴스 생성 실패", e);
-        }
-    }
-
-    private void waitForRateLimit() throws InterruptedException {
-        int attempts = 0;
-        while (!bucket.tryConsume(1)) {
-            attempts++;
-            log.debug("Rate limit 대기 중... 시도 횟수: {}", attempts);
-            Thread.sleep(2000); // 2초 대기
-
-            // 너무 오래 기다리면 경고 (하지만 포기하지 않음)
-            if (attempts % 10 == 0) {
-                log.warn("Rate limit 대기가 길어지고 있습니다. 대기 횟수: {}", attempts);
-            }
-        }
-
-        if (attempts > 0) {
-            log.debug("Rate limit 토큰 획득 - 대기 횟수: {}", attempts);
         }
     }
 
