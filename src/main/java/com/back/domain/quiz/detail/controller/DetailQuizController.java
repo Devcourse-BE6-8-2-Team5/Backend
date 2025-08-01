@@ -4,6 +4,7 @@ import com.back.domain.member.member.entity.Member;
 import com.back.domain.quiz.detail.dto.DetailQuizAnswerDto;
 import com.back.domain.quiz.detail.dto.DetailQuizDto;
 import com.back.domain.quiz.detail.dto.DetailQuizResDto;
+import com.back.domain.quiz.detail.dto.DetailQuizWithHistoryDto;
 import com.back.domain.quiz.detail.entity.DetailQuiz;
 import com.back.domain.quiz.detail.entity.Option;
 import com.back.domain.quiz.detail.service.DetailQuizService;
@@ -45,13 +46,20 @@ public class DetailQuizController {
             )}
     )
     @GetMapping("/{id}")
-    public RsData<DetailQuizResDto> getDetailQuiz(@PathVariable Long id) {
-        DetailQuiz detailQuiz = detailQuizService.findById(id);
+    public RsData<DetailQuizWithHistoryDto> getDetailQuiz(@PathVariable Long id) {
+
+        Member actor = rq.getActor();
+
+        if (actor == null) {
+            throw new ServiceException(401, "로그인이 필요합니다.");
+        }
+
+        DetailQuizWithHistoryDto detailQuiz = detailQuizService.findById(id,actor);
 
         return new RsData<>(
                 200,
                 "상세 퀴즈 조회 성공",
-                new DetailQuizResDto(detailQuiz)
+                detailQuiz
         );
     }
 

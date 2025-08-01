@@ -4,7 +4,7 @@ import com.back.domain.member.member.entity.Member;
 import com.back.domain.news.common.enums.NewsCategory;
 import com.back.domain.quiz.fact.dto.FactQuizAnswerDto;
 import com.back.domain.quiz.fact.dto.FactQuizDto;
-import com.back.domain.quiz.fact.dto.FactQuizDtoWithNewsContent;
+import com.back.domain.quiz.fact.dto.FactQuizWithHistoryDto;
 import com.back.domain.quiz.fact.entity.CorrectNewsType;
 import com.back.domain.quiz.fact.entity.FactQuiz;
 import com.back.domain.quiz.fact.service.FactQuizService;
@@ -79,13 +79,20 @@ public class FactQuizController {
                             examples = @ExampleObject(value = "{\"resultCode\": 404, \"msg\": \"팩트 퀴즈를 찾을 수 없습니다. ID: 1\", \"data\": null}"))),
     })
     @GetMapping("/{id}")
-    public RsData<FactQuizDtoWithNewsContent> getFactQuizById(@PathVariable Long id) {
-        FactQuiz factQuiz = factQuizService.findById(id);
+    public RsData<FactQuizWithHistoryDto> getFactQuizById(@PathVariable Long id) {
+
+        Member actor = rq.getActor();
+
+        if (actor == null) {
+            throw new ServiceException(401, "로그인이 필요합니다.");
+        }
+
+        FactQuizWithHistoryDto factQuiz = factQuizService.findById(id,actor);
 
         return new RsData<>(
                 200,
                 "팩트 퀴즈 조회 성공. ID: " + id,
-                new FactQuizDtoWithNewsContent(factQuiz)
+                factQuiz
         );
     }
 

@@ -39,7 +39,7 @@ public class QuizHistory {
     QuizType quizType; // 퀴즈 타입(3가지)
 
     @Column(nullable = false)
-    private long quizId; // 퀴즈 ID
+    private Long quizId; // 퀴즈 ID
 
     @CreatedDate
     @Setter(AccessLevel.PRIVATE)

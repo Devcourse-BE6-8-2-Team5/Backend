@@ -2,11 +2,16 @@ package com.back.domain.quiz.daily.service;
 
 import com.back.domain.member.member.entity.Member;
 import com.back.domain.member.member.repository.MemberRepository;
+import com.back.domain.member.quizhistory.entity.QuizHistory;
+import com.back.domain.member.quizhistory.repository.QuizHistoryRepository;
 import com.back.domain.member.quizhistory.service.QuizHistoryService;
 import com.back.domain.news.real.entity.RealNews;
 import com.back.domain.news.real.repository.TodayNewsRepository;
 import com.back.domain.news.today.entity.TodayNews;
+import com.back.domain.quiz.QuizType;
 import com.back.domain.quiz.daily.dto.DailyQuizAnswerDto;
+import com.back.domain.quiz.daily.dto.DailyQuizDto;
+import com.back.domain.quiz.daily.dto.DailyQuizWithHistoryDto;
 import com.back.domain.quiz.daily.entity.DailyQuiz;
 import com.back.domain.quiz.daily.repository.DailyQuizRepository;
 import com.back.domain.quiz.detail.entity.DetailQuiz;
@@ -19,6 +24,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -28,15 +36,49 @@ public class DailyQuizService {
     private final TodayNewsRepository todayNewsRepository;
     private final MemberRepository memberRepository;
     private final QuizHistoryService quizHistoryService;
+    private final QuizHistoryRepository quizHistoryRepository;
 
     @Transactional(readOnly = true)
-    public List<DailyQuiz> getDailyQuizzes(Long todayNewsId) {
+    public List<DailyQuizWithHistoryDto> getDailyQuizzes(Long todayNewsId, Member actor) {
+        List<DailyQuiz> quizzes = getDailyQuizzesByTodayNews(todayNewsId);
+
+        Set<Long> quizIds = quizzes.stream()
+                .map(DailyQuiz::getId)
+                .collect(Collectors.toSet());
+
+        Map<Long, QuizHistory> historyMap = getQuizHistoryMapByMemberAndQuizIds(actor, quizIds);
+
+        return quizzes.stream()
+                .map(quiz -> convertToDto(quiz, historyMap.get(quiz.getId())))
+                .collect(Collectors.toList());
+    }
+
+    private List<DailyQuiz> getDailyQuizzesByTodayNews(Long todayNewsId) {
         List<DailyQuiz> quizzes = dailyQuizRepository.findByTodayNewsId(todayNewsId);
-        if( quizzes.isEmpty()) {
+        if (quizzes.isEmpty()) {
             throw new ServiceException(404, "오늘의 뉴스에 해당하는 오늘의 퀴즈가 존재하지 않습니다.");
         }
         return quizzes;
     }
+
+    private Map<Long, QuizHistory> getQuizHistoryMapByMemberAndQuizIds(Member member, Set<Long> quizIds) {
+        List<QuizHistory> histories = quizHistoryRepository.findByMemberAndQuizTypeAndQuizIdIn(
+                member, QuizType.DAILY, quizIds
+        );
+        return histories.stream()
+                .collect(Collectors.toMap(QuizHistory::getQuizId, h -> h));
+    }
+
+    private DailyQuizWithHistoryDto convertToDto(DailyQuiz quiz, QuizHistory history) {
+        return new DailyQuizWithHistoryDto(
+                new DailyQuizDto(quiz),
+                history != null ? history.getAnswer() : null,
+                history != null && history.isCorrect(),
+                history != null ? history.getGainExp() : 0,
+                QuizType.DAILY
+        );
+    }
+
 
     @Scheduled(cron = "0 0 3 * * *", zone = "Asia/Seoul")
     public void createDailyQuiz() {
