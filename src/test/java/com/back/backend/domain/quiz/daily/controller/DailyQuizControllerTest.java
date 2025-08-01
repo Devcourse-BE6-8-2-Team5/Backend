@@ -74,13 +74,19 @@ public class DailyQuizControllerTest {
                 .andExpect(jsonPath("$.code").value(200))
                 .andExpect(jsonPath("$.message").value("오늘의 퀴즈 조회 성공"))
                 .andExpect(jsonPath("$.data.length()").value(3))
-                .andExpect(jsonPath("$.data[0].question").value("뉴스에서 소개하는 여름 제철 간식은 무엇인가요?"))
-                .andExpect(jsonPath("$.data[1].question").value("뉴스에서 언급된 장소는 어디인가요?"))
-                .andExpect(jsonPath("$.data[2].question").value("뉴스에서 감자와 찰옥수수를 소개하는 사람들은 누구인가요?"))
-                .andExpect(jsonPath("$.data[0].option1").isString())
-                .andExpect(jsonPath("$.data[0].option2").isString())
-                .andExpect(jsonPath("$.data[0].option3").isString())
-                .andExpect(jsonPath("$.data[0].correctOption").exists());
+                .andExpect(jsonPath("$.data[0].dailyQuizDto.question").value("뉴스에서 소개하는 여름 제철 간식은 무엇인가요?"))
+                .andExpect(jsonPath("$.data[1].dailyQuizDto.question").value("뉴스에서 언급된 장소는 어디인가요?"))
+                .andExpect(jsonPath("$.data[2].dailyQuizDto.question").value("뉴스에서 감자와 찰옥수수를 소개하는 사람들은 누구인가요?"))
+                .andExpect(jsonPath("$.data[0].dailyQuizDto.option1").isString())
+                .andExpect(jsonPath("$.data[0].dailyQuizDto.option2").isString())
+                .andExpect(jsonPath("$.data[0].dailyQuizDto.option3").isString())
+                .andExpect(jsonPath("$.data[0].dailyQuizDto.correctOption").exists())
+
+                .andExpect(jsonPath("$.data[0].answer").doesNotExist())
+                .andExpect(jsonPath("$.data[0].gainExp").exists())
+                .andExpect(jsonPath("$.data[0].correct").exists())
+                .andExpect(jsonPath("$.data[0].quizType").value("DAILY"));
+
     }
 
     @Test
