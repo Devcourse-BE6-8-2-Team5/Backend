@@ -62,6 +62,10 @@ public class DevInitData {
         memberService.join("user2","12345678", "user2@gmail.com");
         memberService.join("user3","12345678", "user3@gmail.com");
         memberService.join("user4","12345678", "user4@gmail.com");
+        memberService.join("user5","12345678", "user5@gmail.com");
+        memberService.join("user6","12345678", "user6@gmail.com");
+
+
 
 
     }
