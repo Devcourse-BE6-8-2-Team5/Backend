@@ -41,24 +41,22 @@ public class FakeNewsService {
     //가짜뉴스 비동기 생성
     @Async("newsExecutor")
     public CompletableFuture<FakeNewsDto> generateFakeNewsAsync(RealNewsDto realNewsDto) {
-        return CompletableFuture.supplyAsync(() -> {
-            try {
-                // Rate limiting
-                waitForRateLimit();
+        try {
+            // Rate limiting
+            waitForRateLimit();
 
-                log.debug("가짜뉴스 생성 시작 - 실제뉴스 ID: {}", realNewsDto.id());
+            log.debug("가짜뉴스 생성 시작 - 실제뉴스 ID: {}", realNewsDto.id());
 
-                FakeNewsGeneratorProcessor processor = new FakeNewsGeneratorProcessor(realNewsDto, objectMapper);
-                FakeNewsDto result = aiService.process(processor);
+            FakeNewsGeneratorProcessor processor = new FakeNewsGeneratorProcessor(realNewsDto, objectMapper);
+            FakeNewsDto result = aiService.process(processor);
 
-                log.debug("가짜뉴스 생성 완료 - 실제뉴스 ID: {}", realNewsDto.id());
-                return result;
+            log.debug("가짜뉴스 생성 완료 - 실제뉴스 ID: {}", realNewsDto.id());
+            return CompletableFuture.completedFuture(result);
 
-            } catch (Exception e) {
-                log.error("가짜뉴스 생성 실패 - 실제뉴스 ID: {}", realNewsDto.id(), e);
-                throw new RuntimeException("가짜뉴스 생성 실패", e);
-            }
-        });
+        } catch (Exception e) {
+            log.error("가짜뉴스 생성 실패 - 실제뉴스 ID: {}", realNewsDto.id(), e);
+            throw new RuntimeException("가짜뉴스 생성 실패", e);
+        }
     }
 
     private void waitForRateLimit() throws InterruptedException {
