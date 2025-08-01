@@ -10,6 +10,9 @@ import org.springframework.stereotype.Component;
 public class RateLimiter {
     private final Bucket bucket;
 
+    private static final long MAX_WAIT_TIME = 60000;
+    private static final long WAIT_INTERVAL = 2000;
+
     public RateLimiter(@Qualifier("bucket") Bucket bucket) {
         this.bucket = bucket;
     }
@@ -21,14 +24,13 @@ public class RateLimiter {
         while (!bucket.tryConsume(1)) {
             attempts++;
 
-            if (System.currentTimeMillis() - startTime > 60000) {
+            if (System.currentTimeMillis() - startTime > MAX_WAIT_TIME) {
                 throw new RuntimeException("Rate limit 대기 시간 1분 초과");
             }
 
             log.debug("Rate limit 대기 중... 시도 횟수: {}", attempts);
-            Thread.sleep(2000); // 2초 대기
+            Thread.sleep(WAIT_INTERVAL); // 대기
 
-            // 너무 오래 기다리면 경고 (하지만 포기하지 않음)
             if (attempts % 10 == 0) {
                 log.warn("Rate limit 대기가 길어지고 있습니다. 대기 횟수: {}", attempts);
             }
