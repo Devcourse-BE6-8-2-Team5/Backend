@@ -24,6 +24,4 @@ public class DetailQuizWithHistoryDto {
         this.quizType = quizType;
     }
 
-    public DetailQuizWithHistoryDto(DetailQuizResDto detailQuizResDto, String answer, Object o) {
-    }
 }
