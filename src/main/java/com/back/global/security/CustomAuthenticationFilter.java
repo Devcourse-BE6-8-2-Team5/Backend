@@ -59,6 +59,7 @@ public class CustomAuthenticationFilter extends OncePerRequestFilter {
                         uri.startsWith("/swagger-resources/") ||
                         uri.startsWith("/h2-console") ||
                         (method.equals("GET") && uri.equals("/api/news")) ||
+                        (method.equals("GET") && uri.equals("/api/members/rank")) ||
                         (method.equals("GET") && uri.startsWith("/api/news/")) ||
                         (method.equals("GET") && uri.equals("/api/quiz/fact")) ||
                         (method.equals("GET") && uri.equals("/api/quiz/fact/category")) ||
