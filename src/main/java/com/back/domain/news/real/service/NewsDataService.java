@@ -123,7 +123,6 @@ public class NewsDataService {
                     realNewsDtoList.add(realNewsDto);
                 }
 
-                //TODO : @Async, TaskScheduler 등으로 비동기 처리 고려
                 Thread.sleep(crawlingDelay);
             }
             return saveAllRealNews(realNewsDtoList);
@@ -137,26 +136,35 @@ public class NewsDataService {
 
     @Transactional
     public List<RealNewsDto> createRealNewsDtoByCrawl(List<NaverNewsDto> MetaDataList) {
+
         List<RealNewsDto> allRealNewsDtos = new ArrayList<>();
+        Set<String> processedUrls = new HashSet<>();
 
         try{
             for (NaverNewsDto metaData : MetaDataList) {
+                String url = metaData.link();
+
+                //중복체크
+                if (processedUrls.contains(url) || realNewsRepository.existsByLink(url)) {
+                    log.debug("스킵: {}", url);
+                    continue;
+                }
+
                 Optional<NewsDetailDto> newsDetailData = crawladditionalInfo(metaData.link());
 
                 if (newsDetailData.isEmpty()) {
                     // 크롤링 실패 시 해당 뉴스는 건너뜀
                     log.warn("크롤링 실패: {}", metaData.link());
+                    processedUrls.add(url); // 실패한 URL도 기록
                     continue;
-                } else{
-                    log.info("크롤링 성공: {}", metaData.link());
                 }
 
+                log.info("크롤링 성공: {}", metaData.link());
                 RealNewsDto realNewsDto = makeRealNewsFromInfo(metaData, newsDetailData.get());
 
-                // 중복된 뉴스 제목이 있는지 확인
-                if (!realNewsRepository.existsByTitle(realNewsDto.title())) {
-                    allRealNewsDtos.add(realNewsDto);
-                }
+                allRealNewsDtos.add(realNewsDto);
+                processedUrls.add(url);
+
                 Thread.sleep(crawlingDelay);
             }
             return allRealNewsDtos;
@@ -180,34 +188,56 @@ public class NewsDataService {
     // 네이버 API를 통해 메타데이터 수집
     public List<NaverNewsDto> collectMetaDataFromNaver(List<String> keywords) {
         List<NaverNewsDto> allNews = new ArrayList<>();
-
         log.info("네이버 API 호출 시작: {} 개 키워드", keywords.size());
 
-        for (String keyword : keywords) {
-            try {
-                CompletableFuture<List<NaverNewsDto>> data = fetchNews(keyword);
-                List<NaverNewsDto> news = data.get();
-                log.info("키워드 '{}': {}건 조회", keyword, news.size());
+        List<CompletableFuture<List<NaverNewsDto>>> futures = keywords.stream()
+                .map(this::fetchNews) // 비동기 처리
+                .toList();
 
-                // 네이버 뉴스만 필터링
-                List<NaverNewsDto> naverOnlyNews = news.stream()
+        try {
+            CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).get();
+            int totalExpected = 0;
+
+            for (int i = 0; i < futures.size(); i++) {
+                List<NaverNewsDto> news = futures.get(i).get();
+
+                List<NaverNewsDto> naverOnly = news.stream()
                         .filter(dto -> dto.link().contains("n.news.naver.com"))
                         .toList();
 
-                allNews.addAll(naverOnlyNews);
+                allNews.addAll(naverOnly);
+            }
 
-                Thread.sleep(1000); // API 제한
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                throw new RuntimeException("런타임 인터럽트 발생");
-            } catch (ExecutionException e) {
-                throw new RuntimeException("뉴스 조회 중 오류 발생", e.getCause());
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException("런타임 인터럽트 발생");
+        } catch (ExecutionException e) {
+            throw new RuntimeException("뉴스 조회 중 오류 발생", e.getCause());
+        }
+
+        //API 응답 받은 후 바로 URL 기준 중복 제거
+        List<NaverNewsDto> uniqueNews = removeDuplicateUrls(allNews);
+
+        log.info("API 호출 완료: {}건 → 중복 제거 후: {}건", allNews.size(), uniqueNews.size());
+        return uniqueNews;
+
+    }
+
+    private List<NaverNewsDto> removeDuplicateUrls(List<NaverNewsDto> newsList) {
+        Map<String, NaverNewsDto> uniqueByUrl = new LinkedHashMap<>();
+
+        for (NaverNewsDto news : newsList) {
+            String url = news.link();
+            if (!uniqueByUrl.containsKey(url)) {
+                uniqueByUrl.put(url, news);
+            } else {
+                log.debug("중복 URL 제거: {}", url);
             }
         }
 
-        log.info("네이버 API 호출 완료: 총 {}건", allNews.size());
-        return allNews;
+        return new ArrayList<>(uniqueByUrl.values());
     }
+
 
     //
     @Async("newsExecutor")

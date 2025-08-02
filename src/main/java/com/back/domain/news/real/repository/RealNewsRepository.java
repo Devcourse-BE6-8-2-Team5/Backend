@@ -30,5 +30,7 @@ public interface RealNewsRepository extends JpaRepository<RealNews, Long> {
     Page<RealNews> findByIdNot(Long excludeId, Pageable pageable);
 
     Page<RealNews> findByNewsCategoryAndIdNot(NewsCategory category, Long excludeId, Pageable pageable);
+
+    boolean existsByLink(String url);
 }
 
