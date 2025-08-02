@@ -93,6 +93,7 @@ public class AdminNewsController {
         return RsData.of(200, String.format("%d번 뉴스 삭제 완료", newsId));
     }
 
+    // TODO : put 으로 고치기
     @Operation(summary = "오늘의 뉴스 설정", description = "오늘의 뉴스를 설정합니다.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "오늘의 뉴스 설정 성공"),
