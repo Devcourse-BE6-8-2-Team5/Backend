@@ -81,7 +81,7 @@ public class DevInitData {
                 "정부가 '민생회복 소비쿠폰'을 지급 중인 가운데 본격적인 여름 휴가철에 접어들면서 내수경기 반등에... '7말 8초'(7월 말부터 8월 초) 여름 휴가철과 맞물려 소비 진작 효과가 커질 가능성도 있다. 정부 관계자는...",
                 "https://n.news.naver.com/mnews/article/088/0000961622?sid=101",
                 "https://imgnews.pstatic.net/image/088/2025/07/29/0000961622_001_20250729133508809.jpg?type=w860",
-                LocalDateTime.now().minusDays(3),
+                LocalDateTime.now(),
                 "매일신문",
                 "정은빈 기자",
                 "https://www.imaeil.com/page/view/2025072913253167202",
@@ -367,7 +367,7 @@ public class DevInitData {
         List<RealNewsDto> savedNewsList = newsDataService.saveAllRealNews(newsList);
 
         if (!savedNewsList.isEmpty()) {
-            newsDataService.setTodayNews(savedNewsList.get(1).id());
+            newsDataService.setTodayNews(savedNewsList.get(0).id());
         }
     }
 
