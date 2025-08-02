@@ -1,4 +1,4 @@
-package com.back.domain.news.real.controller;
+package com.back.backend.domain.news.real.controller;
 
 
 import com.back.backend.global.config.TestRqConfig;
