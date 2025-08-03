@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
 @Slf4j
 @Service
@@ -54,10 +55,23 @@ public class AnalysisNewsService {
                 .map(this::processBatchAsync)
                 .toList();
 
-        return futures.stream()
-                .map(CompletableFuture::join)
-                .flatMap(List::stream)
-                .toList();
+        try {
+            CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).get();
+
+            List<AnalyzedNewsDto> allResults = futures.stream()
+                    .map(CompletableFuture::join) // 이미 완료된 상태라 즉시 반환
+                    .flatMap(List::stream)
+                    .toList();
+
+            log.info("뉴스 필터링 완료 - 결과: {}개", allResults.size());
+            return allResults;
+
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException("뉴스 분석이 중단되었습니다", e);
+        } catch (ExecutionException e) {
+            throw new RuntimeException("뉴스 분석 중 오류 발생", e.getCause());
+        }
     }
 
     @Async("newsExecutor")

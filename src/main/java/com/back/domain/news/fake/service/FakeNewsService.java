@@ -1,4 +1,5 @@
 package com.back.domain.news.fake.service;
+
 import com.back.domain.news.fake.dto.FakeNewsDto;
 import com.back.domain.news.fake.entity.FakeNews;
 import com.back.domain.news.fake.repository.FakeNewsRepository;
@@ -9,9 +10,9 @@ import com.back.global.ai.AiService;
 import com.back.global.ai.processor.FakeNewsGeneratorProcessor;
 import com.back.global.rateLimiter.RateLimiter;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.github.bucket4j.Bucket;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -21,8 +22,12 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import static java.util.concurrent.CompletableFuture.*;
+import static java.util.concurrent.CompletableFuture.completedFuture;
 
 @Slf4j
 @Service
@@ -35,59 +40,62 @@ public class FakeNewsService {
     private final RealNewsRepository realNewsRepository;
     private final RateLimiter rateLimiter;
 
-    @Qualifier("bucket")
-    private final Bucket bucket;
+    @Autowired
+    @Qualifier("newsExecutor")
+    private Executor executor;
 
 
-    //가짜뉴스 비동기 생성
+
     @Async("newsExecutor")
-    public CompletableFuture<FakeNewsDto> generateFakeNewsAsync(RealNewsDto realNewsDto) {
-        try {
-            // Rate limiting
-            rateLimiter.waitForRateLimit();
-
-            log.debug("가짜뉴스 생성 시작 - 실제뉴스 ID: {}", realNewsDto.id());
-
-            FakeNewsGeneratorProcessor processor = new FakeNewsGeneratorProcessor(realNewsDto, objectMapper);
-            FakeNewsDto result = aiService.process(processor);
-
-            log.debug("가짜뉴스 생성 완료 - 실제뉴스 ID: {}", realNewsDto.id());
-            return CompletableFuture.completedFuture(result);
-
-        } catch (Exception e) {
-            log.error("가짜뉴스 생성 실패 - 실제뉴스 ID: {}", realNewsDto.id(), e);
-            throw new RuntimeException("가짜뉴스 생성 실패", e);
-        }
-    }
-
-    public List<FakeNewsDto> generateFakeNewsBatch(List<RealNewsDto> realNewsDtos) {
+    public CompletableFuture<List<FakeNewsDto>> generateFakeNewsBatch(List<RealNewsDto> realNewsDtos) {
         if (realNewsDtos == null || realNewsDtos.isEmpty()) {
             log.warn("생성할 가짜뉴스가 없습니다.");
-            return Collections.emptyList();
+            return completedFuture(Collections.emptyList());
         }
 
         log.info("가짜뉴스 배치 생성 시작 (비동기) - 총 {}개", realNewsDtos.size());
 
         // 모든 뉴스를 비동기로 처리
         List<CompletableFuture<FakeNewsDto>> futures = realNewsDtos.stream()
-                .map(this::generateFakeNewsAsync)
+                .map(realNewsDto -> supplyAsync(() -> {
+                    try {
+                        rateLimiter.waitForRateLimit(); // Rate limiting은 여기서
+                        log.debug("가짜뉴스 생성 시작 - 실제뉴스 ID: {}", realNewsDto.id());
+
+                        FakeNewsGeneratorProcessor processor = new FakeNewsGeneratorProcessor(realNewsDto, objectMapper);
+                        FakeNewsDto result = aiService.process(processor);
+
+                        log.debug("가짜뉴스 생성 완료 - 실제뉴스 ID: {}", realNewsDto.id());
+                        return result;
+
+                    } catch (Exception e) {
+                        log.error("가짜뉴스 생성 실패 - 실제뉴스 ID: {}", realNewsDto.id(), e);
+                        throw new RuntimeException("가짜뉴스 생성 실패", e);
+                    }
+                }, executor)) // ← executor 사용
                 .toList();
 
         // 모든 결과 수집
-        return futures.stream()
+        List<FakeNewsDto> results = futures.stream()
                 .map(CompletableFuture::join)
                 .toList();
+
+        return completedFuture(results);
 
     }
 
     @Transactional
     public List<FakeNewsDto> generateAndSaveAllFakeNews(List<RealNewsDto> realNewsDtos){
-        List<FakeNewsDto> fakeNewsDtos = generateFakeNewsBatch(realNewsDtos);
-        saveAllFakeNews(fakeNewsDtos);
+        try{
+            List<FakeNewsDto> fakeNewsDtos = generateFakeNewsBatch(realNewsDtos).get();
+            saveAllFakeNews(fakeNewsDtos);
 
-        return fakeNewsDtos;
+            return fakeNewsDtos;
+        } catch (Exception e){
+            log.error("가짜 뉴스 생성 및 저장 실패: {}", e.getMessage());
+            throw new RuntimeException("가짜 뉴스 생성 및 저장 실패", e);
+        }
     }
-
 
     @Transactional
     public void saveAllFakeNews(List<FakeNewsDto> fakeNewsDtos) {
@@ -129,6 +137,7 @@ public class FakeNewsService {
         return aiService.process(processor);
     }
 
+
     //단건 저장
     @Transactional
     public void saveFakeNews(FakeNewsDto fakeNewsDto) {
@@ -147,3 +156,4 @@ public class FakeNewsService {
         return (int) fakeNewsRepository.count();
     }
 }
+

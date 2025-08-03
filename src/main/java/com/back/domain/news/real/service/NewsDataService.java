@@ -16,14 +16,12 @@ import com.back.global.util.HtmlEntityDecoder;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.github.bucket4j.Bucket;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -57,9 +55,6 @@ public class NewsDataService {
 
     // HTTP 요청을 보내기 위한 Spring의 HTTP 클라이언트(외부 API 호출 시 사용)
     private final RestTemplate restTemplate;
-
-    @Qualifier("bucket")
-    private final Bucket bucket;
 
     @Value("${NAVER_CLIENT_ID}")
     private String clientId;
@@ -161,7 +156,7 @@ public class NewsDataService {
 
                 log.info("크롤링 성공: {}", metaData.link());
                 RealNewsDto realNewsDto = makeRealNewsFromInfo(metaData, newsDetailData.get());
-
+                log.info("새 뉴스 생성 - ID: {}, 제목: {}", realNewsDto.id(), realNewsDto.title());
                 allRealNewsDtos.add(realNewsDto);
                 processedUrls.add(url);
 
@@ -179,8 +174,15 @@ public class NewsDataService {
     public List<RealNewsDto> saveAllRealNews(List<RealNewsDto> realNewsDtoList) {
         // DTO → Entity 변환 후 저장
         List<RealNews> realNewsList = realNewsMapper.toEntityList(realNewsDtoList);
+        // 엔티티 변환 후 ID 확인
+        for (RealNews entity : realNewsList) {
+            log.debug("엔티티 변환 후 - ID: {}, 제목: {}", entity.getId(), entity.getTitle());
+        }
         List<RealNews> savedEntities = realNewsRepository.saveAll(realNewsList); // 저장된 결과 받기
 
+        for (RealNews saved : savedEntities) {
+            log.info("저장 완료 - 생성된 ID: {}, 제목: {}", saved.getId(), saved.getTitle());
+        }
         // Entity → DTO 변환해서 반환
         return realNewsMapper.toDtoList(savedEntities);
     }
@@ -196,7 +198,6 @@ public class NewsDataService {
 
         try {
             CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).get();
-            int totalExpected = 0;
 
             for (int i = 0; i < futures.size(); i++) {
                 List<NaverNewsDto> news = futures.get(i).get();
@@ -334,6 +335,7 @@ public class NewsDataService {
                 naverNewsDto.link(),
                 newsDetailDto.imgUrl(),
                 parseNaverDate(naverNewsDto.pubDate()),
+                LocalDateTime.now(), // 생성일은 현재 시간으로 설정
                 newsDetailDto.mediaName(),
                 newsDetailDto.journalist(),
                 naverNewsDto.originallink(),
@@ -447,17 +449,6 @@ public class NewsDataService {
                 .distinct()
                 .toList();
     }
-
-    public List<RealNewsDto> removeDuplicateTitles(List<RealNewsDto> newsBeforeFilter) {
-        // 제목을 기준으로 중복 제거
-
-        Map<String, RealNewsDto> uniqueNewsMap = new LinkedHashMap<>();
-        for (RealNewsDto news : newsBeforeFilter) {
-            uniqueNewsMap.put(news.title(), news);
-        }
-        return new ArrayList<>(uniqueNewsMap.values());
-    }
-
 
     @Transactional(readOnly = true)
     public Page<RealNewsDto> getAllRealNewsList(Pageable pageable) {

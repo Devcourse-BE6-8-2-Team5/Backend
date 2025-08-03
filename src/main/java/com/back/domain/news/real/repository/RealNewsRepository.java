@@ -21,8 +21,6 @@ public interface RealNewsRepository extends JpaRepository<RealNews, Long> {
     @Query("SELECT r FROM RealNews r WHERE r.createdDate >= :start AND r.createdDate < :end")
     List<RealNews> findTodayNews(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
 
-    List<RealNews> findByOriginCreatedDateBetween(LocalDateTime start, LocalDateTime end);
-
     Page<RealNews> findByNewsCategory(NewsCategory category, Pageable pageable);
 
     Page<RealNews> findByTitleContainingAndIdNot(String title, Long excludeId, Pageable pageable);
@@ -32,5 +30,7 @@ public interface RealNewsRepository extends JpaRepository<RealNews, Long> {
     Page<RealNews> findByNewsCategoryAndIdNot(NewsCategory category, Long excludeId, Pageable pageable);
 
     boolean existsByLink(String url);
+
+    List<RealNews> findByCreatedDateBetween(LocalDateTime start, LocalDateTime end);
 }
 

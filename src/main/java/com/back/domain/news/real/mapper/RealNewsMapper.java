@@ -23,6 +23,7 @@ public class RealNewsMapper {
                 .link(realNewsDto.link())
                 .imgUrl(realNewsDto.imgUrl())
                 .originCreatedDate(realNewsDto.originCreatedDate())
+                .createdDate(realNewsDto.createdDate())
                 .mediaName(realNewsDto.mediaName())
                 .journalist(realNewsDto.journalist())
                 .originalNewsUrl(realNewsDto.originalNewsUrl())
@@ -45,6 +46,7 @@ public class RealNewsMapper {
                 realNews.getLink(),
                 realNews.getImgUrl(),
                 realNews.getOriginCreatedDate(),
+                realNews.getCreatedDate(),
                 realNews.getMediaName(),
                 realNews.getJournalist(),
                 realNews.getOriginalNewsUrl(),

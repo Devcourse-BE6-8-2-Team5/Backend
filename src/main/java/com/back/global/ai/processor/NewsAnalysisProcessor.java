@@ -212,6 +212,7 @@ public class NewsAnalysisProcessor implements AiRequestProcessor<List<AnalyzedNe
                     originalNews.link(),
                     originalNews.imgUrl(),
                     originalNews.originCreatedDate(),
+                    originalNews.createdDate(),
                     originalNews.mediaName(),
                     originalNews.journalist(),
                     originalNews.originalNewsUrl(),
