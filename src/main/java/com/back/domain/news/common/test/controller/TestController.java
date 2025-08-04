@@ -164,7 +164,5 @@ public class TestController {
             return RsData.of(500, "네이버 뉴스 조회 실패: " + e.getMessage());
         }
     }
-
-    private final RealNewsRepository realNewsRepository;
 }
 

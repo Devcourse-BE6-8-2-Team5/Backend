@@ -17,17 +17,13 @@ public interface RealNewsRepository extends JpaRepository<RealNews, Long> {
 
     boolean existsByTitle(String title);
 
-    // 뉴스 가져오는 시간에 따라 쿼리 변경 가능성 있음
-    @Query("SELECT r FROM RealNews r WHERE r.createdDate >= :start AND r.createdDate < :end")
-    List<RealNews> findTodayNews(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
-
     Page<RealNews> findByNewsCategory(NewsCategory category, Pageable pageable);
 
-    Page<RealNews> findByTitleContainingAndIdNot(String title, Long excludeId, Pageable pageable);
+    Page<RealNews> findByTitleContainingAndIdNot(String title, Long excludedId, Pageable pageable);
 
-    Page<RealNews> findByIdNot(Long excludeId, Pageable pageable);
+    Page<RealNews> findByIdNot(Long excludedId, Pageable pageable);
 
-    Page<RealNews> findByNewsCategoryAndIdNot(NewsCategory category, Long excludeId, Pageable pageable);
+    Page<RealNews> findByNewsCategoryAndIdNot(NewsCategory category, Long excludedId, Pageable pageable);
 
 
     boolean existsByLink(String url);
