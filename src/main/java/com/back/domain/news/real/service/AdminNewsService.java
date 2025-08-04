@@ -43,6 +43,10 @@ public class AdminNewsService {
 
         List<RealNewsDto> savedNews = newsDataService.saveAllRealNews(selectedNews);
 
+        if(savedNews.isEmpty()) {
+            log.warn("저장된 뉴스가 없습니다. 오늘의 뉴스 수집이 실패했을 수 있습니다.");
+            return;
+        }
         newsDataService.setTodayNews(savedNews.getFirst().id());
     }
 
