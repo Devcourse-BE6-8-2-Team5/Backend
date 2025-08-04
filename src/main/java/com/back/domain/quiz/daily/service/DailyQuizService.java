@@ -79,15 +79,14 @@ public class DailyQuizService {
     }
 
     @Transactional
-    public void createDailyQuiz() {
-        TodayNews todayNews = todayNewsRepository.findFirstByOrderBySelectedDateDesc()
-                .orElseThrow(() -> new ServiceException(404, "오늘의 뉴스가 없습니다."));
+    public void createDailyQuiz(Long todayNewsId) {
+        TodayNews todayNews = todayNewsRepository.findById(todayNewsId)
+                .orElseThrow(() -> new ServiceException(404, "해당 ID의 오늘의 뉴스가 없습니다."));
 
         boolean alreadyCreated = dailyQuizRepository.existsByTodayNews(todayNews);
 
         if (alreadyCreated) {
-            log.info("이미 오늘의 퀴즈가 생성되었습니다. 작업을 건너뜁니다.");
-            return;
+            throw new ServiceException(400, "오늘의 퀴즈가 이미 생성되었습니다.");
         }
 
         RealNews realNews = todayNews.getRealNews();

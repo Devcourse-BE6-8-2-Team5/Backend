@@ -43,10 +43,10 @@ public class DevInitData {
         return args -> {
             self.memberInit();
             self.newsInit();
-            self.fakeNewsInit();
             self.detailQuizInit();
+            self.fakeNewsInit();
             self.factQuizInit();
-            self.dailyQuizInit();
+            //self.dailyQuizInit();
         };
     }
 
