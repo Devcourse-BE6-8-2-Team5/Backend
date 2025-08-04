@@ -111,7 +111,7 @@ public class RealNewsController {
         Sort sortBy = Sort.by(sortDirection, "originCreatedDate");
 
         Pageable pageable = PageRequest.of(page-1, size, sortBy);
-//        Page<RealNewsDto> realNewsPage = realNewsService.getRealNewsList(pageable);
+        //Page<RealNewsDto> realNewsPage = realNewsService.getRealNewsList(pageable);
         Page<RealNewsDto> realNewsPage = realNewsService.getRealNewsListExcludingNth(pageable, OX_QUIZ_INDEX);
 
         return newsPageService.getPagedNews(realNewsPage, NewsType.REAL);
@@ -189,7 +189,8 @@ public class RealNewsController {
         Sort sortBy = Sort.by(sortDirection, "originCreatedDate");
 
         Pageable pageable = PageRequest.of(page-1, size, sortBy);
-        Page<RealNewsDto> realNewsPage = realNewsService.getRealNewsByCategory(newsCategory, pageable);
+//        Page<RealNewsDto> realNewsPage = realNewsService.getRealNewsByCategory(newsCategory, pageable);
+        Page<RealNewsDto> realNewsPage = realNewsService.getRealNewsListByCategoryExcludingNth(newsCategory, pageable, OX_QUIZ_INDEX);
 
         return newsPageService.getPagedNews(realNewsPage, NewsType.REAL);
     }

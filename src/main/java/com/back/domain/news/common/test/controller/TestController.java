@@ -52,7 +52,7 @@ public class TestController {
 //            adminNewsService.dailyNewsProcess();
 
             //   속보랑 기타키워드 추가
-            List<String> newsKeywords = List.of("K팝", "장마");
+            List<String> newsKeywords = List.of("은행", "K팝");
 
             List<NaverNewsDto> newsKeywordsAfterAdd = newsDataService.collectMetaDataFromNaver(newsKeywords);
 
