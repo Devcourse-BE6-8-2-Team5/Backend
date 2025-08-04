@@ -29,7 +29,7 @@ public class AdminNewsService {
     private final static List<String> STATIC_KEYWORD = Arrays.asList("속보", "긴급", "단독");
     private final ApplicationEventPublisher publisher;
 
-    @Scheduled(cron = "0 12 13 * * *") // 매일 자정에 실행
+    @Scheduled(cron = "0 0 0 * * *") // 매일 자정에 실행
     @Transactional
     public void dailyNewsProcess(){
         List<String> keywords = keywordGenerationService.generateTodaysKeywords().getKeywords();

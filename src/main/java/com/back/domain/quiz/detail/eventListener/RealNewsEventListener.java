@@ -17,13 +17,13 @@ public class RealNewsEventListener {
 
     @EventListener
     public void handleRealNewsCreated(RealNewsCreatedEvent event) {
-        log.info("🔥 TodayNewsCreatedEvent 수신. 이벤트 발생: {}", event);
+        log.info("RealNewsCreatedEvent 수신. 이벤트 발생: {}", event);
         List<Long> realNewsIds = event.getRealNewsIds();
 
         try {
             detailQuizEventService.generateDetailQuizzes(realNewsIds);
         } catch (Exception e) {
-            log.error("팩트 퀴즈 생성 중 오류 발생: {}", e.getMessage(), e);
+            log.error("상세 퀴즈 생성 중 오류 발생: {}", e.getMessage(), e);
         }
 
     }

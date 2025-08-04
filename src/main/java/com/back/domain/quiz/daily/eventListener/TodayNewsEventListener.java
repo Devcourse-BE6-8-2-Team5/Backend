@@ -14,7 +14,7 @@ public class TodayNewsEventListener {
     private final DailyQuizService dailyQuizService;
 
     @EventListener
-    public void handleFakeNewsCreated(TodayNewsCreatedEvent event) {
+    public void handleTodayNewsCreated(TodayNewsCreatedEvent event) {
         Long todayNewsId = event.getTodayNewsId();
 
         try {
