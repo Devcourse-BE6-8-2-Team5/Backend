@@ -143,10 +143,7 @@ public class RealNewsController {
             return RsData.of(400, "잘못된 페이지 파라미터입니다");
         }
 
-        Direction sortDirection = fromString(direction);
-        Sort sortBy = Sort.by(sortDirection, "originCreatedDate");
-
-        Pageable pageable = PageRequest.of(page-1, size, sortBy);
+        Pageable pageable = PageRequest.of(page-1, size);
         Page<RealNewsDto> RealNewsPage = realNewsService.searchRealNewsByTitleExcludingNth(title,pageable, OX_QUIZ_INDEX);
 //        Page<RealNewsDto> RealNewsPage = realNewsService.searchRealNewsByTitle(title, pageable);
 
