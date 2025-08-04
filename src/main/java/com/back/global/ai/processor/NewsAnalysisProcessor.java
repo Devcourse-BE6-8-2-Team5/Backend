@@ -97,6 +97,7 @@ public class NewsAnalysisProcessor implements AiRequestProcessor<List<AnalyzedNe
                 
                 **cleanedContent 작성 시 이스케이프 규칙:**
                 - 내부 따옴표: \\" (백슬래시 + 따옴표)
+                - 작은따옴표: 그대로 ' 사용 (이스케이프 금지)
                 - 개행 문자: \\n (백슬래시 + n)
                 - 백슬래시: \\\\ (백슬래시 + 백슬래시)
                 - 한글, 영문, 숫자: 그대로 사용 (유니코드 변환 금지)
@@ -120,8 +121,8 @@ public class NewsAnalysisProcessor implements AiRequestProcessor<List<AnalyzedNe
                 === 개행 규칙 (절대 무시하지 말 것) ===
                 **모든 뉴스에 대해 동일하게 적용:**
                 - 관련 문장들: 붙여서 작성
-                - 주제 바뀔 때: 반드시 \\\\n\\\\n 사용
-                - 예시: "첫 문장. 두 번째 문장.\\\\n\\\\n새 주제 첫 문장."
+                - 주제 바뀔 때: 반드시 \\n\\n 사용
+                - 예시: "첫 문장. 두 번째 문장.\\n\\n새 주제 첫 문장."
                 
                 === 응답 형식 ===
                 [

@@ -2,6 +2,10 @@ package com.back.domain.quiz.fact.controller;
 
 import com.back.domain.member.member.entity.Member;
 import com.back.domain.news.common.enums.NewsCategory;
+import com.back.domain.news.real.dto.RealNewsDto;
+import com.back.domain.news.real.repository.RealNewsRepository;
+import com.back.domain.news.real.service.NewsDataService;
+import com.back.domain.news.real.service.RealNewsService;
 import com.back.domain.quiz.fact.dto.FactQuizAnswerDto;
 import com.back.domain.quiz.fact.dto.FactQuizDto;
 import com.back.domain.quiz.fact.dto.FactQuizWithHistoryDto;
@@ -35,6 +39,7 @@ import static java.util.stream.Collectors.toList;
 public class FactQuizController {
     private final FactQuizService factQuizService;
     private final Rq rq;
+    private static final int DEFAULT_RANK = 2; // 기본 랭크 값
 
     @Operation(summary = "팩트 퀴즈 전체 조회", description = "팩트 퀴즈 (전체) 목록을 조회합니다.")
     @ApiResponses(value = {
@@ -42,14 +47,12 @@ public class FactQuizController {
     })
     @GetMapping
     public RsData<List<FactQuizDto>> getFactQuizzes() {
-        List<FactQuiz> factQuizzes = factQuizService.findAll();
+        List<FactQuizDto> factQuizzes = factQuizService.findByRank(DEFAULT_RANK);
 
         return new RsData<>(
                 200,
                 "팩트 퀴즈 목록 조회 성공",
-                factQuizzes.stream()
-                        .map(FactQuizDto::new)
-                        .collect(toList())
+                factQuizzes
         );
     }
 
@@ -59,14 +62,12 @@ public class FactQuizController {
     })
     @GetMapping("/category")
     public RsData<List<FactQuizDto>> getFactQuizzesByCategory(@RequestParam NewsCategory category) {
-        List<FactQuiz> factQuizzes = factQuizService.findByCategory(category);
+        List<FactQuizDto> factQuizzes = factQuizService.findByCategory(category, DEFAULT_RANK);
 
         return new RsData<>(
                 200,
                 "팩트 퀴즈 목록 조회 성공. 카테고리: " + category,
-                factQuizzes.stream()
-                        .map(FactQuizDto::new)
-                        .collect(toList())
+                factQuizzes
         );
     }
 
@@ -136,4 +137,6 @@ public class FactQuizController {
                 submittedQuiz
         );
     }
+
 }
+

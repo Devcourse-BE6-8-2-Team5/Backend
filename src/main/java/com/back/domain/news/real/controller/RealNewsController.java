@@ -16,15 +16,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
-
-import static org.springframework.data.domain.Sort.Direction;
-import static org.springframework.data.domain.Sort.Direction.fromString;
 
 @Tag(name = "RealNewsController", description = "Real News API")
 @RestController
@@ -107,11 +103,8 @@ public class RealNewsController {
             return RsData.of(400, "잘못된 페이지 파라미터입니다");
         }
 
-        Direction sortDirection = fromString(direction);
-        Sort sortBy = Sort.by(sortDirection, "originCreatedDate");
+        Pageable pageable = PageRequest.of(page-1, size);
 
-        Pageable pageable = PageRequest.of(page-1, size, sortBy);
-        //Page<RealNewsDto> realNewsPage = realNewsService.getRealNewsList(pageable);
         Page<RealNewsDto> realNewsPage = realNewsService.getRealNewsListExcludingNth(pageable, OX_QUIZ_INDEX);
 
         return newsPageService.getPagedNews(realNewsPage, NewsType.REAL);
@@ -145,7 +138,6 @@ public class RealNewsController {
 
         Pageable pageable = PageRequest.of(page-1, size);
         Page<RealNewsDto> RealNewsPage = realNewsService.searchRealNewsByTitleExcludingNth(title,pageable, OX_QUIZ_INDEX);
-//        Page<RealNewsDto> RealNewsPage = realNewsService.searchRealNewsByTitle(title, pageable);
 
         return newsPageService.getPagedNews(RealNewsPage, NewsType.REAL);
     }
@@ -182,11 +174,7 @@ public class RealNewsController {
                     Arrays.toString(NewsCategory.values()));
         }
 
-        Direction sortDirection = fromString(direction);
-        Sort sortBy = Sort.by(sortDirection, "originCreatedDate");
-
-        Pageable pageable = PageRequest.of(page-1, size, sortBy);
-//        Page<RealNewsDto> realNewsPage = realNewsService.getRealNewsByCategory(newsCategory, pageable);
+        Pageable pageable = PageRequest.of(page-1, size);
         Page<RealNewsDto> realNewsPage = realNewsService.getRealNewsListByCategoryExcludingNth(newsCategory, pageable, OX_QUIZ_INDEX);
 
         return newsPageService.getPagedNews(realNewsPage, NewsType.REAL);

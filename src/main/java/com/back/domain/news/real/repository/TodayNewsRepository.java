@@ -16,5 +16,4 @@ public interface TodayNewsRepository extends JpaRepository<TodayNews, Long> {
 
     Optional<TodayNews> findBySelectedDate(LocalDate today);
 
-    Optional<TodayNews> findFirstByOrderBySelectedDateDesc();
 }

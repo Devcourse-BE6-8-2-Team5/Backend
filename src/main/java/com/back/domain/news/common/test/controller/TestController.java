@@ -10,6 +10,8 @@ import com.back.domain.news.common.service.AnalysisNewsService;
 import com.back.domain.news.fake.dto.FakeNewsDto;
 import com.back.domain.news.fake.service.FakeNewsService;
 import com.back.domain.news.real.dto.RealNewsDto;
+import com.back.domain.news.real.entity.RealNews;
+import com.back.domain.news.real.repository.RealNewsRepository;
 import com.back.domain.news.real.service.AdminNewsService;
 import com.back.domain.news.real.service.NewsDataService;
 import com.back.domain.news.real.service.RealNewsService;
@@ -52,7 +54,8 @@ public class TestController {
 //            adminNewsService.dailyNewsProcess();
 
             //   속보랑 기타키워드 추가
-            List<String> newsKeywords = List.of("은행", "K팝");
+
+            List<String> newsKeywords = List.of("주가", "AI");
 
             List<NaverNewsDto> newsKeywordsAfterAdd = newsDataService.collectMetaDataFromNaver(newsKeywords);
 
@@ -87,7 +90,6 @@ public class TestController {
         }
     }
 
-    //뉴스 생성 (for test)
 
     @GetMapping("/create")
     public RsData<List<RealNewsDto>> createRealNews(@RequestParam String query) {
@@ -163,6 +165,5 @@ public class TestController {
             return RsData.of(500, "네이버 뉴스 조회 실패: " + e.getMessage());
         }
     }
-
 }
 

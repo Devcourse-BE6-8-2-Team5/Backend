@@ -21,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.function.Function;
@@ -75,10 +76,11 @@ public class FakeNewsService {
                 }, executor)) // ← executor 사용
                 .toList();
 
-        // 모든 결과 수집
+        // null 아닌 성공 결과 수집
         List<FakeNewsDto> results = futures.stream()
                 .map(CompletableFuture::join)
-                .toList();
+                .filter(Objects::nonNull)
+                .toList();;
 
         return completedFuture(results);
 
