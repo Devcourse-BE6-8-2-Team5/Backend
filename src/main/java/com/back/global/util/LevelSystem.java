@@ -9,8 +9,8 @@ public class LevelSystem {
             throw new ServiceException(400, "경험치는 음수가 될 수 없습니다.");
         }
 
-        if(exp<50) return 1;
-        else if(exp<100) return 2;
+        if(exp<100) return 1;
+        else if(exp<200) return 2;
         else return 3;
     }
 

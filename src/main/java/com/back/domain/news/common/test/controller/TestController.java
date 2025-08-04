@@ -54,6 +54,7 @@ public class TestController {
 //            adminNewsService.dailyNewsProcess();
 
             //   속보랑 기타키워드 추가
+
             List<String> newsKeywords = List.of("주가", "AI");
 
             List<NaverNewsDto> newsKeywordsAfterAdd = newsDataService.collectMetaDataFromNaver(newsKeywords);

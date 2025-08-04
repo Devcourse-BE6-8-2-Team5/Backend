@@ -17,6 +17,7 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 @Slf4j
 @Service
@@ -54,8 +55,9 @@ public class AdminNewsService {
         }
         newsDataService.setTodayNews(savedNews.getFirst().id());
 
-        List<Long> realNewsIds = selectedNews.stream()
+        List<Long> realNewsIds = savedNews.stream()
                 .map(RealNewsDto::id)
+                .filter(Objects::nonNull) // null 체크
                 .toList();
 
         // 트랜잭션 커밋 이후에 이벤트 발행

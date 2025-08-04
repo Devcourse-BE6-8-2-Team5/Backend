@@ -19,6 +19,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 
 @Tag(name = "RealNewsController", description = "Real News API")
@@ -103,6 +104,7 @@ public class RealNewsController {
         }
 
         Pageable pageable = PageRequest.of(page-1, size);
+
         Page<RealNewsDto> realNewsPage = realNewsService.getRealNewsListExcludingNth(pageable, OX_QUIZ_INDEX);
 
         return newsPageService.getPagedNews(realNewsPage, NewsType.REAL);

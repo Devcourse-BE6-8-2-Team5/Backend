@@ -58,6 +58,7 @@ public class FactQuizService {
         return findByCategoryAndRank(category, rank)
                 .map(List::of)
                 .orElse(List.of());
+
     }
 
     @Transactional(readOnly = true)
@@ -70,6 +71,7 @@ public class FactQuizService {
 
         return factQuizRepository.findByRealNewsId(realNews.get().getId())
                 .map(FactQuizDto::new);
+
     }
 
     @Transactional(readOnly = true)

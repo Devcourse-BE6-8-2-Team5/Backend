@@ -163,7 +163,6 @@ public class NewsDataService {
 
                 }
 
-                log.info("크롤링 성공: {}", metaData.link());
                 RealNewsDto realNewsDto = makeRealNewsFromInfo(metaData, newsDetailData.get());
                 log.info("새 뉴스 생성 - ID: {}, 제목: {}", realNewsDto.id(), realNewsDto.title());
                 allRealNewsDtos.add(realNewsDto);
