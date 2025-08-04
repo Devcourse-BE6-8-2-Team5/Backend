@@ -36,13 +36,11 @@ public class AdminNewsService {
 
         List<String> newsKeywords = newsDataService.addKeywords(keywords, STATIC_KEYWORD);
 
-        List<NaverNewsDto> newsMetaData = newsDataService.collectMetaDataFromNaver(newsKeywords);
+        List<NaverNewsDto> newsKeywordsAfterAdd = newsDataService.collectMetaDataFromNaver(newsKeywords);
 
-        List<RealNewsDto> NewsBeforeFilter = newsDataService.createRealNewsDtoByCrawl(newsMetaData);
+        List<RealNewsDto> newsAfterCrwal = newsDataService.createRealNewsDtoByCrawl(newsKeywordsAfterAdd);
 
-        List<RealNewsDto> NewsRemovedDuplicateTitles = newsDataService.removeDuplicateTitles(NewsBeforeFilter);
-
-        List<AnalyzedNewsDto> newsAfterFilter = analysisNewsService.filterAndScoreNews(NewsRemovedDuplicateTitles);
+        List<AnalyzedNewsDto> newsAfterFilter = analysisNewsService.filterAndScoreNews(newsAfterCrwal);
 
         List<RealNewsDto> selectedNews = newsDataService.selectNewsByScore(newsAfterFilter);
 
