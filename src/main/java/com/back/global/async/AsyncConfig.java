@@ -26,8 +26,8 @@ public class AsyncConfig {
     @Bean(name = "newsExecutor")
     public Executor newsExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        executor.setCorePoolSize(3); // 동시에 실행할 스레드 수
-        executor.setMaxPoolSize(5);  // 최대 스레드 수
+        executor.setCorePoolSize(2); // 동시에 실행할 스레드 수
+        executor.setMaxPoolSize(2);  // 최대 스레드 수
         executor.setQueueCapacity(50); // 대기 큐 크기
         executor.setThreadNamePrefix("newsGen-");
         executor.setWaitForTasksToCompleteOnShutdown(true); // 종료 시 모든 작업이 완료될 때까지 대기
