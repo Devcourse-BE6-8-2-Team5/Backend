@@ -151,14 +151,25 @@ public class FakeNewsGeneratorProcessor implements AiRequestProcessor<FakeNewsDt
 
         } catch (JsonProcessingException e) {
             log.error("JSON 파싱 실패: {}", e.getMessage());
-            throw new ServiceException(500, "AI 응답의 JSON 형식이 올바르지 않습니다: " + e.getMessage());
+            return createFailureNotice();
         } catch (IllegalArgumentException e) {
             log.error("데이터 변환 실패: {}", e.getMessage());
-            throw new ServiceException(500, "AI 응답 데이터 변환에 실패했습니다: " + e.getMessage());
+            return createFailureNotice();
         } catch (Exception e) {
             log.error("예상치 못한 오류: {}", e.getMessage());
-            throw new ServiceException(500, "AI 응답 처리 중 예상치 못한 오류가 발생했습니다: " + e.getMessage());
+            return createFailureNotice();
         }
+    }
+
+    private FakeNewsDto createFailureNotice() {
+        String failureContent = String.format(
+                "이 뉴스는 AI 생성에 실패하여 자동으로 생성된 안내문입니다. " +
+                "AI 시스템에서 해당 뉴스의 가짜 버전을 생성하는 중 기술적 오류가 발생했습니다. " +
+                "시스템 관리자에게 문의하시거나 나중에 다시 시도해 주세요.",
+                realNewsDto.title()
+        );
+
+        return FakeNewsDto.of(realNewsDto.id(), failureContent);
     }
     /**
      * AI 응답 정리 - 마크다운 코드 블록만 제거
