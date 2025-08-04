@@ -10,7 +10,6 @@ import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 
 public interface RealNewsRepository extends JpaRepository<RealNews, Long> {
     Page<RealNews> findByTitleContaining(String title, Pageable pageable);
@@ -23,11 +22,11 @@ public interface RealNewsRepository extends JpaRepository<RealNews, Long> {
 
     Page<RealNews> findByNewsCategory(NewsCategory category, Pageable pageable);
 
-    Page<RealNews> findByTitleContainingAndIdNot(String title, Long excludeId, Pageable pageable);
+    Page<RealNews> findByTitleContainingAndIdNot(String title, Long excludedId, Pageable pageable);
 
-    Page<RealNews> findByIdNot(Long excludeId, Pageable pageable);
+    Page<RealNews> findByIdNot(Long excludedId, Pageable pageable);
 
-    Page<RealNews> findByNewsCategoryAndIdNot(NewsCategory category, Long excludeId, Pageable pageable);
+    Page<RealNews> findByNewsCategoryAndIdNot(NewsCategory category, Long excludedId, Pageable pageable);
 
 
     boolean existsByLink(String url);
@@ -40,9 +39,9 @@ public interface RealNewsRepository extends JpaRepository<RealNews, Long> {
             ROW_NUMBER() OVER (PARTITION BY news_category ORDER BY created_date DESC) AS rn
         FROM real_news
         WHERE title LIKE CONCAT('%', :title, '%')
-          AND (:excludeId IS NULL OR id != :excludeId)
+          AND (:excludedId IS NULL OR id != :excludeId)
     ) AS sub
-    WHERE rn != :excludeRank
+    WHERE rn != :excludedRank
     ORDER BY created_date DESC
     """,
             countQuery = """
@@ -50,15 +49,15 @@ public interface RealNewsRepository extends JpaRepository<RealNews, Long> {
         SELECT ROW_NUMBER() OVER (PARTITION BY news_category ORDER BY created_date DESC) AS rn
         FROM real_news
         WHERE title LIKE CONCAT('%', :title, '%')
-          AND (:excludeId IS NULL OR id != :excludeId)
+          AND (:excludedId IS NULL OR id != :excludedId)
     ) AS sub
-    WHERE rn != :excludeRank
+    WHERE rn != :excludedRank
     """,
             nativeQuery = true)
     Page<RealNews> findByTitleExcludingNthCategoryRank(
             @Param("title") String title,
-            @Param("excludeId") Long excludeId,
-            @Param("excludeRank") int excludeRank,
+            @Param("excludedId") Long excludedId,
+            @Param("excludedRank") int excludedRank,
             Pageable pageable);
 
     @Query(value = """
@@ -84,7 +83,7 @@ public interface RealNewsRepository extends JpaRepository<RealNews, Long> {
             nativeQuery = true)
     Page<RealNews> findAllExcludingNth(
             @Param("excludedId") Long excludedId,
-            @Param("excludeRank") int excludeRank,
+            @Param("excludedRank") int excludedRank,
             Pageable pageable);
 
 
@@ -114,7 +113,7 @@ public interface RealNewsRepository extends JpaRepository<RealNews, Long> {
     Page<RealNews> findByCategoryExcludingNth(
             @Param("category") NewsCategory category,
             @Param("excludedId") Long excludedId,
-            @Param("excludeRank") int excludeRank,
+            @Param("excludedRank") int excludedRank,
             Pageable pageable);
 }
 
