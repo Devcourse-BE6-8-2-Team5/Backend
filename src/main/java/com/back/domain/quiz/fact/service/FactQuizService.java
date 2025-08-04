@@ -11,6 +11,7 @@ import com.back.domain.news.real.entity.RealNews;
 import com.back.domain.news.real.repository.RealNewsRepository;
 import com.back.domain.quiz.QuizType;
 import com.back.domain.quiz.fact.dto.FactQuizAnswerDto;
+import com.back.domain.quiz.fact.dto.FactQuizDto;
 import com.back.domain.quiz.fact.dto.FactQuizDtoWithNewsContent;
 import com.back.domain.quiz.fact.dto.FactQuizWithHistoryDto;
 import com.back.domain.quiz.fact.entity.CorrectNewsType;
@@ -24,6 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.ThreadLocalRandom;
 
 import static com.back.global.util.LevelSystem.calculateLevel;
@@ -41,11 +43,32 @@ public class FactQuizService {
     @Transactional(readOnly = true)
     public List<FactQuiz> findAll() {
         return factQuizRepository.findAllWithNews();
+//        return findByRank(2);
     }
 
+//    public List<FactQuizDto> findByRank(int rank) {
+//        List<RealNews> nthRankNews = realNewsRepository.findNthRankByAllCategories(rank);
+//
+//        return nthRankNews.stream()
+//                .map(this::convertToFactQuizDto)
+//                .toList();
+//    }
+//
+//    private FactQuizDto convertToFactQuizDto(RealNews realNews) {
+//        return new FactQuizDto(
+//                realNews.getId(),
+//                realNews.getTitle(),
+//                realNews.getContent(),
+//                realNews.getNewsCategory(),
+//                realNews.getCreatedDate()
+//        );
+//    }
+//
     @Transactional(readOnly = true)
     public List<FactQuiz> findByCategory(NewsCategory category) {
         return factQuizRepository.findByCategory(category);
+//        Optional<FactQuizDto> factQuiz = findByCategoryAndRank(category, 2);
+//        return factQuiz.map(List::of).orElse(List.of());
     }
 
     @Transactional(readOnly = true)

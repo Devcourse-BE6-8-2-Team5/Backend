@@ -4,6 +4,7 @@ import com.back.domain.news.common.enums.NewsCategory;
 import com.back.domain.news.common.enums.NewsType;
 import com.back.domain.news.common.service.NewsPageService;
 import com.back.domain.news.real.dto.RealNewsDto;
+import com.back.domain.news.real.service.NewsDataService;
 import com.back.domain.news.real.service.RealNewsService;
 import com.back.global.rsData.RsData;
 import io.swagger.v3.oas.annotations.Operation;
@@ -19,6 +20,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 
 import static org.springframework.data.domain.Sort.Direction;
@@ -32,6 +34,8 @@ public class RealNewsController {
 
     private final RealNewsService realNewsService;
     private final NewsPageService newsPageService;
+    private final NewsDataService newsDataService;
+    private static final int OX_QUIZ_INDEX = 1;
 
     //단건조회
     @Operation(summary = "단건 뉴스 조회", description = "ID로 단건 뉴스를 조회합니다.")
@@ -107,7 +111,8 @@ public class RealNewsController {
         Sort sortBy = Sort.by(sortDirection, "originCreatedDate");
 
         Pageable pageable = PageRequest.of(page-1, size, sortBy);
-        Page<RealNewsDto> realNewsPage = realNewsService.getRealNewsList(pageable);
+        //Page<RealNewsDto> realNewsPage = realNewsService.getRealNewsList(pageable);
+        Page<RealNewsDto> realNewsPage = realNewsService.getRealNewsListExcludingNth(pageable, OX_QUIZ_INDEX);
 
         return newsPageService.getPagedNews(realNewsPage, NewsType.REAL);
     }
@@ -138,11 +143,9 @@ public class RealNewsController {
             return RsData.of(400, "잘못된 페이지 파라미터입니다");
         }
 
-        Direction sortDirection = fromString(direction);
-        Sort sortBy = Sort.by(sortDirection, "originCreatedDate");
-
-        Pageable pageable = PageRequest.of(page-1, size, sortBy);
-        Page<RealNewsDto> RealNewsPage = realNewsService.searchRealNewsByTitle(title, pageable);
+        Pageable pageable = PageRequest.of(page-1, size);
+        Page<RealNewsDto> RealNewsPage = realNewsService.searchRealNewsByTitleExcludingNth(title,pageable, OX_QUIZ_INDEX);
+//        Page<RealNewsDto> RealNewsPage = realNewsService.searchRealNewsByTitle(title, pageable);
 
         return newsPageService.getPagedNews(RealNewsPage, NewsType.REAL);
     }
@@ -183,7 +186,8 @@ public class RealNewsController {
         Sort sortBy = Sort.by(sortDirection, "originCreatedDate");
 
         Pageable pageable = PageRequest.of(page-1, size, sortBy);
-        Page<RealNewsDto> realNewsPage = realNewsService.getRealNewsByCategory(newsCategory, pageable);
+//        Page<RealNewsDto> realNewsPage = realNewsService.getRealNewsByCategory(newsCategory, pageable);
+        Page<RealNewsDto> realNewsPage = realNewsService.getRealNewsListByCategoryExcludingNth(newsCategory, pageable, OX_QUIZ_INDEX);
 
         return newsPageService.getPagedNews(realNewsPage, NewsType.REAL);
     }
