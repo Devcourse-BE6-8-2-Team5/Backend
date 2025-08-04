@@ -47,7 +47,7 @@ public class DevInitData {
             self.detailQuizInit();
             self.fakeNewsInit();
             self.factQuizInit();
-            //self.dailyQuizInit();
+            self.dailyQuizInit();
         };
     }
 
