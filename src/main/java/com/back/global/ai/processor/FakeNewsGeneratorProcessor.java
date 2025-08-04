@@ -25,47 +25,31 @@ public class FakeNewsGeneratorProcessor implements AiRequestProcessor<FakeNewsDt
     @Override
     public String buildPrompt() {
         int contentLength = realNewsDto.content().length();
-        String lengthCategory = getLengthCategory(contentLength);
-        String strictLengthGuide = getStrictLengthGuide(contentLength);
+
         String cleanTitle = cleanText(realNewsDto.title());
         String cleanContent = cleanText(realNewsDto.content());
-
-        // 분량별 구체적 가이드 생성
-        String specificLengthGuide = generateSpecificLengthGuide(contentLength);
-        String sentenceCountGuide = generateSentenceCountGuide(contentLength);
 
         return String.format("""
             당신은 가짜 뉴스 창작 전문가입니다. **제목만을 바탕으로** 그럴듯한 가짜 뉴스를 창작하세요.
         
             ⚠️ **최우선 임무: 정확한 분량 맞추기** ⚠️
             원본 분량: %d자 → 반드시 %d자 ± 50자 이내로 작성!
+           
+            === 🎯 창작 프로세스 🎯 ===
             
-            %s
+            - 목표 글자수: %d자
             
-            %s
-        
-            === 🎯 3단계 창작 프로세스 🎯 ===
-            
-            **1단계: 분량 계획 수립**
-            - 목표 글자수: %d자 (%s)
-            - 필요 문장수: %s
-            - 문단 구성: %s
-            - ❌ 이 단계를 건너뛰면 100%% 실패합니다!
-            
-            **2단계: 내용 창작**
+            **1단계: 내용 창작**
             - 제목 분석: "%s"
             - 원본 스타일 참고 (아래 참조)
             - 현실적 세부사항 포함 (날짜, 장소, 인물, 수치)
             - **매 문장마다 분량을 의식하며 작성**
             
-            **3단계: 분량 검증**
+            **2단계: 분량 검증**
             - 작성 완료 후 반드시 글자수 확인
             - %d자와 비교하여 ±50자 이내인지 점검
             - 부족하면 세부사항 추가, 초과하면 불필요한 부분 제거
-            
-            === 🚨 분량별 절대 규칙 🚨 ===
-            %s
-            
+
             === ⭐ 분량 맞추기 비법 ⭐ ===
             **너무 짧을 때 늘리는 방법:**
             - 구체적 날짜/시간 추가 ("지난 15일 오후 2시")
@@ -87,7 +71,7 @@ public class FakeNewsGeneratorProcessor implements AiRequestProcessor<FakeNewsDt
             **필수 모방 요소:**
             - 문단 수: 원본과 동일하게
             - 문장 길이: 원본 패턴 따라하기
-            - 특수 기호: ▲, ◆, -, () 등 동일 사용
+            - 특수 기호(존재 시): ▲, ◆, -, () 등 동일 사용
             - 인용문 형식: 원본과 같은 스타일
             - 마무리 방식: 원본과 동일한 톤
             
@@ -106,7 +90,7 @@ public class FakeNewsGeneratorProcessor implements AiRequestProcessor<FakeNewsDt
             - content는 **바로 본문부터 시작**합니다
             - 제목이나 헤더는 절대 포함하지 마세요
             - 첫 문장부터 바로 뉴스 내용으로 시작하세요
-            - 문단 구분은 자연스러운 개행으로 처리하세요
+            - **문단 구분은 \\n\\n 으로만 처리하세요**
             - JSON 외부에 다른 텍스트 추가 금지
             - 코드 블록(```) 사용 금지
             - 설명이나 주석 추가 금지
@@ -118,10 +102,10 @@ public class FakeNewsGeneratorProcessor implements AiRequestProcessor<FakeNewsDt
             }
             
             **이스케이프 처리:**
-            - 내부 따옴표: \\\\" (백슬래시 + 따옴표)
-            - 개행 문자: \\\\n (백슬래시 + n)  // ← 이렇게 수정
-            - 백슬래시: \\\\\\\\ (백슬래시 + 백슬래시)
-            - 작은따옴표는 그대로 사용
+            - 내부 따옴표: \\" (백슬래시 + 따옴표)
+            - **문단 구분: \\n\\n (백슬래시n 두 번)**
+            - 백슬래시: \\\\ (백슬래시 + 백슬래시)
+            - 작은따옴표: 그대로 ' 사용 (이스케이프 금지)
             - 한글, 영문, 숫자: 그대로 사용 (유니코드 변환 금지)
             - 특수문자, 이모지: 그대로 사용 (이스케이프 금지)
             
@@ -134,20 +118,16 @@ public class FakeNewsGeneratorProcessor implements AiRequestProcessor<FakeNewsDt
             □ 현실적이고 그럴듯한 내용인가?
             □ 원본 스타일을 잘 모방했는가?
             □ JSON 형식이 정확한가?
-            □ **\\n 같은 이스케이프 문자가 그대로 출력되지 않았는가?**
             
-            **마지막 경고: 분량을 맞추지 못하면 무조건 실패작입니다!**
-            **제목을 포함하면 무조건 실패작입니다!**
+            **마지막 경고:
+            - 반드시 JSON을 완성하세요: {"content": "내용"}
+            - 중간에 멈추지 말고 끝까지 작성하세요!**
             """,
-                contentLength, contentLength,  // 분량 강조
-                specificLengthGuide,
-                strictLengthGuide,
-                contentLength, lengthCategory,  // 1단계
-                sentenceCountGuide,
-                getStructureGuide(contentLength),
-                cleanTitle,  // 2단계
-                contentLength,  // 3단계
-                getLengthSpecificRules(contentLength),  // 분량별 규칙
+                contentLength,
+                contentLength,
+                contentLength,
+                cleanTitle,
+                contentLength,
                 cleanContent,  // 원본 스타일
                 contentLength,  // 금지사항
                 contentLength,  // JSON 출력
@@ -184,10 +164,54 @@ public class FakeNewsGeneratorProcessor implements AiRequestProcessor<FakeNewsDt
      * AI 응답 정리 - 마크다운 코드 블록만 제거
      */
     private String cleanResponse(String text) {
-        return text.trim()
+        log.debug("=== AI 원본 응답 ===");
+        log.debug("{}", text);
+
+        String cleaned = text.trim()
                 .replaceAll("(?s)```json\\s*(.*?)\\s*```", "$1")
                 .replaceAll("```", "")
                 .trim();
+
+        log.debug("=== 정리된 JSON ===");
+        log.debug("{}", cleaned);
+
+        // JSON 유효성 간단 체크
+        if (!cleaned.startsWith("{") || !cleaned.endsWith("}")) {
+            log.error("JSON 형식이 아닙니다. 시작: '{}', 끝: '{}'",
+                    cleaned.substring(0, Math.min(10, cleaned.length())),
+                    cleaned.substring(Math.max(0, cleaned.length() - 10)));
+        }
+
+        // content 부분만 추출해서 문제 있는 문자 확인
+        if (cleaned.contains("\"content\"")) {
+            try {
+                int contentStart = cleaned.indexOf("\"content\"");
+                int valueStart = cleaned.indexOf("\"", contentStart + 9) + 1;
+                int valueEnd = cleaned.indexOf("\"", valueStart);
+
+                if (valueStart > 0 && valueEnd > valueStart) {
+                    String contentValue = cleaned.substring(valueStart, valueEnd);
+                    log.debug("=== Content 값 ===");
+                    log.debug("{}", contentValue);
+
+                    // 문제가 될 수 있는 문자들 체크
+                    if (contentValue.contains("\\'")) {
+                        log.warn("Content에 \\'가 포함되어 있습니다!");
+                    }
+                    if (contentValue.contains("\n") || contentValue.contains("\r")) {
+                        log.warn("Content에 실제 줄바꿈이 포함되어 있습니다!");
+                    }
+                    if (contentValue.contains("\\")) {
+                        log.warn("Content에 백슬래시가 포함되어 있습니다: {}",
+                                contentValue.replaceAll(".*?(\\\\.).*", "$1"));
+                    }
+                }
+            } catch (Exception e) {
+                log.warn("Content 분석 중 오류: {}", e.getMessage());
+            }
+        }
+
+        return cleaned;
     }
     /**
      * 프롬프트용 텍스트 정리
@@ -215,112 +239,4 @@ public class FakeNewsGeneratorProcessor implements AiRequestProcessor<FakeNewsDt
             @JsonProperty("content") String content
     ) {}
 
-    private String getLengthCategory(int length) {
-        if (length < 200) return "극짧은 뉴스";
-        else if (length < 400) return "짧은 뉴스";
-        else if (length < 800) return "중간 뉴스";
-        else return "긴 뉴스";
-    }
-
-    private String getStrictLengthGuide(int length) {
-        if (length < 200) {
-            return """
-        **🔥 극짧은 뉴스 작성법 (200자 미만)**:
-        - 1-2문장으로 핵심만! 
-        - 배경설명 금지
-        - "발표했다", "밝혔다" 등 간단한 서술
-        - 속보나 단신 형태
-        - 절대 길게 쓰지 말 것!
-        """;
-        } else if (length < 400) {
-            return """
-        **📝 짧은 뉴스 작성법 (200-400자)**:
-        - 2-3문장으로 구성
-        - 간단한 배경 + 핵심 사실
-        - 인용문 최대 1개
-        - 공지사항이나 발표문 형태
-        - 중간 길이로 유지!
-        """;
-        } else if (length < 800) {
-            return """
-        **📰 중간 뉴스 작성법 (400-800자)**:
-        - 2-3문단으로 구성
-        - 배경 + 핵심내용 + 반응
-        - 인용문 2-3개 적절히
-        - 일반적인 기사 형태
-        - 적당한 분량 유지!
-        """;
-        } else {
-            return """
-        **📚 긴 뉴스 작성법 (800자 이상)**:
-        - 3-4문단으로 상세 구성
-        - 상세 배경 + 다양한 관점
-        - 여러 관계자 인용문
-        - 구체적 데이터와 분석
-        - 충분히 길게 작성!
-        """;
-        }
-    }
-    private String generateSpecificLengthGuide(int length) {
-        if (length < 200) {
-            return "🎯 **초단문 작성법**: 핵심만! 1-2개 문장으로 간결하게!";
-        } else if (length < 400) {
-            return "🎯 **단문 작성법**: 배경 1문장 + 핵심 2-3문장 + 마무리 1문장";
-        } else if (length < 800) {
-            return "🎯 **중문 작성법**: 도입-전개-결론 구조로 균형있게 배분";
-        } else {
-            return "🎯 **장문 작성법**: 상세한 배경, 다양한 관점, 인용문 포함하여 풍부하게";
-        }
-    }
-
-    // 문장 수 가이드 생성
-    private String generateSentenceCountGuide(int length) {
-        int sentences = Math.max(1, length / 80); // 평균 80자당 1문장
-        return String.format("약 %d-%d개 문장 필요", sentences - 1, sentences + 1);
-    }
-
-    // 구조 가이드 생성
-    private String getStructureGuide(int length) {
-        if (length < 200) return "1개 문단";
-        else if (length < 400) return "2개 문단";
-        else if (length < 800) return "3-4개 문단";
-        else return "4-5개 문단";
-    }
-
-    // 분량별 구체적 규칙
-    private String getLengthSpecificRules(int length) {
-        if (length < 200) {
-            return """
-                    **200자 미만 규칙:**
-                    - 핵심 사실만 담기
-                    - 배경 설명 최소화
-                    - 1-2개 문단으로 완결
-                    - 인용문 1개 이하
-                    """;
-        } else if (length < 400) {
-            return """  
-                    **200-400자 규칙:**
-                    - 간단한 배경 + 핵심 내용
-                    - 2-3개 문단 구성
-                    - 인용문 1-2개 포함
-                    - 구체적 수치 1-2개 포함
-                    """;
-        } else if (length < 800) {
-            return """
-                    **400-800자 규칙:**
-                    - 배경-내용-반응/전망 구조
-                    - 3-4개 문단 구성
-                    - 인용문 2-3개 포함
-                    - 관련 업계 상황 언급
-                    """;
-        } else {
-            return """
-                    **800자 이상 규칙:**
-                    - 상세한 배경과 다각도 분석
-                    - 4-5개 문단 구성
-                    - 다양한 인용문과 데이터
-                    - 향후 전망까지 포함
-                    """;
-        }
-    }
 }

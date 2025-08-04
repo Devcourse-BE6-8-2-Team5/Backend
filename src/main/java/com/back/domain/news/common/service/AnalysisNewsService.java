@@ -15,6 +15,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
@@ -52,30 +53,37 @@ public class AnalysisNewsService {
             batches.add(allRealNewsBeforeFilter.subList(i, endIndex));
         }
 
-        List<CompletableFuture<List<AnalyzedNewsDto>>> futures = batches.stream()
-                .map(this::processBatchAsync)
+        List<AnalyzedNewsDto> allResults = Collections.synchronizedList(new ArrayList<>());
+
+        // 비동기 작업들 시작
+        List<CompletableFuture<Void>> futures = batches.stream()
+                .map(batch -> processBatchAsync(batch)
+                        .thenAccept(result -> {
+                            // 완료되는 대로 즉시 결과에 추가
+                            allResults.addAll(result);
+                            log.info("배치 완료 - 현재까지 {}개 처리됨", allResults.size());
+                        })
+                        .exceptionally(throwable -> {
+                            log.error("배치 처리 실패", throwable);
+                            return null;
+                        }))
                 .toList();
 
         try {
-            CompletableFuture<Void> allFutures = CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
-            allFutures.join(); // join()은 unchecked exception을 throw
-
-            List<AnalyzedNewsDto> allResults = futures.stream()
-                .map(future -> future.getNow(List.of())) // 이미 완료됨이 보장됨
-                .flatMap(List::stream)
-                .toList();
-
-            log.info("뉴스 필터링 완료 - 결과: {}개", allResults.size());
-            return allResults;
+            // 모든 작업 완료 대기
+            CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
 
         } catch (CompletionException e) {
             Throwable cause = e.getCause();
             if (cause instanceof InterruptedException) {
                 Thread.currentThread().interrupt();
                 throw new RuntimeException("뉴스 분석이 중단되었습니다", cause);
-                }
-                throw new RuntimeException("뉴스 분석 중 오류 발생", cause);
+            }
+            log.error("뉴스 분석 중 일부 오류 발생했지만 계속 진행", cause);
         }
+
+        log.info("뉴스 필터링 완료 - 최종 결과: {}개", allResults.size());
+        return new ArrayList<>(allResults);
     }
 
     @Async("newsExecutor")
