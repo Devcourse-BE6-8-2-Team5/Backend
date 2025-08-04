@@ -33,18 +33,27 @@ public class AdminNewsService {
     @Transactional
     public void dailyNewsProcess(){
         List<String> keywords = keywordGenerationService.generateTodaysKeywords().getKeywords();
-        //   속보랑 기타키워드 추가
+
         List<String> newsKeywords = newsDataService.addKeywords(keywords, STATIC_KEYWORD);
 
-        List<NaverNewsDto> newsKeywordsAfterAdd = newsDataService.collectMetaDataFromNaver(newsKeywords);
+        List<NaverNewsDto> newsMetaData = newsDataService.collectMetaDataFromNaver(newsKeywords);
 
-        List<RealNewsDto> NewsAfterCrawl  = newsDataService.createRealNewsDtoByCrawl(newsKeywordsAfterAdd);
+        List<RealNewsDto> NewsBeforeFilter = newsDataService.createRealNewsDtoByCrawl(newsMetaData);
 
-        List<AnalyzedNewsDto> newsAfterFilter = analysisNewsService.filterAndScoreNews(NewsAfterCrawl );
+        List<RealNewsDto> NewsRemovedDuplicateTitles = newsDataService.removeDuplicateTitles(NewsBeforeFilter);
+
+        List<AnalyzedNewsDto> newsAfterFilter = analysisNewsService.filterAndScoreNews(NewsRemovedDuplicateTitles);
 
         List<RealNewsDto> selectedNews = newsDataService.selectNewsByScore(newsAfterFilter);
 
-        newsDataService.saveAllRealNews(selectedNews);
+        List<RealNewsDto> savedNews = newsDataService.saveAllRealNews(selectedNews);
+
+
+        if(savedNews.isEmpty()) {
+            log.warn("저장된 뉴스가 없습니다. 오늘의 뉴스 수집이 실패했을 수 있습니다.");
+            return;
+        }
+        newsDataService.setTodayNews(savedNews.getFirst().id());
 
         List<Long> realNewsIds = selectedNews.stream()
                 .map(RealNewsDto::id)

@@ -453,7 +453,7 @@ public class NewsDataService {
                 .flatMap(categoryNews ->
                         categoryNews.stream()
                                 .sorted(Comparator.comparing(AnalyzedNewsDto::score).reversed())
-                                .limit(3)
+                                .limit(4)
                 )
                 .map(AnalyzedNewsDto::realNewsDto)
                 .toList();
