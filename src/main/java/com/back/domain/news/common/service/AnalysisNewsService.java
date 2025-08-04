@@ -17,6 +17,8 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.ExecutionException;
 
 @Slf4j
 @Service
@@ -54,14 +56,33 @@ public class AnalysisNewsService {
                 .map(this::processBatchAsync)
                 .toList();
 
-        return futures.stream()
-                .map(CompletableFuture::join)
+        try {
+            CompletableFuture<Void> allFutures = CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
+            allFutures.join(); // join()은 unchecked exception을 throw
+
+            List<AnalyzedNewsDto> allResults = futures.stream()
+                .map(future -> future.getNow(List.of())) // 이미 완료됨이 보장됨
                 .flatMap(List::stream)
                 .toList();
+
+            log.info("뉴스 필터링 완료 - 결과: {}개", allResults.size());
+            return allResults;
+
+        } catch (CompletionException e) {
+            Throwable cause = e.getCause();
+            if (cause instanceof InterruptedException) {
+                Thread.currentThread().interrupt();
+                throw new RuntimeException("뉴스 분석이 중단되었습니다", cause);
+                }
+                throw new RuntimeException("뉴스 분석 중 오류 발생", cause);
+        }
     }
 
     @Async("newsExecutor")
     public CompletableFuture<List<AnalyzedNewsDto>> processBatchAsync(List<RealNewsDto> batch) {
+
+        log.info("스레드: {}, 배치 시작 시간: {}",
+                Thread.currentThread().getName(), System.currentTimeMillis());
         try {
             // Rate limiting - 토큰 얻을 때까지 계속 시도
             rateLimiter.waitForRateLimit();
@@ -71,6 +92,10 @@ public class AnalysisNewsService {
             List<AnalyzedNewsDto> result = aiService.process(processor);
 
             log.debug("배치 처리 완료 - 결과 수: {}", result.size());
+
+            log.info("스레드: {}, 배치 완료 시간: {}",
+                    Thread.currentThread().getName(), System.currentTimeMillis());
+
             return CompletableFuture.completedFuture(result);
 
         } catch (Exception e) {

@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -71,11 +72,10 @@ public class RealNewsService {
 
     @Transactional(readOnly = true)
     public List<RealNewsDto> getRealNewsListCreatedToday() {
-        LocalDateTime start = LocalDate.now().atStartOfDay(); // 오늘 00:00
-        LocalDateTime end = LocalDate.now().plusDays(1).atStartOfDay();
+        LocalDateTime start = LocalDate.now().atStartOfDay();
+        LocalDateTime end = LocalDateTime.now();
 
-//아이디순 정렬할것
-        List<RealNews> realNewsList = realNewsRepository.findByOriginCreatedDateBetween(start, end);
+        List<RealNews> realNewsList = realNewsRepository.findByCreatedDateBetween(start, end);
         return realNewsList.stream()
                 .map(realNewsMapper::toDto)
                 .collect(Collectors.toList());

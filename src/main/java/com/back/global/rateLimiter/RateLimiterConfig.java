@@ -12,7 +12,7 @@ public class RateLimiterConfig {
     public Bucket bucket() {
         return Bucket.builder()
                 .addLimit(limit ->
-                        limit.capacity(30).refillIntervally(1, Duration.ofSeconds(2))) // 2초마다 1개 토큰 보충 (1분에 30개)
+                        limit.capacity(12).refillIntervally(1, Duration.ofSeconds(5))) // 5초마다 1개 토큰 보충 (1분에 12개)
                 .build();
     }
 }

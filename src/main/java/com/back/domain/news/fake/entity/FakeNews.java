@@ -3,10 +3,7 @@ package com.back.domain.news.fake.entity;
 import com.back.domain.news.real.entity.RealNews;
 import com.back.domain.quiz.fact.entity.FactQuiz;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.util.ArrayList;
 import java.util.List;
