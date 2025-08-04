@@ -11,6 +11,7 @@ import com.back.domain.news.real.repository.RealNewsRepository;
 import com.back.domain.news.real.repository.TodayNewsRepository;
 import com.back.domain.news.today.entity.TodayNews;
 import com.back.global.exception.ServiceException;
+import com.back.global.rateLimiter.RateLimiter;
 import com.back.global.util.HtmlEntityDecoder;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -25,6 +26,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.*;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
@@ -35,6 +37,8 @@ import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -46,6 +50,8 @@ public class NewsDataService {
     private final RealNewsRepository realNewsRepository;
     private final TodayNewsRepository todayNewsRepository;
     private final RealNewsMapper realNewsMapper;
+    private final ObjectMapper objectMapper;
+    private final RateLimiter rateLimiter;
 
     // HTTP 요청을 보내기 위한 Spring의 HTTP 클라이언트(외부 API 호출 시 사용)
     private final RestTemplate restTemplate;
@@ -93,7 +99,8 @@ public class NewsDataService {
     public List<RealNewsDto> createRealNewsDto(String query) {
 
         try {
-            List<NaverNewsDto> naverMetaDataList = fetchNews(query);
+            CompletableFuture<List<NaverNewsDto>> future = fetchNews(query);
+            List<NaverNewsDto> naverMetaDataList = future.get();
             List<RealNewsDto> realNewsDtoList = new ArrayList<>();
 
             for (NaverNewsDto naverMetaData : naverMetaDataList) {
@@ -111,38 +118,48 @@ public class NewsDataService {
                     realNewsDtoList.add(realNewsDto);
                 }
 
-                //TODO : @Async, TaskScheduler 등으로 비동기 처리 고려
                 Thread.sleep(crawlingDelay);
             }
             return saveAllRealNews(realNewsDtoList);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             throw new RuntimeException("런타임 인터럽트 발생");
+        } catch (ExecutionException e) {
+            throw new RuntimeException("뉴스 조회 중 오류 발생", e.getCause());
         }
     }
 
     @Transactional
     public List<RealNewsDto> createRealNewsDtoByCrawl(List<NaverNewsDto> MetaDataList) {
+
         List<RealNewsDto> allRealNewsDtos = new ArrayList<>();
+        Set<String> processedUrls = new HashSet<>();
 
         try{
             for (NaverNewsDto metaData : MetaDataList) {
+                String url = metaData.link();
+
+                //중복체크
+                if (processedUrls.contains(url) || realNewsRepository.existsByLink(url)) {
+                    log.debug("스킵: {}", url);
+                    continue;
+                }
+
                 Optional<NewsDetailDto> newsDetailData = crawladditionalInfo(metaData.link());
 
                 if (newsDetailData.isEmpty()) {
                     // 크롤링 실패 시 해당 뉴스는 건너뜀
                     log.warn("크롤링 실패: {}", metaData.link());
+                    processedUrls.add(url); // 실패한 URL도 기록
                     continue;
-                } else{
-                    log.info("크롤링 성공: {}", metaData.link());
                 }
 
+                log.info("크롤링 성공: {}", metaData.link());
                 RealNewsDto realNewsDto = makeRealNewsFromInfo(metaData, newsDetailData.get());
+                log.info("새 뉴스 생성 - ID: {}, 제목: {}", realNewsDto.id(), realNewsDto.title());
+                allRealNewsDtos.add(realNewsDto);
+                processedUrls.add(url);
 
-                // 중복된 뉴스 제목이 있는지 확인
-                if (!realNewsRepository.existsByTitle(realNewsDto.title())) {
-                    allRealNewsDtos.add(realNewsDto);
-                }
                 Thread.sleep(crawlingDelay);
             }
             return allRealNewsDtos;
@@ -157,8 +174,15 @@ public class NewsDataService {
     public List<RealNewsDto> saveAllRealNews(List<RealNewsDto> realNewsDtoList) {
         // DTO → Entity 변환 후 저장
         List<RealNews> realNewsList = realNewsMapper.toEntityList(realNewsDtoList);
+        // 엔티티 변환 후 ID 확인
+        for (RealNews entity : realNewsList) {
+            log.debug("엔티티 변환 후 - ID: {}, 제목: {}", entity.getId(), entity.getTitle());
+        }
         List<RealNews> savedEntities = realNewsRepository.saveAll(realNewsList); // 저장된 결과 받기
 
+        for (RealNews saved : savedEntities) {
+            log.info("저장 완료 - 생성된 ID: {}, 제목: {}", saved.getId(), saved.getTitle());
+        }
         // Entity → DTO 변환해서 반환
         return realNewsMapper.toDtoList(savedEntities);
     }
@@ -166,70 +190,97 @@ public class NewsDataService {
     // 네이버 API를 통해 메타데이터 수집
     public List<NaverNewsDto> collectMetaDataFromNaver(List<String> keywords) {
         List<NaverNewsDto> allNews = new ArrayList<>();
-
         log.info("네이버 API 호출 시작: {} 개 키워드", keywords.size());
 
-        for (String keyword : keywords) {
-            try {
-                List<NaverNewsDto> news = fetchNews(keyword);
-                log.info("키워드 '{}': {}건 조회", keyword, news.size());
+        List<CompletableFuture<List<NaverNewsDto>>> futures = keywords.stream()
+                .map(this::fetchNews) // 비동기 처리
+                .toList();
 
-                // 네이버 뉴스만 필터링
-                List<NaverNewsDto> naverOnlyNews = news.stream()
+        try {
+            CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).get();
+
+            for (int i = 0; i < futures.size(); i++) {
+                List<NaverNewsDto> news = futures.get(i).get();
+
+                List<NaverNewsDto> naverOnly = news.stream()
                         .filter(dto -> dto.link().contains("n.news.naver.com"))
                         .toList();
 
-                allNews.addAll(naverOnlyNews);
+                allNews.addAll(naverOnly);
+            }
 
-                Thread.sleep(1000); // API 제한
-            } catch (Exception e) {
-                log.error("키워드 '{}' 조회 실패: {}", keyword, e.getMessage());
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException("런타임 인터럽트 발생");
+        } catch (ExecutionException e) {
+            throw new RuntimeException("뉴스 조회 중 오류 발생", e.getCause());
+        }
+
+        //API 응답 받은 후 바로 URL 기준 중복 제거
+        List<NaverNewsDto> uniqueNews = removeDuplicateUrls(allNews);
+
+        log.info("API 호출 완료: {}건 → 중복 제거 후: {}건", allNews.size(), uniqueNews.size());
+        return uniqueNews;
+
+    }
+
+    private List<NaverNewsDto> removeDuplicateUrls(List<NaverNewsDto> newsList) {
+        Map<String, NaverNewsDto> uniqueByUrl = new LinkedHashMap<>();
+
+        for (NaverNewsDto news : newsList) {
+            String url = news.link();
+            if (!uniqueByUrl.containsKey(url)) {
+                uniqueByUrl.put(url, news);
+            } else {
+                log.debug("중복 URL 제거: {}", url);
             }
         }
 
-        log.info("네이버 API 호출 완료: 총 {}건", allNews.size());
-        return allNews;
+        return new ArrayList<>(uniqueByUrl.values());
     }
 
-    public List<NaverNewsDto> fetchNews(String keyword) {
-        try {
-            //display는 한 번에 보여줄 뉴스의 개수, sort는 정렬 기준 (date: 최신순, sim: 정확도순)
-            //일단 3건 패치하도록 해놨습니다. yml 에서 작성해서 사용하세요(10건 이상 x)
 
-            String url = naverUrl + keyword + "&display=" + newsDisplayCount + "&sort=" + newsSortOrder;
+    //
+    @Async("newsExecutor")
+    public CompletableFuture<List<NaverNewsDto>> fetchNews(String keyword) {
+            try {
+                rateLimiter.waitForRateLimit();
 
-            // http 요청 헤더 설정 (아래는 네이버 디폴트 형식)
-            HttpHeaders headers = new HttpHeaders();
-            headers.set("X-Naver-Client-Id", clientId);
-            headers.set("X-Naver-Client-Secret", clientSecret);
+                String url = naverUrl + keyword + "&display=" + newsDisplayCount + "&sort=" + newsSortOrder;
 
-            // http 요청 엔티티(헤더+바디) 생성
-            // get이라 본문은 없고 헤더만 포함 -> 아래에서 string = null로 설정
-            HttpEntity<String> entity = new HttpEntity<>(headers);
+                // http 요청 헤더 설정 (아래는 네이버 디폴트 형식)
+                HttpHeaders headers = new HttpHeaders();
+                headers.set("X-Naver-Client-Id", clientId);
+                headers.set("X-Naver-Client-Secret", clientSecret);
 
-            //http 요청 수행
-            ResponseEntity<String> response = restTemplate.exchange(
-                    url, HttpMethod.GET, entity, String.class, keyword);
+                // http 요청 엔티티(헤더+바디) 생성
+                // get이라 본문은 없고 헤더만 포함 -> 아래에서 string = null로 설정
+                HttpEntity<String> entity = new HttpEntity<>(headers);
 
-            if (response.getStatusCode() == HttpStatus.OK) {
-                // JsonNode: json 구조를 트리 형태로 표현. json의 중첩 구조를 탐색할 때 사용
-                // readTree(): json 문자열을 JsonNode 트리로 변환
-                ObjectMapper mapper = new ObjectMapper();
-                JsonNode items = mapper.readTree(response.getBody()).get("items");
+                //http 요청 수행
+                ResponseEntity<String> response = restTemplate.exchange(
+                        url, HttpMethod.GET, entity, String.class, keyword);
 
-                if (items != null) {
-                    return getNewsMetaDataFromNaverApi(items);
+                if (response.getStatusCode() == HttpStatus.OK) {
+                    // JsonNode: json 구조를 트리 형태로 표현. json의 중첩 구조를 탐색할 때 사용
+                    // readTree(): json 문자열을 JsonNode 트리로 변환
+                    JsonNode items = objectMapper.readTree(response.getBody()).get("items");
+
+                    if (items != null) {
+                        return CompletableFuture.completedFuture(getNewsMetaDataFromNaverApi(items));
+                    }
+                    return CompletableFuture.completedFuture(new ArrayList<>());
                 }
-                return new ArrayList<>();
+                throw new ServiceException(500, "네이버 API 호출 실패: " + response.getStatusCode());
+
+            } catch (JsonProcessingException e) {
+                throw new ServiceException(500, "네이버 API 응답 파싱 실패");
+            } catch (Exception e) {
+                throw new RuntimeException("네이버 뉴스 조회 중 오류 발생", e);
             }
-            throw new ServiceException(500, "네이버 API 요청 실패");
-
-        }
-        catch (JsonProcessingException e) {
-            throw new ServiceException(500, "JSON 파싱 실패");
-        }
-
     }
+
+
 
     // 단건 크롤링
     public Optional<NewsDetailDto> crawladditionalInfo(String naverNewsUrl) {
@@ -284,6 +335,7 @@ public class NewsDataService {
                 naverNewsDto.link(),
                 newsDetailDto.imgUrl(),
                 parseNaverDate(naverNewsDto.pubDate()),
+                LocalDateTime.now(), // 생성일은 현재 시간으로 설정
                 newsDetailDto.mediaName(),
                 newsDetailDto.journalist(),
                 naverNewsDto.originallink(),
@@ -397,17 +449,6 @@ public class NewsDataService {
                 .distinct()
                 .toList();
     }
-
-    public List<RealNewsDto> removeDuplicateTitles(List<RealNewsDto> newsBeforeFilter) {
-        // 제목을 기준으로 중복 제거
-
-        Map<String, RealNewsDto> uniqueNewsMap = new LinkedHashMap<>();
-        for (RealNewsDto news : newsBeforeFilter) {
-            uniqueNewsMap.put(news.title(), news);
-        }
-        return new ArrayList<>(uniqueNewsMap.values());
-    }
-
 
     @Transactional(readOnly = true)
     public Page<RealNewsDto> getAllRealNewsList(Pageable pageable) {

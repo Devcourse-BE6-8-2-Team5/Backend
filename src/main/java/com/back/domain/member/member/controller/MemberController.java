@@ -3,6 +3,7 @@ package com.back.domain.member.member.controller;
 import com.back.domain.member.member.dto.MemberDto;
 import com.back.domain.member.member.dto.MemberWithAuthDto;
 import com.back.domain.member.member.dto.MemberWithInfoDto;
+import com.back.domain.member.member.dto.MemberWithRankDto;
 import com.back.domain.member.member.entity.Member;
 import com.back.domain.member.member.service.MemberService;
 import com.back.global.exception.ServiceException;
@@ -19,6 +20,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/members")
@@ -219,4 +222,17 @@ public class MemberController {
         );
     }
 
+    @Operation(summary = "회원 경험치순으로 5명까지 조회")
+    @GetMapping("/rank")
+    @Transactional(readOnly = true)
+    public RsData<List<MemberWithRankDto>> rank() {
+
+        List<MemberWithRankDto> members = memberService.getTop5MembersByExp();
+
+        return new RsData<>(
+                200,
+                "경험치 순위 조회 완료",
+                members
+        );
+    }
 }

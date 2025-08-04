@@ -21,14 +21,13 @@ import static jakarta.persistence.FetchType.LAZY;
 import static jakarta.persistence.GenerationType.IDENTITY;
 
 @Entity
-@EntityListeners(AuditingEntityListener.class)
 @Getter
 @NoArgsConstructor
 public class RealNews {
 
     @Id
     @GeneratedValue(strategy = IDENTITY)
-    private long id;
+    private Long id;
 
     private String title;
 
@@ -57,8 +56,9 @@ public class RealNews {
     @Enumerated(EnumType.STRING)
     private NewsCategory newsCategory;
 
-    @CreatedDate
-    private LocalDateTime createdDate; // 생성 날짜(DB에 저장된 날짜)
+
+    @Column(updatable = false)
+    private LocalDateTime createdDate; // 수동 관리
 
     @Builder
     public RealNews(
@@ -69,6 +69,7 @@ public class RealNews {
             String link,
             String imgUrl,
             LocalDateTime originCreatedDate,
+            LocalDateTime createdDate,
             String mediaName,
             String journalist,
             String originalNewsUrl,
@@ -79,6 +80,7 @@ public class RealNews {
         this.link = link;
         this.imgUrl = imgUrl;
         this.originCreatedDate = originCreatedDate;
+        this.createdDate = createdDate;
         this.mediaName = mediaName;
         this.journalist = journalist;
         this.originalNewsUrl = originalNewsUrl;

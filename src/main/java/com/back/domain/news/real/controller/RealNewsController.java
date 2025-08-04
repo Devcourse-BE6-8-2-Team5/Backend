@@ -68,7 +68,7 @@ public class RealNewsController {
 
     @Operation(summary = "오늘의 뉴스 조회", description = "선정된 오늘의 뉴스를 조회합니다.")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "오늘의 뉴스 조회 성공"),
+            @ApiResponse(responseCode = "200", description = "조회 성공"),
             @ApiResponse(responseCode = "404", description = "조회할 뉴스가 없음"),
             @ApiResponse(responseCode = "500", description = "서버 내부 오류")
     })

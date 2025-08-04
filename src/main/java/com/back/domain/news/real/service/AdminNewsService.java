@@ -22,7 +22,7 @@ public class AdminNewsService {
     private final NewsDataService newsDataService;
     private final KeywordGenerationService keywordGenerationService;
     private final AnalysisNewsService analysisNewsService;
-    private final static List<String> STATIC_KEYWORD = Arrays.asList("속보", "긴급", "단독", "충격");
+    private final static List<String> STATIC_KEYWORD = Arrays.asList("속보", "긴급", "단독");
 
     @Scheduled(cron = "0 0 0 * * *") // 매일 자정에 실행
     @Transactional

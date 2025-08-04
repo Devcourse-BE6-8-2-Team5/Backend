@@ -41,6 +41,7 @@ public class SecurityConfig {
                                 //모두 접근 가능한 API
                                 .requestMatchers(HttpMethod.GET, "/api/news", "/api/news/*/**", "/api/quiz/fact","/api/quiz/fact/category").permitAll() // 모든 뉴스 조회, fact퀴즈 다건조회/카테고리별 조회는 모두 허용
                                 .requestMatchers(HttpMethod.POST, "/api/members/login", "/api/members/join").permitAll() // 로그인, 회원가입은 모두 허용
+                                .requestMatchers(HttpMethod.GET, "/api/members/rank").permitAll() // 랭킹 조회는 모두 허용
 
                                 // 회원만 접근 가능한 API
                                 .requestMatchers("/api/quiz/detail/*/**").authenticated() // 상세퀴즈에 대한 모든 HTTP 메서드 요청은 로그인한 사용자만 허용
