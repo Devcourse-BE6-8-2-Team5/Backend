@@ -22,6 +22,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -92,40 +93,55 @@ public class DailyQuizService {
         }
 
         RealNews realNews = todayNews.getRealNews();
-
         List<DetailQuiz> quizzes = realNews.getDetailQuizzes();
 
         if (quizzes == null || quizzes.isEmpty()) {
-            throw new ServiceException(400, "연결된 상세 퀴즈가 없습니다.");
+            throw new ServiceException(404, "연결된 상세 퀴즈가 없습니다.");
         }
 
-        List<DailyQuiz> dailyQuizzes = quizzes.stream()
-                .map(quiz -> new DailyQuiz(todayNews, quiz))
-                .toList();
+        for (DetailQuiz quiz : quizzes) {
+//            boolean alreadyExists = todayNews.getTodayQuizzes().stream()
+//                    .anyMatch(dq -> dq.getDetailQuiz().getId().equals(quiz.getId()));
+//
+//            if (!alreadyExists) {
+//                DailyQuiz dailyQuiz = new DailyQuiz(todayNews, quiz);
+//                todayNews.getTodayQuizzes().add(dailyQuiz);
+//            } else {
+//                log.warn("이미 존재하는 DetailQuiz 기반 DailyQuiz입니다. id = {}", quiz.getId());
+//            }
 
-        dailyQuizRepository.saveAll(dailyQuizzes);
-
-        log.info("오늘의 퀴즈 생성 완료");
+            DailyQuiz dailyQuiz = new DailyQuiz(todayNews, quiz);
+            todayNews.getTodayQuizzes().add(dailyQuiz);
+        }
     }
 
     public long count() {
         return dailyQuizRepository.count();
     }
 
-    //InitData 전용
     @Transactional
-    public void createDailyQuizForInitData() {
-        TodayNews todayNews = todayNewsRepository.findAll().getFirst();
+    public void createDailyQuiz() {
+        LocalDate today = LocalDate.now();
+        TodayNews todayNews = todayNewsRepository.findBySelectedDate(today)
+                .orElseThrow(() -> new ServiceException(404, "오늘의 뉴스가 존재하지 않습니다."));
+
+        boolean alreadyCreated = dailyQuizRepository.existsByTodayNews(todayNews);
+
+        if (alreadyCreated) {
+            throw new ServiceException(400, "오늘의 퀴즈가 이미 생성되었습니다.");
+        }
 
         RealNews realNews = todayNews.getRealNews();
         List<DetailQuiz> quizzes = realNews.getDetailQuizzes();
 
-        List<DailyQuiz> dailyQuizzes = quizzes.stream()
-                .map(quiz -> new DailyQuiz(todayNews, quiz))
-                .toList();
+        if (quizzes == null || quizzes.isEmpty()) {
+            throw new ServiceException(404, "연결된 상세 퀴즈가 없습니다.");
+        }
 
-        dailyQuizRepository.saveAll(dailyQuizzes);
-
+        for (DetailQuiz quiz : quizzes) {
+            DailyQuiz dailyQuiz = new DailyQuiz(todayNews, quiz);
+            todayNews.getTodayQuizzes().add(dailyQuiz);
+        }
     }
 
     @Transactional

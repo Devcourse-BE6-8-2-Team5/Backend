@@ -31,8 +31,6 @@ import org.springframework.http.*;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.support.TransactionSynchronization;
-import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
@@ -430,15 +428,7 @@ public class NewsDataService {
 
         todayNewsRepository.save(todayNews);
 
-        // 트랜잭션 커밋 이후에 이벤트 발행
-        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
-            @Override
-            public void afterCommit() {
-                publisher.publishEvent(new TodayNewsCreatedEvent(todayNews.getId()));
-            }
-        });
-
-        //publisher.publishEvent(new TodayNewsCreatedEvent(todayNews.getId()));
+        publisher.publishEvent(new TodayNewsCreatedEvent(todayNews.getId()));
     }
 
     public int count() {
