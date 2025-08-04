@@ -76,6 +76,9 @@ public class AnalysisNewsService {
 
     @Async("newsExecutor")
     public CompletableFuture<List<AnalyzedNewsDto>> processBatchAsync(List<RealNewsDto> batch) {
+
+        log.info("스레드: {}, 배치 시작 시간: {}",
+                Thread.currentThread().getName(), System.currentTimeMillis());
         try {
             // Rate limiting - 토큰 얻을 때까지 계속 시도
             rateLimiter.waitForRateLimit();
@@ -85,6 +88,10 @@ public class AnalysisNewsService {
             List<AnalyzedNewsDto> result = aiService.process(processor);
 
             log.debug("배치 처리 완료 - 결과 수: {}", result.size());
+
+            log.info("스레드: {}, 배치 완료 시간: {}",
+                    Thread.currentThread().getName(), System.currentTimeMillis());
+
             return CompletableFuture.completedFuture(result);
 
         } catch (Exception e) {
