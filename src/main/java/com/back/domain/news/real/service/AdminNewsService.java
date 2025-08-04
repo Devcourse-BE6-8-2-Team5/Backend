@@ -28,22 +28,22 @@ public class AdminNewsService {
     @Transactional
     public void dailyNewsProcess(){
         List<String> keywords = keywordGenerationService.generateTodaysKeywords().getKeywords();
-        //   속보랑 기타키워드 추가
+
         List<String> newsKeywords = newsDataService.addKeywords(keywords, STATIC_KEYWORD);
 
-        List<NaverNewsDto> newsKeywordsAfterAdd = newsDataService.collectMetaDataFromNaver(newsKeywords);
+        List<NaverNewsDto> newsMetaData = newsDataService.collectMetaDataFromNaver(newsKeywords);
 
-        List<RealNewsDto> NewsBeforeFilter = newsDataService.createRealNewsDtoByCrawl(newsKeywordsAfterAdd);
+        List<RealNewsDto> NewsBeforeFilter = newsDataService.createRealNewsDtoByCrawl(newsMetaData);
 
         List<RealNewsDto> NewsRemovedDuplicateTitles = newsDataService.removeDuplicateTitles(NewsBeforeFilter);
-
 
         List<AnalyzedNewsDto> newsAfterFilter = analysisNewsService.filterAndScoreNews(NewsRemovedDuplicateTitles);
 
         List<RealNewsDto> selectedNews = newsDataService.selectNewsByScore(newsAfterFilter);
 
-        newsDataService.saveAllRealNews(selectedNews);
+        List<RealNewsDto> savedNews = newsDataService.saveAllRealNews(selectedNews);
 
+        newsDataService.setTodayNews(savedNews.getFirst().id());
     }
 
 }
