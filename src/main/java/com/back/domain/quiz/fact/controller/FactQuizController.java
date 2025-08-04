@@ -35,6 +35,7 @@ import static java.util.stream.Collectors.toList;
 public class FactQuizController {
     private final FactQuizService factQuizService;
     private final Rq rq;
+    private static final int DEFAULT_RANK = 2; // 기본 랭크 값
 
     @Operation(summary = "팩트 퀴즈 전체 조회", description = "팩트 퀴즈 (전체) 목록을 조회합니다.")
     @ApiResponses(value = {
@@ -42,14 +43,12 @@ public class FactQuizController {
     })
     @GetMapping
     public RsData<List<FactQuizDto>> getFactQuizzes() {
-        List<FactQuiz> factQuizzes = factQuizService.findAll();
+        List<FactQuizDto> factQuizzes = factQuizService.findByRank(DEFAULT_RANK);
 
         return new RsData<>(
                 200,
                 "팩트 퀴즈 목록 조회 성공",
-                factQuizzes.stream()
-                        .map(FactQuizDto::new)
-                        .collect(toList())
+                factQuizzes
         );
     }
 
@@ -59,14 +58,12 @@ public class FactQuizController {
     })
     @GetMapping("/category")
     public RsData<List<FactQuizDto>> getFactQuizzesByCategory(@RequestParam NewsCategory category) {
-        List<FactQuiz> factQuizzes = factQuizService.findByCategory(category);
+        List<FactQuizDto> factQuizzes = factQuizService.findByCategory(category, DEFAULT_RANK);
 
         return new RsData<>(
                 200,
                 "팩트 퀴즈 목록 조회 성공. 카테고리: " + category,
-                factQuizzes.stream()
-                        .map(FactQuizDto::new)
-                        .collect(toList())
+                factQuizzes
         );
     }
 

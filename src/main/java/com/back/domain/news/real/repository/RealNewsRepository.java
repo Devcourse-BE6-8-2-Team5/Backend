@@ -116,5 +116,35 @@ public interface RealNewsRepository extends JpaRepository<RealNews, Long> {
             @Param("excludedId") Long excludedId,
             @Param("excludeRank") int excludeRank,
             Pageable pageable);
+
+    @Query(value = """
+    SELECT *
+    FROM (
+        SELECT *,
+               ROW_NUMBER() OVER (PARTITION BY news_category ORDER BY created_date DESC) AS rn
+        FROM real_news
+    ) AS sub
+    WHERE rn = :targetRank
+    ORDER BY created_date DESC
+    """,
+            nativeQuery = true)
+    List<RealNews> findNthRankByAllCategories(@Param("targetRank") int targetRank);
+
+    // 특정 카테고리에서 N번째 순위 뉴스 조회
+    @Query(value = """
+    SELECT *
+    FROM (
+        SELECT *,
+               ROW_NUMBER() OVER (ORDER BY created_date DESC) AS rn
+        FROM real_news
+        WHERE news_category = :category
+    ) AS sub
+    WHERE rn = :targetRank
+    """,
+            nativeQuery = true)
+    Optional<RealNews> findNthRankByCategory(
+            @Param("category") NewsCategory category,
+            @Param("targetRank") int targetRank
+    );
 }
 

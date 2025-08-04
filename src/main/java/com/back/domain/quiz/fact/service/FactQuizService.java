@@ -11,6 +11,7 @@ import com.back.domain.news.real.entity.RealNews;
 import com.back.domain.news.real.repository.RealNewsRepository;
 import com.back.domain.quiz.QuizType;
 import com.back.domain.quiz.fact.dto.FactQuizAnswerDto;
+import com.back.domain.quiz.fact.dto.FactQuizDto;
 import com.back.domain.quiz.fact.dto.FactQuizDtoWithNewsContent;
 import com.back.domain.quiz.fact.dto.FactQuizWithHistoryDto;
 import com.back.domain.quiz.fact.entity.CorrectNewsType;
@@ -24,6 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.ThreadLocalRandom;
 
 import static com.back.global.util.LevelSystem.calculateLevel;
@@ -39,13 +41,35 @@ public class FactQuizService {
     private final QuizHistoryRepository quizHistoryRepository;
 
     @Transactional(readOnly = true)
-    public List<FactQuiz> findAll() {
-        return factQuizRepository.findAllWithNews();
+    public List<FactQuizDto> findByRank(int rank) {
+        List<RealNews> nthRankNews = realNewsRepository.findNthRankByAllCategories(rank);
+
+        // 해당 뉴스들의 FactQuiz 조회
+        return nthRankNews.stream()
+                .map(realNews -> factQuizRepository.findByRealNewsId(realNews.getId()))
+                .flatMap(Optional::stream)
+                .map(FactQuizDto::new)
+                .toList();
     }
 
     @Transactional(readOnly = true)
-    public List<FactQuiz> findByCategory(NewsCategory category) {
-        return factQuizRepository.findByCategory(category);
+    public List<FactQuizDto> findByCategory(NewsCategory category, int rank) {
+//        return factQuizRepository.findByCategory(category);
+        return findByCategoryAndRank(category, rank)
+                .map(List::of)
+                .orElse(List.of());
+    }
+
+    @Transactional(readOnly = true)
+    public Optional<FactQuizDto> findByCategoryAndRank(NewsCategory category, int rank) {
+        Optional<RealNews> realNews = realNewsRepository.findNthRankByCategory(category, rank);
+
+        if (realNews.isEmpty()) {
+            return Optional.empty();
+        }
+
+        return factQuizRepository.findByRealNewsId(realNews.get().getId())
+                .map(FactQuizDto::new);
     }
 
     @Transactional(readOnly = true)

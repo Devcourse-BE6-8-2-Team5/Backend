@@ -1,6 +1,7 @@
 package com.back.domain.quiz.fact.repository;
 
 import com.back.domain.news.common.enums.NewsCategory;
+import com.back.domain.news.real.entity.RealNews;
 import com.back.domain.quiz.fact.entity.FactQuiz;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -46,5 +47,9 @@ public interface FactQuizRepository extends JpaRepository<FactQuiz, Long> {
                   AND fq.realNews.createdDate < :end
             """)
     Set<Long> findRealNewsIdsWithFactQuiz(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
+
+    //추가
+    Optional<FactQuiz> findByRealNewsId(Long realNewsId);
+
 
 }
