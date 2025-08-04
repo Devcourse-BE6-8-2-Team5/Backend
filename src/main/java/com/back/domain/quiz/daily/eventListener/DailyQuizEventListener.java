@@ -19,9 +19,7 @@ public class DailyQuizEventListener {
     @Async("dailyQuizExecutor")
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleTodayNewsCreated(TodayNewsCreatedEvent event) {
-        log.info("TodayNewsCreatedEvent received. Generating daily quizzes... for TodayNewsId: {}", event.getTodayNewsId());
         Long todayNewsId = event.getTodayNewsId();
-
         try {
             // 오늘의 뉴스 ID를 사용하여 오늘의 퀴즈 생성
             dailyQuizService.createDailyQuiz(todayNewsId);
@@ -34,7 +32,7 @@ public class DailyQuizEventListener {
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleDetailQuizCreated(DetailQuizCreatedEvent event) {
         try {
-            log.info("DetailQuizCreatedEvent received. Generating daily quizzes...");
+            // dailyNewsProcess() 메서드로 생성된 오늘의 뉴스에 대한 퀴즈를 생성(상세 퀴즈 생성 후)
             dailyQuizService.createDailyQuiz();
         } catch (Exception e) {
             log.error("오늘의 퀴즈 생성 중 오류 발생: {}", e.getMessage(), e);
