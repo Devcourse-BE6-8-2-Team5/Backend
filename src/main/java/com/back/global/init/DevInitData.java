@@ -88,6 +88,7 @@ public class DevInitData {
                 "https://imgnews.pstatic.net/image/088/2025/07/29/0000961622_001_20250729133508809.jpg?type=w860",
                 LocalDateTime.now().minusDays(2),
                 LocalDateTime.now().minusDays(1),
+
                 "매일신문",
                 "정은빈 기자",
                 "https://www.imaeil.com/page/view/2025072913253167202",
@@ -589,7 +590,4 @@ public class DevInitData {
         // 오늘의 뉴스 테이블의 가장 첫번째 뉴스를 가져와 해당 뉴스의 상세 퀴즈를 오늘의 퀴즈로 저장
         dailyQuizService.createDailyQuizForInitData();
     }
-
-    @Autowired
-    private FakeNewsRepository fakeNewsRepository;
 }

@@ -149,6 +149,7 @@ public class FakeNewsGeneratorProcessor implements AiRequestProcessor<FakeNewsDt
                 cleanText(realNewsDto.title()),          // {4} - 제목
                 cleanText(realNewsDto.content())         // {5} - 원본 내용
         );
+
     }
 
     // AI 응답을 파싱하여 FakeNewsDto로 변환
