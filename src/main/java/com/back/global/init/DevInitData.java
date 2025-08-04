@@ -4,7 +4,6 @@ package com.back.global.init;
 import com.back.domain.member.member.service.MemberService;
 import com.back.domain.news.common.enums.NewsCategory;
 import com.back.domain.news.fake.dto.FakeNewsDto;
-import com.back.domain.news.fake.repository.FakeNewsRepository;
 import com.back.domain.news.fake.service.FakeNewsService;
 import com.back.domain.news.real.dto.RealNewsDto;
 import com.back.domain.news.real.service.NewsDataService;
