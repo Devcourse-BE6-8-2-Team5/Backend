@@ -71,7 +71,7 @@ public class FakeNewsService {
 
                     } catch (Exception e) {
                         log.error("가짜뉴스 생성 실패 - 실제뉴스 ID: {}", realNewsDto.id(), e);
-                        throw new RuntimeException("가짜뉴스 생성 실패", e);
+                        return null;
                     }
                 }, executor)) // ← executor 사용
                 .toList();
@@ -90,6 +90,12 @@ public class FakeNewsService {
     public List<FakeNewsDto> generateAndSaveAllFakeNews(List<RealNewsDto> realNewsDtos){
         try{
             List<FakeNewsDto> fakeNewsDtos = generateFakeNewsBatch(realNewsDtos).get();
+
+            if (fakeNewsDtos.isEmpty()) {
+                log.warn("생성된 가짜뉴스가 없습니다.");
+                return Collections.emptyList();
+            }
+
             saveAllFakeNews(fakeNewsDtos);
 
             return fakeNewsDtos;
