@@ -128,10 +128,10 @@ public class FakeNewsGeneratorProcessor implements AiRequestProcessor<FakeNewsDt
                 contentLength,
                 cleanTitle,
                 contentLength,
-                cleanContent,  // 원본 스타일
-                contentLength,  // 금지사항
-                contentLength,  // JSON 출력
-                contentLength   // 최종 점검
+                cleanContent,
+                contentLength,
+                contentLength,
+                contentLength
         );
     }
 
@@ -167,51 +167,10 @@ public class FakeNewsGeneratorProcessor implements AiRequestProcessor<FakeNewsDt
         log.debug("=== AI 원본 응답 ===");
         log.debug("{}", text);
 
-        String cleaned = text.trim()
+        return text.trim()
                 .replaceAll("(?s)```json\\s*(.*?)\\s*```", "$1")
                 .replaceAll("```", "")
                 .trim();
-
-        log.debug("=== 정리된 JSON ===");
-        log.debug("{}", cleaned);
-
-        // JSON 유효성 간단 체크
-        if (!cleaned.startsWith("{") || !cleaned.endsWith("}")) {
-            log.error("JSON 형식이 아닙니다. 시작: '{}', 끝: '{}'",
-                    cleaned.substring(0, Math.min(10, cleaned.length())),
-                    cleaned.substring(Math.max(0, cleaned.length() - 10)));
-        }
-
-        // content 부분만 추출해서 문제 있는 문자 확인
-        if (cleaned.contains("\"content\"")) {
-            try {
-                int contentStart = cleaned.indexOf("\"content\"");
-                int valueStart = cleaned.indexOf("\"", contentStart + 9) + 1;
-                int valueEnd = cleaned.indexOf("\"", valueStart);
-
-                if (valueStart > 0 && valueEnd > valueStart) {
-                    String contentValue = cleaned.substring(valueStart, valueEnd);
-                    log.debug("=== Content 값 ===");
-                    log.debug("{}", contentValue);
-
-                    // 문제가 될 수 있는 문자들 체크
-                    if (contentValue.contains("\\'")) {
-                        log.warn("Content에 \\'가 포함되어 있습니다!");
-                    }
-                    if (contentValue.contains("\n") || contentValue.contains("\r")) {
-                        log.warn("Content에 실제 줄바꿈이 포함되어 있습니다!");
-                    }
-                    if (contentValue.contains("\\")) {
-                        log.warn("Content에 백슬래시가 포함되어 있습니다: {}",
-                                contentValue.replaceAll(".*?(\\\\.).*", "$1"));
-                    }
-                }
-            } catch (Exception e) {
-                log.warn("Content 분석 중 오류: {}", e.getMessage());
-            }
-        }
-
-        return cleaned;
     }
     /**
      * 프롬프트용 텍스트 정리
