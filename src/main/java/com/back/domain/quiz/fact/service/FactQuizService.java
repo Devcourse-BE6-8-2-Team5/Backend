@@ -25,6 +25,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
+import static com.back.global.util.LevelSystem.calculateLevel;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -144,6 +146,8 @@ public class FactQuizService {
         int gainExp = isCorrect ? 10 : 0;
 
         managedActor.setExp(managedActor.getExp() + gainExp);
+
+        managedActor.setLevel(calculateLevel(managedActor.getExp())); // 레벨 계산 로직 추가
 
         quizHistoryService.save(
                 managedActor,
