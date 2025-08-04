@@ -9,6 +9,7 @@ import com.back.domain.news.real.repository.RealNewsRepository;
 import com.back.domain.news.real.repository.TodayNewsRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
@@ -19,6 +20,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import com.back.domain.news.today.entity.TodayNews;
 
@@ -61,6 +63,19 @@ public class RealNewsService {
                 .map(realNewsMapper::toDto);
     }
 
+    public Page<RealNewsDto> searchRealNewsByTitleExcludingNth(String title, Pageable pageable, int n) {
+        Optional<Long> todayNewsId = getTodayNews().map(RealNewsDto::id);
+
+        Page<RealNews> page = realNewsRepository.findByTitleExcludingNthCategoryRank(
+                title,
+                todayNewsId.orElse(null),
+                n + 1,  // n번째 제외할 때 row_number는 1부터 시작이라 +1
+                pageable
+        );
+
+        return page.map(realNewsMapper::toDto);
+    }
+
     @Transactional(readOnly = true)
     public Optional<RealNewsDto> getTodayNews() {
         LocalDate today = LocalDate.now();
@@ -92,6 +107,12 @@ public class RealNewsService {
         }
         return realNewsRepository.findByNewsCategory(category, pageable)
                 .map(realNewsMapper::toDto);
+    }
+
+    public Page<RealNewsDto> getRealNewsListExcludingNth(Pageable pageable, int n) {
+        Page<RealNews> realNewsPage = realNewsRepository.findAllExcludingNth(n + 1, pageable); // ROW_NUMBER는 1부터
+        return realNewsPage.map(realNewsMapper::toDto);
+
     }
 
 }

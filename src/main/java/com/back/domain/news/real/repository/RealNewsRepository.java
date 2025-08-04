@@ -29,8 +29,41 @@ public interface RealNewsRepository extends JpaRepository<RealNews, Long> {
 
     Page<RealNews> findByNewsCategoryAndIdNot(NewsCategory category, Long excludeId, Pageable pageable);
 
+
     boolean existsByLink(String url);
 
     List<RealNews> findByCreatedDateBetween(LocalDateTime start, LocalDateTime end);
+
+    Page<RealNews> findByTitleContainingAndIdNot(String title, Long aLong);
+
+    @Query(value = """
+    SELECT * FROM (
+        SELECT *,
+            ROW_NUMBER() OVER (PARTITION BY news_category ORDER BY created_date DESC) AS rn
+        FROM real_news
+        WHERE title LIKE %:title%
+          AND (:excludeId IS NULL OR id != :excludeId)
+    ) AS sub
+    WHERE rn != :excludeRank
+    ORDER BY origin_created_date DESC
+    """,
+            countQuery = """
+    SELECT COUNT(*) FROM (
+        SELECT ROW_NUMBER() OVER (PARTITION BY news_category ORDER BY created_date DESC) AS rn
+        FROM real_news
+        WHERE title LIKE %:title%
+          AND (:excludeId IS NULL OR id != :excludeId)
+    ) AS sub
+    WHERE rn != :excludeRank
+    """,
+            nativeQuery = true)
+    Page<RealNews> findByTitleExcludingNthCategoryRank(
+            @Param("title") String title,
+            @Param("excludeId") Long excludeId,
+            @Param("excludeRank") int excludeRank,
+            Pageable pageable);
+
+    Page<RealNews> findAllExcludingNth(int i, Pageable pageable);
+
 }
 
