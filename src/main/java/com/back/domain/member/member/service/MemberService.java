@@ -1,5 +1,6 @@
 package com.back.domain.member.member.service;
 
+import com.back.domain.member.member.dto.MemberWithRankDto;
 import com.back.domain.member.member.entity.Member;
 import com.back.domain.member.member.repository.MemberRepository;
 import com.back.global.exception.ServiceException;
@@ -140,4 +141,11 @@ public class MemberService {
         return memberRepository.count();
     }
 
+    public List<MemberWithRankDto> getTop5MembersByExp() {
+        List<Member> members = memberRepository.findTop5ByOrderByExpDesc();
+
+        return members.stream()
+                .map(MemberWithRankDto::new)
+                .toList();
+    }
 }

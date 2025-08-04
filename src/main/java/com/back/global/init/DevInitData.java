@@ -4,6 +4,7 @@ package com.back.global.init;
 import com.back.domain.member.member.service.MemberService;
 import com.back.domain.news.common.enums.NewsCategory;
 import com.back.domain.news.fake.dto.FakeNewsDto;
+import com.back.domain.news.fake.repository.FakeNewsRepository;
 import com.back.domain.news.fake.service.FakeNewsService;
 import com.back.domain.news.real.dto.RealNewsDto;
 import com.back.domain.news.real.service.NewsDataService;
@@ -43,10 +44,10 @@ public class DevInitData {
         return args -> {
             self.memberInit();
             self.newsInit();
-            self.fakeNewsInit();
             self.detailQuizInit();
+            self.fakeNewsInit();
             self.factQuizInit();
-            self.dailyQuizInit();
+            //self.dailyQuizInit();
         };
     }
 
@@ -62,6 +63,10 @@ public class DevInitData {
         memberService.join("user2","12345678", "user2@gmail.com");
         memberService.join("user3","12345678", "user3@gmail.com");
         memberService.join("user4","12345678", "user4@gmail.com");
+        memberService.join("user5","12345678", "user5@gmail.com");
+        memberService.join("user6","12345678", "user6@gmail.com");
+
+
 
 
     }
@@ -81,7 +86,9 @@ public class DevInitData {
                 "정부가 '민생회복 소비쿠폰'을 지급 중인 가운데 본격적인 여름 휴가철에 접어들면서 내수경기 반등에... '7말 8초'(7월 말부터 8월 초) 여름 휴가철과 맞물려 소비 진작 효과가 커질 가능성도 있다. 정부 관계자는...",
                 "https://n.news.naver.com/mnews/article/088/0000961622?sid=101",
                 "https://imgnews.pstatic.net/image/088/2025/07/29/0000961622_001_20250729133508809.jpg?type=w860",
-                LocalDateTime.now().minusDays(3),
+                LocalDateTime.now().minusDays(2),
+                LocalDateTime.now().minusDays(1),
+
                 "매일신문",
                 "정은빈 기자",
                 "https://www.imaeil.com/page/view/2025072913253167202",
@@ -97,6 +104,7 @@ public class DevInitData {
                 "https://n.news.naver.com/mnews/article/003/0013391031?sid=101",
                 "https://imgnews.pstatic.net/image/003/2025/07/29/NISI20250729_0020908209_web_20250729134833_20250729134922533.jpg?type=w860",
                 LocalDateTime.now().minusDays(2),
+                LocalDateTime.now().minusDays(1),
                 "뉴시스",
                 "류현주 기자",
                 "https://www.newsis.com/view/NISI20250729_0020908209",
@@ -112,6 +120,7 @@ public class DevInitData {
                 "https://n.news.naver.com/mnews/article/003/0013389987?sid=101",
                 "https://imgnews.pstatic.net/image/003/2025/07/29/NISI20250728_0020906501_web_20250728105814_20250729090316531.jpg?type=w860",
                 LocalDateTime.now().minusDays(2),
+                LocalDateTime.now().minusDays(1),
                 "연합뉴스",
                 "강태현 기자",
                 "https://www.yna.co.kr/view/AKR20250729103800062?input=1195m",
@@ -125,6 +134,7 @@ public class DevInitData {
                 "https://n.news.naver.com/mnews/article/001/0015536299?sid=102",
                 "https://imgnews.pstatic.net/image/001/2025/07/29/AKR20250729103800062_01_i_P4_20250729141024634.jpg?type=w860",
                 LocalDateTime.now().minusDays(3),
+                LocalDateTime.now().minusDays(2),
                 "뉴시스",
                 "이현주 기자",
                 "https://www.newsis.com/view/NISX20250729_0003269924",
@@ -139,6 +149,7 @@ public class DevInitData {
                 "한경협·대한상의 등 \"韓경제 미래 결정될 분수령서 극도혼란 초래\" 재계는 한국 경제의 명운을 가를 미국과의 관세 협상 마감이 임박한 가운데 기업 경영에 부담을 줄 수 있는 상법 및 노동조합법 2·3조 개정안 논의가...",
                 "https://n.news.naver.com/mnews/article/001/0015535245?sid=101",
                 "https://imgnews.pstatic.net/image/001/2025/07/29/PYH2025072813430001300_P4_20250729093815961.jpg?type=w860",
+                LocalDateTime.now().minusDays(2),
                 LocalDateTime.now().minusDays(1),
                 "연합뉴스",
                 "김보경 기자",
@@ -152,7 +163,8 @@ public class DevInitData {
                 "인도 최대 정보기술(IT) 서비스업체 TCS(타타 컨설턴시 서비스)는 2025/26 회계연도(2025년 4월~2026년 3월)... 인도 IT 업계는 수요 침체, 지속적인 인플레, 미국 고관세 정책을 배경으로 고객이 필요 불가결하지...",
                 "https://n.news.naver.com/mnews/article/003/0013390843?sid=104",
                 "https://imgnews.pstatic.net/image/003/2025/07/29/NISI20181111_0014639173_web_20181111100557_20250729121621751.jpg?type=w860",
-                LocalDateTime.now().minusDays(1),
+                LocalDateTime.now().minusDays(3),
+                LocalDateTime.now().minusDays(2),
                 "뉴시스",
                 "이재준 기자",
                 "https://www.newsis.com/view/NISX20250729_0003270456",
@@ -165,7 +177,8 @@ public class DevInitData {
                 "인도네시아 시나르마스 은행 카드 시스템 사업 수주 LC GNS는 28일 인도네시아 상업은행인 시나르마스 은행의 차세대 카드 시스템 구축 사업을 수주, 동남아 금융 정보기술(IT) 시장 공략에 본격 나선다고 밝혔다. 이번...",
                 "https://n.news.naver.com/mnews/article/001/0015533231?sid=101",
                 "https://imgnews.pstatic.net/image/001/2025/07/28/PCM20241214000158017_P4_20250728100510353.jpg?type=w860",
-                LocalDateTime.now().minusDays(1),
+                LocalDateTime.now().minusDays(3),
+                LocalDateTime.now().minusDays(2),
                 "연합뉴스",
                 "김경희 기자",
                 "https://www.yna.co.kr/view/AKR20250728046500017?input=1195m",
@@ -178,6 +191,7 @@ public class DevInitData {
                 "당신과 당신의 아내는 정말 좋아 보인다\"는 가사를 붙여 짧게 노래한 뒤 \"오늘 우리 밴드 공연을 보러... 메시는 이 공연이 끝난 뒤 인스타그램에 아내, 세 아들과 함께 콘서트장에서 찍은 사진들을 올렸다. 이 게시물은...",
                 "https://n.news.naver.com/mnews/article/001/0015535197?sid=103",
                 "https://imgnews.pstatic.net/image/001/2025/07/29/AKR20250729038500075_01_i_P4_20250729092514790.jpg?type=w860",
+                LocalDateTime.now().minusDays(2),
                 LocalDateTime.now().minusDays(1),
                 "연합뉴스",
                 "임미나 기자",
@@ -191,7 +205,8 @@ public class DevInitData {
                 "한은은 외환거래 시간 연장과 환율 변동성에 더해 외국인의 국내 증권투자 매매액 증가 등에... 환율 변동도 컸다. 아시아통화 강세 기대와 국내 신정부 정책 기대에 원화가 약세에서 강세로 급격히...",
                 "https://n.news.naver.com/mnews/article/003/0013390791?sid=101",
                 "https://imgnews.pstatic.net/image/003/2025/07/29/NISI20250724_0020902500_web_20250724160149_20250729134131830.jpg?type=w860",
-                LocalDateTime.now().minusDays(1),
+                LocalDateTime.now().minusDays(4),
+                LocalDateTime.now().minusDays(3),
                 "뉴시스",
                 "남주현 기자",
                 "https://www.newsis.com/view/NISX20250729_0003270099",
@@ -205,7 +220,8 @@ public class DevInitData {
                 "원·달러 환율 변동성이 커지면서 거래가 활발하게 이뤄졌다. 외국인의 국내 주식투자가 늘어난 것도... 지난 2분기엔 여기에 환율 변동성이 커진 것이 거래량 확대로 이어졌다. 2분기 원·달러 환율변동률은...",
                 "https://n.news.naver.com/mnews/article/015/0005164019?sid=101",
                 "https://imgnews.pstatic.net/image/015/2025/07/29/0005164019_001_20250729120511548.jpg?type=w860",
-                LocalDateTime.now().minusDays(1),
+                LocalDateTime.now().minusDays(4),
+                LocalDateTime.now().minusDays(3),
                 "한국경제",
                 "강진규 기자",
                 "https://www.hankyung.com/article/202507298474i",
@@ -219,7 +235,8 @@ public class DevInitData {
                 "롯데마트는 1월부터 물가 잡기 캠페인 '더 핫'을 통해 민생 안정을 위한 초특가 혜택을 꾸준히 선보이고... 강혜원 롯데마트∙슈퍼 마케팅부문장은 \"롯데마트의 그로서리 역량을 기반으로 실질적인 체감 물가 안정에...",
                 "https://n.news.naver.com/mnews/article/421/0008400136?sid=101",
                 "https://imgnews.pstatic.net/image/421/2025/07/30/0008400136_001_20250730060029884.jpg?type=w860",
-                LocalDateTime.now().minusDays(1),
+                LocalDateTime.now().minusDays(3),
+                LocalDateTime.now().minusDays(2),
                 "뉴스1",
                 "김진희 기자",
                 "https://www.news1.kr/industry/distribution/5862871",
@@ -232,7 +249,8 @@ public class DevInitData {
                 "고지대에 자리한 강원 태백시까지 폭염주의보가 발령되면서 폭염특보(경보·주의보)가 29일 내륙 전 지역으로 확대됐다. 폭염특보가 내려지지 않은 곳은 전국에서 제주 한라산과 추자도만 남았다. 재난에 가까운...",
                 "https://n.news.naver.com/mnews/article/015/0005164260?sid=103",
                 "https://imgnews.pstatic.net/image/015/2025/07/29/0005164260_001_20250730011216000.jpg?type=w860",
-                LocalDateTime.now().minusDays(1),
+                LocalDateTime.now().minusDays(5),
+                LocalDateTime.now().minusDays(4),
                 "한국경제",
                 "류병화 기자",
                 "https://www.hankyung.com/article/2025072996641",
@@ -246,7 +264,8 @@ public class DevInitData {
                 "낮 최고 34.5도… 폭염주의보 발령 서울 10일째 열대야… 제주 14일째 30일 중복… 대전 38도까지 올라 연일 폭염이 맹위를 떨치고 있는 가운데 내륙에서 폭염특보가 내려지지 않은 유일한 지역이었던 강원 태백마저...",
                 "https://n.news.naver.com/mnews/article/022/0004055736?sid=102",
                 "https://imgnews.pstatic.net/image/022/2025/07/29/20250729516527_20250729214008793.jpg?type=w860",
-                LocalDateTime.now().minusDays(1),
+                LocalDateTime.now().minusDays(4),
+                LocalDateTime.now().minusDays(3),
                 "세계일보",
                 "김승환 기자",
                 "http://www.segye.com/newsView/20250729515475?OutUrl=naver",
@@ -260,7 +279,8 @@ public class DevInitData {
                 "29일 경기도 수원시 권선구 수도권기상청에서 예보관이 폭염 특보 상황 등을 보여주고 있다. 내륙에서 폭염특보가 내려지지 않은 유일한 지역이었던 강원 태백에 이날 오전 10시를 기해 폭염주의보가 발령됨에...",
                 "https://n.news.naver.com/mnews/article/001/0015536766?sid=102",
                 "https://imgnews.pstatic.net/image/001/2025/07/29/PYH2025072916620006100_P4_20250729160122362.jpg?type=w860",
-                LocalDateTime.now().minusDays(1),
+                LocalDateTime.now().minusDays(3),
+                LocalDateTime.now().minusDays(2),
                 "연합뉴스",
                 "홍기원 기자",
                 "https://www.yna.co.kr/view/PYH20250729166200061?input=1196m",
@@ -273,7 +293,8 @@ public class DevInitData {
                 "조현 외교부 장관(왼쪽)과 이와야 다케시 일본 외무상이 29일 일본 도쿄 외무성에서 한일 외교장관 회담에 앞서 악수하고 있다. 조현 외교부 장관이 취임 8일 만에 일본 도쿄를 찾아 이와야 다케시 일본 외무상과 첫 한일...",
                 "https://n.news.naver.com/mnews/article/055/0001279542?sid=100",
                 "https://imgnews.pstatic.net/image/055/2025/07/29/0001279542_001_20250729185912166.jpg?type=w860",
-                LocalDateTime.now().minusDays(1),
+                LocalDateTime.now().minusDays(3),
+                LocalDateTime.now().minusDays(2),
                 "SBS",
                 "김민표 기자",
                 "https://news.sbs.co.kr/news/endPage.do?news_id=N1008197405&plink=ORI&cooper=NAVER",
@@ -287,7 +308,8 @@ public class DevInitData {
                 "조현 외교부 장관이 29일 일본 도쿄를 찾아 이와야 다케시 외무상과 첫 한·일 외교장관 회담을 했다. 조 장관은 30일 미국으로 가기 전 이례적으로 일본을 먼저 찾아 이와야 외무상과 미래지향적 한·일 관계를 위한 협력...",
                 "https://n.news.naver.com/mnews/article/015/0005164314?sid=104",
                 "https://imgnews.pstatic.net/image/015/2025/07/29/0005164314_001_20250729191509497.jpg?type=w860",
-                LocalDateTime.now().minusDays(1),
+                LocalDateTime.now().minusDays(5),
+                LocalDateTime.now().minusDays(4),
                 "한국경제",
                 "김일규 기자",
                 "https://www.hankyung.com/article/202507299797i",
@@ -301,7 +323,8 @@ public class DevInitData {
                 "반대로 개헌 저지선을 지켜준 것에 대한 의미도 있다\"며 \"의석수가 107석에 불과한 상황에 국민 눈높이에 맞춘다고 해서 인적 쇄신을 세게 하면 결국 분당으로 이어져 개헌 저지선이 무너진다\"고 말했다. 주 의원은 28일 YTN...",
                 "https://n.news.naver.com/mnews/article/277/0005629282?sid=100",
                 "https://imgnews.pstatic.net/image/277/2025/07/29/0005629282_001_20250729081416107.jpg?type=w860",
-                LocalDateTime.now().minusDays(1),
+                LocalDateTime.now().minusDays(5),
+                LocalDateTime.now().minusDays(4),
                 "아시아경제",
                 "김성욱 기자",
                 "https://view.asiae.co.kr/article/2025072908103907817",
@@ -314,7 +337,8 @@ public class DevInitData {
                 "중국에서 세계 최초 휴머노이드(인간형) 로봇 전문 매장(사진)이 문을 열었다. 로봇 임대와 맞춤형 주문 제작, 사후서비스(AS)를 맡는 전문 매장을 통해 소비자의 접근성을 높이고 산업 현장뿐만 아니라 일상생활에서도...",
                 "https://n.news.naver.com/mnews/article/015/0005164292?sid=104",
                 "https://imgnews.pstatic.net/image/015/2025/07/29/0005164292_001_20250730014114331.jpg?type=w860",
-                LocalDateTime.now().minusDays(1),
+                LocalDateTime.now().minusDays(5),
+                LocalDateTime.now().minusDays(4),
                 "한국경제",
                 "김은정 기자",
                 "https://www.hankyung.com/article/2025072996711",
@@ -328,7 +352,8 @@ public class DevInitData {
                 "SK텔레콤(017670)은 여름 휴가철을 맞아 고객들에 안정적인 통신 서비스를 제공하기 위해 다음달 31일까지... 통상 7~8월에는 여름방학, 휴가로 인한 고객들의 피서지 이동과 함께 대규모 공연, 지역 축제 개최 등이...",
                 "https://n.news.naver.com/mnews/article/018/0006076814?sid=105",
                 "https://imgnews.pstatic.net/image/018/2025/07/30/0006076814_001_20250730092418079.jpg?type=w860",
-                LocalDateTime.now().minusDays(1),
+                LocalDateTime.now().minusDays(2),
+                LocalDateTime.now().minusDays(2),
                 "이데일리",
                 "윤정훈 기자",
                 "http://www.edaily.co.kr/news/newspath.asp?newsid=03198006642239768",
@@ -342,7 +367,8 @@ public class DevInitData {
                 "SK텔레콤은 여름 휴가철을 맞아 고객들에 안정적인 통신 서비스를 제공하기 위해 8월 31일까지 특별 소통... 통상 7~8월에는 여름방학, 휴가로 인한 고객들의 피서지 이동과 함께 대규모 공연, 지역 축제 개최 등이...",
                 "https://n.news.naver.com/mnews/article/003/0013392569?sid=105",
                 "https://imgnews.pstatic.net/image/003/2025/07/30/NISI20250730_0001906106_web_20250730084328_20250730085234576.jpg?type=w860",
-                LocalDateTime.now().minusDays(1),
+                LocalDateTime.now().minusDays(6),
+                LocalDateTime.now().minusDays(5),
                 "뉴시스",
                 "윤현성 기자",
                 "https://www.newsis.com/view/NISX20250730_0003271545",
@@ -355,7 +381,8 @@ public class DevInitData {
                 "김건희 여사 관련 의혹을 수사 중인 민중기 특별검사팀이 30일 2차 소환 요구에도 불응한 윤석열 전 대통령의 체포영장을 청구했다. 오정희 특검보는 이날 기자들과 만나 “어제 불출석한 윤석열에게 오늘(30일) 오전...",
                 "https://n.news.naver.com/mnews/article/028/0002758687?sid=102",
                 "https://imgnews.pstatic.net/image/028/2025/07/30/0002758687_001_20250730144824796.jpg?type=w860",
-                LocalDateTime.now().minusDays(2),
+                LocalDateTime.now().minusDays(5),
+                LocalDateTime.now().minusDays(3),
                 "한겨레",
                 "배지현 기자",
                 "https://www.hani.co.kr/arti/society/society_general/1210731.html",
@@ -367,7 +394,7 @@ public class DevInitData {
         List<RealNewsDto> savedNewsList = newsDataService.saveAllRealNews(newsList);
 
         if (!savedNewsList.isEmpty()) {
-            newsDataService.setTodayNews(savedNewsList.get(1).id());
+            newsDataService.setTodayNews(savedNewsList.get(0).id());
         }
     }
 
@@ -563,4 +590,5 @@ public class DevInitData {
         // 오늘의 뉴스 테이블의 가장 첫번째 뉴스를 가져와 해당 뉴스의 상세 퀴즈를 오늘의 퀴즈로 저장
         dailyQuizService.createDailyQuizForInitData();
     }
+
 }

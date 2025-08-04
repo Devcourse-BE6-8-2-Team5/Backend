@@ -136,12 +136,19 @@ public class FactQuizControllerTest {
                 .andExpect(handler().methodName("getFactQuizById"))
                 .andExpect(jsonPath("$.code").value(200))
                 .andExpect(jsonPath("$.message").value("팩트 퀴즈 조회 성공. ID: " + quizId))
-                .andExpect(jsonPath("$.data.id").isNumber())
-                .andExpect(jsonPath("$.data.question").isString())
-                .andExpect(jsonPath("$.data.realNewsTitle").value("경제계 \"상법·노조법 개정안 국회 급물살, 우려 넘어 참담\""))
-                .andExpect(jsonPath("$.data.realNewsContent", startsWith("한경협·대한상의 등 경제8단체 공동입장문 \"국회, 연이은 규제 입법…")))
-                .andExpect(jsonPath("$.data.fakeNewsContent", startsWith("국회에서 논의 중이던 상법 및 노동조합법 개정안이 경제계의 거센 반발에도")))
-                .andExpect(jsonPath("$.data.correctNewsType").exists());
+                .andExpect(jsonPath("$.data.factQuizDto.id").isNumber())
+                .andExpect(jsonPath("$.data.factQuizDto.question").isString())
+                .andExpect(jsonPath("$.data.factQuizDto.realNewsTitle").value("경제계 \"상법·노조법 개정안 국회 급물살, 우려 넘어 참담\""))
+                .andExpect(jsonPath("$.data.factQuizDto.realNewsContent", startsWith("한경협·대한상의 등 경제8단체 공동입장문 \"국회, 연이은 규제 입법…")))
+                .andExpect(jsonPath("$.data.factQuizDto.fakeNewsContent", startsWith("국회에서 논의 중이던 상법 및 노동조합법 개정안이 경제계의 거센 반발에도")))
+                .andExpect(jsonPath("$.data.factQuizDto.correctNewsType").exists())
+                .andExpect(jsonPath("$.data.factQuizDto.quizType").value("FACT"))
+
+                .andExpect(jsonPath("$.data.answer").doesNotExist())
+                .andExpect(jsonPath("$.data.gainExp").exists())
+                .andExpect(jsonPath("$.data.correct").exists());
+
+
     }
 
     @Test

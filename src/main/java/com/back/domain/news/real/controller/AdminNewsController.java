@@ -93,14 +93,15 @@ public class AdminNewsController {
         return RsData.of(200, String.format("%d번 뉴스 삭제 완료", newsId));
     }
 
-    @Operation(summary = "오늘의 뉴스 설정", description = "오늘의 뉴스를 설정합니다.")
+
+    @Operation(summary = "오늘의 뉴스 설정", description = "오늘의 뉴스를 변경합니다.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "오늘의 뉴스 설정 성공"),
             @ApiResponse(responseCode = "400", description = "이미 오늘의 뉴스로 설정되어 있거나 잘못된 요청"),
             @ApiResponse(responseCode = "404", description = "해당 ID의 뉴스가 존재하지 않음"),
             @ApiResponse(responseCode = "500", description = "서버 내부 오류")
     })
-    @PostMapping("/today/select/{newsId}")
+    @PutMapping("/today/select/{newsId}")
     public RsData<RealNewsDto> setTodayNews(@PathVariable Long newsId) {
 
         try {

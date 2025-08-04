@@ -1,12 +1,13 @@
 package com.back.domain.news.fake.service;
 
 import com.back.domain.news.fake.dto.FakeNewsDto;
+import com.back.domain.news.fake.event.FakeNewsCreatedEvent;
 import com.back.domain.news.real.dto.RealNewsDto;
 import com.back.domain.news.real.service.RealNewsService;
 import com.back.global.exception.ServiceException;
-import com.back.global.rsData.RsData;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -19,6 +20,7 @@ public class AdminFakeNewsService {
 
     private final FakeNewsService fakeNewsService;
     private final RealNewsService realNewsService;
+    private final ApplicationEventPublisher publisher;
 
 
     @Scheduled(cron = "0 0 1 * * *") // 매일 새벽 1시에 실행
@@ -33,6 +35,12 @@ public class AdminFakeNewsService {
             log.info("처리 대상 실제 뉴스: {}개", realNewsDtos.size());
 
             List<FakeNewsDto> fakeNewsDtos = fakeNewsService.generateAndSaveAllFakeNews(realNewsDtos);
+
+            List<Long> successRealNewsIds = fakeNewsDtos.stream()
+                    .map(fakeNews -> fakeNews.realNewsId())
+                    .toList();
+
+            publisher.publishEvent(new FakeNewsCreatedEvent(successRealNewsIds));
 
             log.info("=== 일일 가짜뉴스 생성 배치 완료 ===");
             log.info("요청: {}개, 성공: {}개, 실패: {}개",

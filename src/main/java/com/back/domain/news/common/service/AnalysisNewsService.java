@@ -4,14 +4,21 @@ import com.back.domain.news.common.dto.AnalyzedNewsDto;
 import com.back.domain.news.real.dto.RealNewsDto;
 import com.back.global.ai.AiService;
 import com.back.global.ai.processor.NewsAnalysisProcessor;
+import com.back.global.rateLimiter.RateLimiter;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.github.bucket4j.Bucket;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.ExecutionException;
 
 @Slf4j
 @Service
@@ -20,6 +27,10 @@ public class AnalysisNewsService {
 
     private final AiService aiService;
     private final ObjectMapper objectMapper;
+    private final RateLimiter rateLimiter;
+
+    @Qualifier("bucket")
+    private final Bucket bucket;
 
     @Value("${news.filter.batch.size:2}") // 배치 크기 설정, 3으로 하면 본문 길면 깨짐
     private int batchSize;
@@ -33,29 +44,64 @@ public class AnalysisNewsService {
 
         log.info("뉴스 필터링 시작 - 총 {}개", allRealNewsBeforeFilter.size());
 
-        List<AnalyzedNewsDto> filteredResults = new ArrayList<>();
+        List<List<RealNewsDto>> batches= new ArrayList<>();
 
-        // 3개씩 나누어서 처리
+        // batch_size로 나누어서 처리
         for (int i = 0; i < allRealNewsBeforeFilter.size(); i += batchSize) {
             int endIndex = Math.min(i + batchSize, allRealNewsBeforeFilter.size());
-            List<RealNewsDto> batch = allRealNewsBeforeFilter.subList(i, endIndex);
-
-            try {
-                log.debug("배치 처리 중: {}-{}", i + 1, endIndex);
-
-                NewsAnalysisProcessor processor = new NewsAnalysisProcessor(batch, objectMapper);
-                List<AnalyzedNewsDto> analyzedNewsDtos = aiService.process(processor);
-
-                filteredResults.addAll(analyzedNewsDtos);
-
-            } catch (Exception e) {
-                log.error("배치 {}개 처리 중 오류 발생, 건너뜀", batch.size(), e);
-                // 오류 발생 시 해당 배치는 건너뛰고 다음 배치 계속 처리
-                continue;
-            }
+            batches.add(allRealNewsBeforeFilter.subList(i, endIndex));
         }
 
-        log.info("뉴스 필터링 완료 - 총 {}개 중 {}개 처리됨", allRealNewsBeforeFilter.size(), filteredResults.size());
-        return filteredResults;
+        List<CompletableFuture<List<AnalyzedNewsDto>>> futures = batches.stream()
+                .map(this::processBatchAsync)
+                .toList();
+
+        try {
+            CompletableFuture<Void> allFutures = CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
+            allFutures.join(); // join()은 unchecked exception을 throw
+
+            List<AnalyzedNewsDto> allResults = futures.stream()
+                .map(future -> future.getNow(List.of())) // 이미 완료됨이 보장됨
+                .flatMap(List::stream)
+                .toList();
+
+            log.info("뉴스 필터링 완료 - 결과: {}개", allResults.size());
+            return allResults;
+
+        } catch (CompletionException e) {
+            Throwable cause = e.getCause();
+            if (cause instanceof InterruptedException) {
+                Thread.currentThread().interrupt();
+                throw new RuntimeException("뉴스 분석이 중단되었습니다", cause);
+                }
+                throw new RuntimeException("뉴스 분석 중 오류 발생", cause);
+        }
     }
+
+    @Async("newsExecutor")
+    public CompletableFuture<List<AnalyzedNewsDto>> processBatchAsync(List<RealNewsDto> batch) {
+
+        log.info("스레드: {}, 배치 시작 시간: {}",
+                Thread.currentThread().getName(), System.currentTimeMillis());
+        try {
+            // Rate limiting - 토큰 얻을 때까지 계속 시도
+            rateLimiter.waitForRateLimit();
+            log.debug("배치 처리 시작 - 기사 수: {}", batch.size());
+
+            NewsAnalysisProcessor processor = new NewsAnalysisProcessor(batch, objectMapper);
+            List<AnalyzedNewsDto> result = aiService.process(processor);
+
+            log.debug("배치 처리 완료 - 결과 수: {}", result.size());
+
+            log.info("스레드: {}, 배치 완료 시간: {}",
+                    Thread.currentThread().getName(), System.currentTimeMillis());
+
+            return CompletableFuture.completedFuture(result);
+
+        } catch (Exception e) {
+            log.error("배치 {}개 처리 중 오류 발생", batch.size(), e);
+            return CompletableFuture.completedFuture(List.of()); // AI 처리 실패시만 빈 리스트
+        }
+    }
+
 }

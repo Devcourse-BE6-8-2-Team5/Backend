@@ -3,6 +3,7 @@ package com.back.domain.news.common.test.controller;
 import com.back.domain.news.common.dto.AnalyzedNewsDto;
 import com.back.domain.news.common.dto.KeywordGenerationResDto;
 import com.back.domain.news.common.dto.NaverNewsDto;
+import com.back.domain.news.common.enums.NewsCategory;
 import com.back.domain.news.common.service.KeywordCleanupService;
 import com.back.domain.news.common.service.KeywordGenerationService;
 import com.back.domain.news.common.service.AnalysisNewsService;
@@ -20,7 +21,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 @Slf4j
 @RestController
@@ -46,24 +49,22 @@ public class TestController {
     @GetMapping("/process")
     public RsData<List<RealNewsDto>> newsProcess() {
         try {
-            adminNewsService.dailyNewsProcess();
+//            adminNewsService.dailyNewsProcess();
 
             //   속보랑 기타키워드 추가
-//            List<String> newsKeywords = List.of("K팝", "IT", "경제");
-//
-//            List<NaverNewsDto> newsKeywordsAfterAdd = newsDataService.collectMetaDataFromNaver(newsKeywords);
-//
-//            List<RealNewsDto> NewsBeforeFilter = newsDataService.createRealNewsDtoByCrawl(newsKeywordsAfterAdd);
-//
-//            List<RealNewsDto> NewsRemovedDuplicateTitles = newsDataService.removeDuplicateTitles(NewsBeforeFilter);
-//
-//            List<AnalyzedNewsDto> newsAfterFilter = analysisNewsService.filterAndScoreNews(NewsRemovedDuplicateTitles);
-//
-//            List<RealNewsDto> selectedNews = newsDataService.selectNewsByScore(newsAfterFilter);
-//
-//            List<RealNewsDto> savedNews = newsDataService.saveAllRealNews(selectedNews);
-            return RsData.of(200, "뉴스 프로세스 성공", null); // savedNews
-//            return RsData.of(200, "성공", savedNews);
+            List<String> newsKeywords = List.of("K팝", "장마");
+
+            List<NaverNewsDto> newsKeywordsAfterAdd = newsDataService.collectMetaDataFromNaver(newsKeywords);
+
+            List<RealNewsDto> newsAfterCrwal = newsDataService.createRealNewsDtoByCrawl(newsKeywordsAfterAdd);
+
+            List<AnalyzedNewsDto> newsAfterFilter = analysisNewsService.filterAndScoreNews(newsAfterCrwal);
+
+            List<RealNewsDto> selectedNews = newsDataService.selectNewsByScore(newsAfterFilter);
+
+            List<RealNewsDto> savedNews = newsDataService.saveAllRealNews(selectedNews);
+//            return RsData.of(200, "뉴스 프로세스 성공", null); // savedNews
+            return RsData.of(200, "성공", savedNews);
 
         } catch (Exception e) {
             return RsData.of(500, "실패: " + e.getMessage());
@@ -99,6 +100,24 @@ public class TestController {
         return RsData.of(200, String.format("뉴스 %d건 생성 완료",realNewsList.size()), realNewsList);
     }
 
+    @GetMapping("/createtoday")
+    public RsData<List<RealNewsDto>> getCreateToday() {
+
+        List<RealNewsDto> realNewsDtos = realNewsService.getRealNewsListCreatedToday();
+
+        if (realNewsDtos == null || realNewsDtos.isEmpty()) {
+            return RsData.of(400, "실제 뉴스 목록이 비어있습니다.");
+        }
+
+        for( RealNewsDto realNewsDto : realNewsDtos) {
+            log.info("실제 뉴스 ID: {}, 제목: {}", realNewsDto.id(), realNewsDto.title(), realNewsDto.content());
+
+
+        }
+        return RsData.of(200, "가짜 뉴스 생성 성공", realNewsDtos);
+
+    }
+
     @GetMapping("/create/fake")
     public RsData<List<FakeNewsDto>> testCreateFake() {
 
@@ -108,6 +127,9 @@ public class TestController {
             return RsData.of(400, "실제 뉴스 목록이 비어있습니다.");
         }
 
+        for( RealNewsDto realNewsDto : realNewsDtos) {
+            log.info("실제 뉴스 ID: {}, 제목: {}", realNewsDto.id(), realNewsDto.title());
+        }
         try {
             List<FakeNewsDto> fakeNewsDtos = fakeNewsService.generateAndSaveAllFakeNews(realNewsDtos);
 
@@ -132,39 +154,13 @@ public class TestController {
                 return RsData.of(400, "검색어가 비어있습니다.");
             }
             // 네이버 API 호출
-            List<NaverNewsDto> news = newsDataService.fetchNews(query);
-
-            // 속도 제한 준수
-            Thread.sleep(1000);
+            CompletableFuture<List<NaverNewsDto>> data = newsDataService.fetchNews(query);
+            List<NaverNewsDto> news= data.get();
 
             return RsData.of(200, "네이버 뉴스 조회 성공", news);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            return RsData.of(500, "네이버 뉴스 조회 중단됨: " + e.getMessage());
         } catch (Exception e) {
             log.error("네이버 뉴스 조회 실패: {}", e.getMessage());
             return RsData.of(500, "네이버 뉴스 조회 실패: " + e.getMessage());
-        }
-    }
-
-
-
-    @GetMapping("/keyword/create")
-    public RsData<List<String>> testCreateKeyword() {
-        try {
-            KeywordGenerationResDto keywords = keywordGenerationService.generateTodaysKeywords();
-            List<String> keywordList = keywords.getKeywords();
-//            Todo: 키워드 추가
-//            List<String> prefixes = List.of("속보", "긴급", "단독");
-//
-//            keywordList = Stream
-//                    .concat(keywordList.stream(), prefixes.stream())
-//                    .toList();
-
-            return RsData.of(200, "키워드 생성 성공", keywordList);
-        } catch (Exception e) {
-            log.error("키워드 생성 실패: {}", e.getMessage());
-            return RsData.of(500, "키워드 생성 실패: " + e.getMessage());
         }
     }
 
