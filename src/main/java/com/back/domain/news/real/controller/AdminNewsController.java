@@ -177,7 +177,7 @@ public class AdminNewsController {
     }
 
     //다건조회(시간순)
-    @Operation(summary = "다건 뉴스 조회", description = "페이지네이션을 통해 시간순으로 다건 뉴스를 조회합니다.")
+    @Operation(summary = "관리자용 다건 뉴스 조회", description = "페이지네이션을 통해 시간순으로 다건 뉴스를 조회합니다.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "뉴스 목록 조회 성공"),
             @ApiResponse(responseCode = "400", description = "잘못된 페이지 파라미터"),
@@ -240,7 +240,7 @@ public class AdminNewsController {
         return newsPageService.getPagedNews(RealNewsPage, NewsType.REAL);
     }
 
-    @Operation(summary = "카테고리별 뉴스 조회", description = "카테고리별로 뉴스를 조회합니다")
+    @Operation(summary = "관리자 카테고리별 뉴스 조회", description = "카테고리별로 모든 뉴스를 조회합니다")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "카테고리별 뉴스 조회 성공"),
             @ApiResponse(responseCode = "400", description = "올바르지 않은 카테고리이거나 잘못된 페이지 파라미터"),
@@ -276,7 +276,7 @@ public class AdminNewsController {
         Sort sortBy = Sort.by(sortDirection, "originCreatedDate");
 
         Pageable pageable = PageRequest.of(page-1, size, sortBy);
-        Page<RealNewsDto> realNewsPage = realNewsService.getRealNewsByCategory(newsCategory, pageable);
+        Page<RealNewsDto> realNewsPage = realNewsService.getAllRealNewsByCategory(newsCategory, pageable);
 
         return newsPageService.getPagedNews(realNewsPage, NewsType.REAL);
     }

@@ -4,6 +4,7 @@ package com.back.backend.domain.news.real.controller;
 import com.back.backend.global.config.TestRqConfig;
 import com.back.backend.global.rq.TestRq;
 import com.back.domain.member.member.entity.Member;
+import com.back.domain.news.common.enums.NewsCategory;
 import com.back.domain.news.real.entity.RealNews;
 import com.back.domain.news.real.repository.RealNewsRepository;
 import com.back.global.rq.Rq;
@@ -64,7 +65,7 @@ public class NewsControllerTest {
                 .originalNewsUrl("http://example.com/original/news/1")
                 .mediaName("Test Media")
                 .journalist("Test Journalist")
-                .newsCategory(com.back.domain.news.common.enums.NewsCategory.IT)
+                .newsCategory(NewsCategory.IT)
                 .build()
         );
 
@@ -79,7 +80,7 @@ public class NewsControllerTest {
                 .originalNewsUrl("http://example.com/original/news/1")
                 .mediaName("Test Media")
                 .journalist("Test Journalist")
-                .newsCategory(com.back.domain.news.common.enums.NewsCategory.IT)
+                .newsCategory(NewsCategory.IT)
                 .build()
         );
 

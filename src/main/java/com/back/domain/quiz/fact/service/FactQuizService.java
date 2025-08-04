@@ -54,7 +54,7 @@ public class FactQuizService {
 
     @Transactional(readOnly = true)
     public List<FactQuizDto> findByCategory(NewsCategory category, int rank) {
-//        return factQuizRepository.findByCategory(category);
+
         return findByCategoryAndRank(category, rank)
                 .map(List::of)
                 .orElse(List.of());

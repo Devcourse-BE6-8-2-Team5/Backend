@@ -2,6 +2,10 @@ package com.back.domain.quiz.fact.controller;
 
 import com.back.domain.member.member.entity.Member;
 import com.back.domain.news.common.enums.NewsCategory;
+import com.back.domain.news.real.dto.RealNewsDto;
+import com.back.domain.news.real.repository.RealNewsRepository;
+import com.back.domain.news.real.service.NewsDataService;
+import com.back.domain.news.real.service.RealNewsService;
 import com.back.domain.quiz.fact.dto.FactQuizAnswerDto;
 import com.back.domain.quiz.fact.dto.FactQuizDto;
 import com.back.domain.quiz.fact.dto.FactQuizWithHistoryDto;
@@ -133,4 +137,6 @@ public class FactQuizController {
                 submittedQuiz
         );
     }
+
 }
+

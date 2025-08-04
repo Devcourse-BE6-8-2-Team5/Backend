@@ -9,19 +9,15 @@ import com.back.domain.news.real.repository.RealNewsRepository;
 import com.back.domain.news.real.repository.TodayNewsRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import com.back.domain.news.today.entity.TodayNews;
 
@@ -85,7 +81,7 @@ public class RealNewsService {
     }
 
     @Transactional(readOnly = true)
-    public Page<RealNewsDto> getRealNewsByCategory(NewsCategory category, Pageable pageable) {
+    public Page<RealNewsDto> getAllRealNewsByCategory(NewsCategory category, Pageable pageable) {
         Optional<Long> todayNewsId = getTodayNews().map(RealNewsDto::id);
 
         if (todayNewsId.isPresent()) {
