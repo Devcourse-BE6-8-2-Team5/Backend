@@ -10,6 +10,7 @@ import com.back.domain.news.real.mapper.RealNewsMapper;
 import com.back.domain.news.real.repository.RealNewsRepository;
 import com.back.domain.news.real.repository.TodayNewsRepository;
 import com.back.domain.news.today.entity.TodayNews;
+import com.back.domain.news.today.event.TodayNewsCreatedEvent;
 import com.back.global.exception.ServiceException;
 import com.back.global.rateLimiter.RateLimiter;
 import com.back.global.util.HtmlEntityDecoder;
@@ -23,12 +24,15 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.*;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
@@ -52,6 +56,7 @@ public class NewsDataService {
     private final RealNewsMapper realNewsMapper;
     private final ObjectMapper objectMapper;
     private final RateLimiter rateLimiter;
+    private final ApplicationEventPublisher publisher;
 
     // HTTP 요청을 보내기 위한 Spring의 HTTP 클라이언트(외부 API 호출 시 사용)
     private final RestTemplate restTemplate;
@@ -424,6 +429,16 @@ public class NewsDataService {
                 .build();
 
         todayNewsRepository.save(todayNews);
+
+        // 트랜잭션 커밋 이후에 이벤트 발행
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                publisher.publishEvent(new TodayNewsCreatedEvent(todayNews.getId()));
+            }
+        });
+
+        //publisher.publishEvent(new TodayNewsCreatedEvent(todayNews.getId()));
     }
 
     public int count() {

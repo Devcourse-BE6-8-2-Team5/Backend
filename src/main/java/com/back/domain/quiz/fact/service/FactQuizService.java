@@ -23,6 +23,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.ThreadLocalRandom;
 
 import static com.back.global.util.LevelSystem.calculateLevel;
@@ -82,14 +83,34 @@ public class FactQuizService {
     }
 
     @Transactional
-    public void create(RealNews realNews, FakeNews fakeNews) {
-        FactQuiz quiz = createQuiz(realNews, fakeNews);
-        //real.getFactQuizzes().add(quiz);
-        //fake.getFactQuizzes().add(quiz);
-        factQuizRepository.save(quiz);
+    public void create(List<Long> realNewsIds) {
+        List<RealNews> realNewsList = realNewsRepository.findAllById(realNewsIds);
 
-        log.debug("팩트 퀴즈 생성 완료. 퀴즈 ID: {}, 뉴스 ID: {}", quiz.getId(), realNews.getId());
+        if (realNewsList.isEmpty()) {
+            throw new ServiceException(404, "팩트 퀴즈를 생성할 진짜 뉴스가 존재하지 않습니다. ID 목록: " + realNewsIds);
+        }
+
+        List<FactQuiz> quizzes = realNewsList.stream()
+                .map(news -> {
+                    FakeNews fakeNews = news.getFakeNews();
+                    if (fakeNews == null) {
+                        log.warn("가짜 뉴스가 존재하지 않습니다. 진짜 뉴스 ID: " + news.getId());
+                        return null; // 가짜 뉴스가 없는 경우 null 반환
+                    }
+                    return createQuiz(news, fakeNews);
+                })
+                .filter(Objects::nonNull) // null 제거
+                .toList();
+
+        if (quizzes.isEmpty()) {
+            log.warn("가짜 뉴스가 없어 생성된 퀴즈가 없습니다.");
+            return;
+        }
+
+        factQuizRepository.saveAll(quizzes);
+        log.info("퀴즈 {}개 저장 완료", quizzes.size());
     }
+
 
     @Transactional
     public void delete(Long id) {
