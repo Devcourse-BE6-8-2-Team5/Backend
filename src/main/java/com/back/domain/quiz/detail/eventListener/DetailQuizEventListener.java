@@ -12,7 +12,7 @@ import java.util.List;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class RealNewsEventListener {
+public class DetailQuizEventListener {
     private final DetailQuizEventService detailQuizEventService;
 
     @EventListener

@@ -2,8 +2,10 @@ package com.back.domain.quiz.detail.service;
 
 import com.back.domain.news.real.entity.RealNews;
 import com.back.domain.news.real.repository.RealNewsRepository;
+import com.back.domain.quiz.detail.event.DetailQuizCreatedEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -15,6 +17,7 @@ import java.util.concurrent.CompletableFuture;
 public class DetailQuizEventService {
     private final DetailQuizAsyncService detailQuizAsyncService;
     private final RealNewsRepository realNewsRepository;
+    private final ApplicationEventPublisher publisher;
 
     public void generateDetailQuizzes(List<Long> realNewsIds) {
         List<RealNews> realNewsList = realNewsRepository.findAllById(realNewsIds);
@@ -31,17 +34,17 @@ public class DetailQuizEventService {
                 .map(news -> detailQuizAsyncService.generateAsync(news.getId()))
                 .toList();
 
-        // 모든 작업 완료 대기 (옵션)
         CompletableFuture<Void> allOf = CompletableFuture.allOf(
                 futures.toArray(new CompletableFuture[0])
         );
 
-        allOf.whenComplete((result, throwable) -> {
-            if (throwable != null) {
-                log.error("일부 퀴즈 생성 작업이 실패했습니다.", throwable);
-            } else {
-                log.info("모든 퀴즈 생성 작업이 완료되었습니다.");
-            }
-        });
+        try {
+            // 비동기 작업이 모두 끝날 때까지 대기
+            allOf.join();
+            log.info("모든 퀴즈 생성 작업이 완료되었습니다.");
+            publisher.publishEvent(new DetailQuizCreatedEvent());
+        } catch (Exception e) {
+            log.error("일부 퀴즈 생성 작업이 실패했습니다.", e);
+        }
     }
 }

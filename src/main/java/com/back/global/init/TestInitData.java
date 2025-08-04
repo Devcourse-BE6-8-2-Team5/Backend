@@ -325,6 +325,6 @@ public class TestInitData {
 
         // 퀴즈 생성 로직 추가 (예시)
         // 오늘의 뉴스 테이블의 가장 첫번째 뉴스를 가져와 해당 뉴스의 상세 퀴즈를 오늘의 퀴즈로 저장
-        dailyQuizService.createDailyQuizForInitData();
+        dailyQuizService.createDailyQuiz();
     }
 }
