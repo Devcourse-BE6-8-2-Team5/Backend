@@ -21,7 +21,6 @@ import static jakarta.persistence.FetchType.LAZY;
 import static jakarta.persistence.GenerationType.IDENTITY;
 
 @Entity
-@EntityListeners(AuditingEntityListener.class)
 @Getter
 @NoArgsConstructor
 public class RealNews {
@@ -59,7 +58,7 @@ public class RealNews {
 
 
     @Column(updatable = false)
-    private LocalDateTime createdDate; // 생성 날짜(DB에 저장된 날짜)
+    private LocalDateTime createdDate; // 수동 관리
 
     @Builder
     public RealNews(

@@ -12,7 +12,6 @@ import static jakarta.persistence.CascadeType.ALL;
 
 @Entity
 @Getter
-@Setter
 @NoArgsConstructor
 @Builder
 @AllArgsConstructor

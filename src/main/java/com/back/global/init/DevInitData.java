@@ -590,6 +590,4 @@ public class DevInitData {
         dailyQuizService.createDailyQuizForInitData();
     }
 
-    @Autowired
-    private FakeNewsRepository fakeNewsRepository;
 }

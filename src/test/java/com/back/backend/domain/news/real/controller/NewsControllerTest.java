@@ -20,8 +20,10 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -58,6 +60,7 @@ public class NewsControllerTest {
                 .imgUrl("http://example.com/news/1/image.jpg")
                 .description("Test news description.")
                 .originCreatedDate(java.time.LocalDateTime.now())
+                .createdDate(LocalDateTime.now().minusDays(5))
                 .originalNewsUrl("http://example.com/original/news/1")
                 .mediaName("Test Media")
                 .journalist("Test Journalist")
@@ -72,6 +75,7 @@ public class NewsControllerTest {
                 .imgUrl("http://example.com/news/1/image.jpg")
                 .description("Test news description.")
                 .originCreatedDate(java.time.LocalDateTime.now())
+                .createdDate(LocalDateTime.now().minusDays(5))
                 .originalNewsUrl("http://example.com/original/news/1")
                 .mediaName("Test Media")
                 .journalist("Test Journalist")
@@ -196,11 +200,11 @@ public class NewsControllerTest {
     }
 
     @Test
-    @DisplayName("POST /api/news/today/select/{newsId} - 오늘의 뉴스 설정 성공")
+    @DisplayName("PUT /api/news/today/select/{newsId} - 오늘의 뉴스 설정 변경 성공")
     void t7() throws Exception {
         //When
         ResultActions resultActions = mvc.perform(
-                post("/api/admin/news/today/select/{newsId}", 1L)
+                put("/api/admin/news/today/select/{newsId}", 1L)
         ).andDo(print());
 
         //Then

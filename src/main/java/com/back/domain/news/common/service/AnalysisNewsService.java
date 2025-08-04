@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutionException;
 
 @Slf4j
@@ -56,21 +57,24 @@ public class AnalysisNewsService {
                 .toList();
 
         try {
-            CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).get();
+            CompletableFuture<Void> allFutures = CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
+            allFutures.join(); // join()은 unchecked exception을 throw
 
             List<AnalyzedNewsDto> allResults = futures.stream()
-                    .map(CompletableFuture::join) // 이미 완료된 상태라 즉시 반환
-                    .flatMap(List::stream)
-                    .toList();
+                .map(future -> future.getNow(List.of())) // 이미 완료됨이 보장됨
+                .flatMap(List::stream)
+                .toList();
 
             log.info("뉴스 필터링 완료 - 결과: {}개", allResults.size());
             return allResults;
 
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw new RuntimeException("뉴스 분석이 중단되었습니다", e);
-        } catch (ExecutionException e) {
-            throw new RuntimeException("뉴스 분석 중 오류 발생", e.getCause());
+        } catch (CompletionException e) {
+            Throwable cause = e.getCause();
+            if (cause instanceof InterruptedException) {
+                Thread.currentThread().interrupt();
+                throw new RuntimeException("뉴스 분석이 중단되었습니다", cause);
+                }
+                throw new RuntimeException("뉴스 분석 중 오류 발생", cause);
         }
     }
 
