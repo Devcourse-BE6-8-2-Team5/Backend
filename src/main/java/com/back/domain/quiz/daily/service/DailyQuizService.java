@@ -27,6 +27,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static com.back.global.util.LevelSystem.calculateLevel;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -79,15 +81,14 @@ public class DailyQuizService {
     }
 
     @Transactional
-    public void createDailyQuiz() {
-        TodayNews todayNews = todayNewsRepository.findFirstByOrderBySelectedDateDesc()
-                .orElseThrow(() -> new ServiceException(404, "오늘의 뉴스가 없습니다."));
+    public void createDailyQuiz(Long todayNewsId) {
+        TodayNews todayNews = todayNewsRepository.findById(todayNewsId)
+                .orElseThrow(() -> new ServiceException(404, "해당 ID의 오늘의 뉴스가 없습니다."));
 
         boolean alreadyCreated = dailyQuizRepository.existsByTodayNews(todayNews);
 
         if (alreadyCreated) {
-            log.info("이미 오늘의 퀴즈가 생성되었습니다. 작업을 건너뜁니다.");
-            return;
+            throw new ServiceException(400, "오늘의 퀴즈가 이미 생성되었습니다.");
         }
 
         RealNews realNews = todayNews.getRealNews();
@@ -138,9 +139,11 @@ public class DailyQuizService {
         DetailQuiz detailQuiz = dailyQuiz.getDetailQuiz();
 
         boolean isCorrect = detailQuiz.isCorrect(selectedOption);
-        int gainExp = isCorrect ? 10 : 0;
+        int gainExp = isCorrect ? 20 : 0;
 
         managedActor.setExp(managedActor.getExp() + gainExp);
+
+        managedActor.setLevel(calculateLevel(managedActor.getExp())); // 레벨 계산 로직 추가
 
         quizHistoryService.save(managedActor, id, dailyQuiz.getQuizType(), String.valueOf(selectedOption), isCorrect, gainExp); // 퀴즈 히스토리 저장
 

@@ -23,6 +23,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+import static com.back.global.util.LevelSystem.calculateLevel;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j // 로그 확인용
@@ -160,6 +162,8 @@ public class DetailQuizService {
 
 
         managedActor.setExp(managedActor.getExp() + gainExp);
+
+        managedActor.setLevel(calculateLevel(managedActor.getExp())); // 레벨 계산 로직 추가
 
         quizHistoryService.save(managedActor, id, quiz.getQuizType(), String.valueOf(selectedOption), isCorrect, gainExp); // 퀴즈 히스토리 저장
 

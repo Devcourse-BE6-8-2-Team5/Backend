@@ -4,40 +4,30 @@ import com.back.domain.news.real.entity.RealNews;
 import com.back.domain.news.real.repository.RealNewsRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class DetailQuizScheduledService {
+public class DetailQuizEventService {
     private final DetailQuizAsyncService detailQuizAsyncService;
     private final RealNewsRepository realNewsRepository;
 
-    // 매일 오전 5시에 오늘 DB에 저장된 뉴스로 퀴즈 생성
-    @Scheduled(cron = "0 0 5 * * *", zone = "Asia/Seoul")
-    public void generateQuizzesForTodayNews() {
-        LocalDate today = LocalDate.now();
-        LocalDateTime start = today.atStartOfDay(); // 오늘 00:00
-        LocalDateTime end = today.plusDays(1).atStartOfDay(); // 내일 00:00
+    public void generateDetailQuizzes(List<Long> realNewsIds) {
+        List<RealNews> realNewsList = realNewsRepository.findAllById(realNewsIds);
 
-        // 오늘 날짜의 뉴스 조회(시간 설정은 추후 변경 가능)
-        List<RealNews> todayNews = realNewsRepository.findTodayNews(start, end);
-
-        if (todayNews.isEmpty()) {
-            log.info("오늘 날짜의 뉴스 없음. 퀴즈 생성을 건너뜁니다.");
+        if (realNewsList.isEmpty()) {
+            log.info("there is no real news to generate quizzes for. Skipping quiz generation. News IDs: " + realNewsIds);
             return;
         }
 
-        log.info("퀴즈 생성 시작. 오늘 날짜의 뉴스 수: " + todayNews.size());
+        log.info("상세 퀴즈 생성 시작. 뉴스 개수: " + realNewsList.size());
 
         // 모든 뉴스에 대해 비동기 처리 (Rate Limiter가 속도 조절)
-        List<CompletableFuture<Void>> futures = todayNews.stream()
+        List<CompletableFuture<Void>> futures = realNewsList.stream()
                 .map(news -> detailQuizAsyncService.generateAsync(news.getId()))
                 .toList();
 
