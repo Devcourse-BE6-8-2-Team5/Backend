@@ -165,8 +165,7 @@ public class FakeNewsGeneratorProcessor implements AiRequestProcessor<FakeNewsDt
         String failureContent = String.format(
                 "이 뉴스는 AI 생성에 실패하여 자동으로 생성된 안내문입니다. " +
                 "AI 시스템에서 해당 뉴스의 가짜 버전을 생성하는 중 기술적 오류가 발생했습니다. " +
-                "시스템 관리자에게 문의하시거나 나중에 다시 시도해 주세요.",
-                realNewsDto.title()
+                "시스템 관리자에게 문의하시거나 나중에 다시 시도해 주세요."
         );
 
         return FakeNewsDto.of(realNewsDto.id(), failureContent);
