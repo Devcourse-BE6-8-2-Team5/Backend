@@ -10,7 +10,7 @@ import java.util.Optional;
 
 public interface TodayNewsRepository extends JpaRepository<TodayNews, Long> {
 
-    @Modifying
+    @Modifying(clearAutomatically = true)
     @Transactional
     void deleteBySelectedDate(LocalDate today);
 
