@@ -10,19 +10,20 @@ import com.back.global.ai.AiService;
 import com.back.global.ai.processor.FakeNewsGeneratorProcessor;
 import com.back.global.rateLimiter.RateLimiter;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityNotFoundException;
+import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.function.Function;
@@ -41,6 +42,9 @@ public class FakeNewsService {
     private final FakeNewsRepository fakeNewsRepository;
     private final RealNewsRepository realNewsRepository;
     private final RateLimiter rateLimiter;
+
+    @PersistenceContext
+    private EntityManager entityManager;
 
     @Autowired
     @Qualifier("newsExecutor")
@@ -84,6 +88,7 @@ public class FakeNewsService {
         return completedFuture(results);
     }
 
+    @Transactional
     public List<FakeNewsDto> generateAndSaveAllFakeNews(List<RealNewsDto> realNewsDtos){
         try{
             List<FakeNewsDto> fakeNewsDtos = generateFakeNewsBatch(realNewsDtos).get();
@@ -93,7 +98,7 @@ public class FakeNewsService {
                 return Collections.emptyList();
             }
 
-            saveAllFakeNews(fakeNewsDtos);
+            saveFakeNewsForBatch(fakeNewsDtos);
             return fakeNewsDtos;
 
         } catch (Exception e){
@@ -123,6 +128,68 @@ public class FakeNewsService {
                 .collect(Collectors.toList());
 
         fakeNewsRepository.saveAll(fakeNewsList);
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void saveFakeNewsForBatch(List<FakeNewsDto> fakeNewsDtos) {
+        try {
+            log.info("=== FakeNews 배치 저장 시작 - 입력: {}개 ===",
+                    fakeNewsDtos != null ? fakeNewsDtos.size() : 0);
+
+            if (fakeNewsDtos == null || fakeNewsDtos.isEmpty()) {
+                log.warn("저장할 FakeNewsDto가 없습니다.");
+                return;
+            }
+
+            int savedCount = 0;
+            int skipCount = 0;
+            int errorCount = 0;
+
+            for (FakeNewsDto dto : fakeNewsDtos) {
+                try {
+                    log.debug("처리 중: realNewsId={}", dto.realNewsId());
+
+                    // 1. 이미 존재하는지 확인
+                    if (fakeNewsRepository.existsById(dto.realNewsId())) {
+                        log.debug("FakeNews 이미 존재 - ID: {}", dto.realNewsId());
+                        skipCount++;
+                        continue;
+                    }
+
+                    // 2. RealNews 프록시 객체 생성 (실제 DB 조회 없음, Lazy Loading)
+                    RealNews realNewsProxy = realNewsRepository.getReferenceById(dto.realNewsId());
+
+                    // 3. FakeNews 생성 및 저장
+                    FakeNews fakeNews = FakeNews.builder()
+                            .id(dto.realNewsId()) // 명시적 ID 설정 (필수!)
+                            .realNews(realNewsProxy) // 프록시 객체 사용
+                            .content(dto.content())
+                            .build();
+                    entityManager.persist(fakeNews); // merge()가 아닌 persist() 강제
+
+                    savedCount++;
+                    log.info("FakeNews 저장 성공 - ID: {}", dto.realNewsId());
+
+                } catch (DataIntegrityViolationException e) {
+                    // 동시성으로 인한 중복 키 에러
+                    log.debug("FakeNews 중복 저장 시도 - ID: {} (동시성 이슈)", dto.realNewsId());
+                    skipCount++;
+                } catch (EntityNotFoundException e) {
+                    // RealNews가 존재하지 않 는 경우
+                    log.warn("RealNews 없음 - ID: {}", dto.realNewsId());
+                    skipCount++;
+                } catch (Exception e) {
+                    errorCount++;
+                    log.error("FakeNews 저장 실패 - ID: {}, 원인: {}", dto.realNewsId(), e.getMessage(), e);
+                }
+            }
+
+            log.info("=== FakeNews 배치 저장 완료 - 성공: {}개, 스킵: {}개, 실패: {}개 ===",
+                    savedCount, skipCount, errorCount);
+
+        } catch (Exception e) {
+            log.error("FakeNews 배치 저장 중 전체 오류", e);
+        }
     }
 
     @Transactional(readOnly = true)

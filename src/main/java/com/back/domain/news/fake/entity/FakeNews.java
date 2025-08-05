@@ -43,4 +43,5 @@ public class FakeNews {
 
     @OneToMany(mappedBy = "fakeNews", cascade = ALL, orphanRemoval = true)
     private List<FactQuiz> factQuizzes = new ArrayList<>();
+
 }
