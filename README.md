@@ -3,18 +3,16 @@
 ## 📌 개요
 이 시스템은 **진짜 뉴스**와 **가짜 뉴스**를 자동으로 생성·분석·서비스하는 플랫폼입니다.  
 스케줄러와 AI 모델을 활용하여 최신 뉴스를 선별하고, 이를 기반으로 창작된 가짜 뉴스를 퀴즈 형태로 제공합니다.
-
 ---
 
 ## 🛠 기술 스택
-- **Backend**: Java, Spring Boot
-- **Database**: MySQL / JPA
-- **AI 연동**: OpenAI / Gemini API
+- **Backend**: Java 23, Spring Boot 3.x
+- **Database**: MySQL 8.x / JPA
+- **AI 연동**: Google Gemini API
 - **크롤링**: Jsoup
 - **외부 API**: 네이버 뉴스 API
 - **Scheduler**: Spring @Scheduled
 - **비동기 처리**: CompletableFuture, ThreadPoolTaskExecutor
-- **빌드/배포**: Gradle, Docker
 
 ---
 
@@ -92,6 +90,10 @@ sequenceDiagram
     DB-->>QuizService: 퀴즈 데이터 전달
     QuizService-->>QuizService: OX 퀴즈 서비스
 
+---
+
+4️⃣ 아키텍처 다이어그램
+
 graph TB
     %% 외부 API
     subgraph "External API"
@@ -150,3 +152,34 @@ graph TB
     class DAILY,FAKE scheduler
     class COLLECT,ANALYZE,BATCH,GENERATE service
     class REAL_DB,FAKE_DB database
+
+---
+
+📂 디렉토리 구조
+csharp
+복사
+편집
+src
+ └── main
+     └── java
+         ├── domain                # 도메인별 핵심 비즈니스 로직
+         │   ├── member            # 회원 관련
+         │   │   ├── member
+         │   │   └── quizhistory
+         │   ├── news               # 뉴스 관련
+         │   │   ├── common
+         │   │   ├── fake
+         │   │   ├── real
+         │   │   └── today
+         │   └── quiz               # 퀴즈 관련
+         │       ├── daily
+         │       ├── detail
+         │       └── fact
+         │
+         └── global                 # 전역(공용) 모듈
+             ├── ai                 # AI 연동 모듈
+             ├── exception          # 예외 처리
+             ├── init               # 초기 설정
+             ├── security           # 보안 설정
+             ├── util               # 유틸리티
+             └── etc...             # 기타 공용 모듈
