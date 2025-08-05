@@ -90,7 +90,7 @@ public interface RealNewsRepository extends JpaRepository<RealNews, Long> {
         SELECT *,
                ROW_NUMBER() OVER (ORDER BY created_date DESC) AS rn
         FROM real_news
-        WHERE news_category = :category
+        WHERE news_category = :#{#category.name()}
           AND (:excludedId IS NULL OR id != :excludedId)
     ) AS sub
     WHERE rn != :excludedRank
@@ -101,7 +101,7 @@ public interface RealNewsRepository extends JpaRepository<RealNews, Long> {
     FROM (
         SELECT ROW_NUMBER() OVER (ORDER BY created_date DESC) AS rn
         FROM real_news
-        WHERE news_category = :category
+        WHERE news_category = :#{#category.name()}
           AND (:excludedId IS NULL OR id != :excludedId)
     ) AS sub
     WHERE rn != :excludedRank
@@ -133,7 +133,7 @@ public interface RealNewsRepository extends JpaRepository<RealNews, Long> {
         SELECT *,
                ROW_NUMBER() OVER (ORDER BY created_date DESC) AS rn
         FROM real_news
-        WHERE news_category = :category
+        WHERE news_category = :#{#category.name()}
     ) AS sub
     WHERE rn = :targetRank
     """,

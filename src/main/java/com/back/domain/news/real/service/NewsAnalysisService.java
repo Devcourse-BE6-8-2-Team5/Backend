@@ -1,17 +1,10 @@
-package com.back.domain.news.common.service;
+package com.back.domain.news.real.service;
 
 import com.back.domain.news.common.dto.AnalyzedNewsDto;
 import com.back.domain.news.real.dto.RealNewsDto;
-import com.back.global.ai.AiService;
-import com.back.global.ai.processor.NewsAnalysisProcessor;
-import com.back.global.rateLimiter.RateLimiter;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import io.github.bucket4j.Bucket;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -19,12 +12,11 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
-import java.util.concurrent.ExecutionException;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class AnalysisNewsService {
+public class NewsAnalysisService {
 
     private final NewsAnalysisBatchService newsAnalysisBatchService;
 

@@ -8,7 +8,7 @@ import com.back.domain.news.real.dto.RealNewsDto;
 import com.back.domain.news.real.entity.RealNews;
 import com.back.domain.news.real.mapper.RealNewsMapper;
 import com.back.domain.news.real.repository.RealNewsRepository;
-import com.back.domain.news.real.repository.TodayNewsRepository;
+import com.back.domain.news.today.repository.TodayNewsRepository;
 import com.back.domain.news.today.entity.TodayNews;
 import com.back.domain.news.today.event.TodayNewsCreatedEvent;
 import com.back.global.exception.ServiceException;

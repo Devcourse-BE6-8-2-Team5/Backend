@@ -1,4 +1,4 @@
-package com.back.domain.news.real.repository;
+package com.back.domain.news.today.repository;
 
 import com.back.domain.news.today.entity.TodayNews;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -10,7 +10,7 @@ import java.util.Optional;
 
 public interface TodayNewsRepository extends JpaRepository<TodayNews, Long> {
 
-    @Modifying
+    @Modifying(clearAutomatically = true)
     @Transactional
     void deleteBySelectedDate(LocalDate today);
 

@@ -6,7 +6,7 @@ import com.back.domain.news.real.dto.RealNewsDto;
 import com.back.domain.news.real.entity.RealNews;
 import com.back.domain.news.real.mapper.RealNewsMapper;
 import com.back.domain.news.real.repository.RealNewsRepository;
-import com.back.domain.news.real.repository.TodayNewsRepository;
+import com.back.domain.news.today.repository.TodayNewsRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -18,7 +18,6 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import com.back.domain.news.today.entity.TodayNews;
 
