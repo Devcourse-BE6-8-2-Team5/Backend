@@ -2,6 +2,8 @@ package com.back.domain.news.common.service;
 
 import com.back.domain.news.common.dto.KeywordGenerationReqDto;
 import com.back.domain.news.common.dto.KeywordGenerationResDto;
+import com.back.domain.news.common.dto.KeywordWithType;
+import com.back.domain.news.common.enums.KeywordType;
 import com.back.global.ai.AiService;
 import com.back.global.ai.processor.KeywordGeneratorProcessor;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -40,22 +42,66 @@ public class KeywordGenerationService {
      */
     public KeywordGenerationResDto generateTodaysKeywords() {
         LocalDate today = LocalDate.now();
-
         List<String> excludeKeywords = getExcludeKeywords();
-
         List<String> recentKeywords = keywordHistoryService.getRecentKeywords(recentDays);
-        KeywordGenerationReqDto keywordGenerationReqDto = new KeywordGenerationReqDto(today,recentKeywords, excludeKeywords);
 
+        KeywordGenerationReqDto keywordGenerationReqDto = new KeywordGenerationReqDto(today,recentKeywords, excludeKeywords);
         log.info("키워드 생성 요청 - 날짜 :  {} , 제외 키워드 : {}", today, excludeKeywords);
 
-        KeywordGeneratorProcessor processor = new KeywordGeneratorProcessor(keywordGenerationReqDto, objectMapper);
-        KeywordGenerationResDto result = aiService.process(processor);
+        try{
+            KeywordGeneratorProcessor processor = new KeywordGeneratorProcessor(keywordGenerationReqDto, objectMapper);
+            KeywordGenerationResDto result = aiService.process(processor);
 
-        log.info("키워드 생성 결과 - {}", result);
+            log.info("키워드 생성 결과 - {}", result);
 
-        keywordHistoryService.saveKeywords(result, today);
+            keywordHistoryService.saveKeywords(result, today);
 
-        return result;
+            return result;
+        } catch(Exception e) {
+            log.error("키워드 생성 실패, 기본 키워드 사용: {}", e.getMessage());
+
+            // 기본 키워드 사용 (processor의 createDefaultCase 로직 활용)
+            KeywordGenerationResDto defaultResult = createDefaultCase();
+            keywordHistoryService.saveKeywords(defaultResult, today);
+            return defaultResult;
+        }
+
+
+    }
+
+    private KeywordGenerationResDto createDefaultCase() {
+        List<KeywordWithType> societyKeywords = List.of(
+                new KeywordWithType("사회", KeywordType.GENERAL),
+                new KeywordWithType("교육", KeywordType.GENERAL)
+        );
+
+        List<KeywordWithType> economyKeywords = List.of(
+                new KeywordWithType("경제", KeywordType.GENERAL),
+                new KeywordWithType("시장", KeywordType.GENERAL)
+        );
+
+        List<KeywordWithType> politicsKeywords = List.of(
+                new KeywordWithType("정치", KeywordType.GENERAL),
+                new KeywordWithType("정부", KeywordType.GENERAL)
+        );
+
+        List<KeywordWithType> cultureKeywords = List.of(
+                new KeywordWithType("문화", KeywordType.GENERAL),
+                new KeywordWithType("예술", KeywordType.GENERAL)
+        );
+
+        List<KeywordWithType> itKeywords = List.of(
+                new KeywordWithType("기술", KeywordType.GENERAL),
+                new KeywordWithType("IT", KeywordType.GENERAL)
+        );
+
+        return new KeywordGenerationResDto(
+                societyKeywords,
+                economyKeywords,
+                politicsKeywords,
+                cultureKeywords,
+                itKeywords
+        );
     }
 
     private List<String> getExcludeKeywords() {

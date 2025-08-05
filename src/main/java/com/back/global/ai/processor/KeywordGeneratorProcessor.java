@@ -2,9 +2,14 @@ package com.back.global.ai.processor;
 
 import com.back.domain.news.common.dto.KeywordGenerationReqDto;
 import com.back.domain.news.common.dto.KeywordGenerationResDto;
+import com.back.domain.news.common.dto.KeywordWithType;
+import com.back.domain.news.common.enums.KeywordType;
+import com.back.domain.news.fake.dto.FakeNewsDto;
 import com.back.global.exception.ServiceException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.ai.chat.model.ChatResponse;
+
+import java.util.List;
 
 /**
  * 뉴스 제목과 본문을 기반 상세 퀴즈 3개를 생성하는 AI 요청 Processor 입니다.
@@ -175,13 +180,49 @@ public class KeywordGeneratorProcessor implements AiRequestProcessor<KeywordGene
                     KeywordGenerationResDto.class
             );
         } catch (Exception e) {
-            throw new ServiceException(500, "AI 응답이 JSON 형식이 아닙니다. 응답 : " + cleanedJson);
+            return createDefaultCase();
         }
 
         validatekeywords(result);
 
         return result;
 
+    }
+
+    private KeywordGenerationResDto createDefaultCase() {
+
+        List<KeywordWithType> societyKeywords = List.of(
+                new KeywordWithType("사회", KeywordType.GENERAL),
+                new KeywordWithType("교육", KeywordType.GENERAL)
+        );
+
+        List<KeywordWithType> economyKeywords = List.of(
+                new KeywordWithType("경제", KeywordType.GENERAL),
+                new KeywordWithType("시장", KeywordType.GENERAL)
+        );
+
+        List<KeywordWithType> politicsKeywords = List.of(
+                new KeywordWithType("정치", KeywordType.GENERAL),
+                new KeywordWithType("정부", KeywordType.GENERAL)
+        );
+
+        List<KeywordWithType> cultureKeywords = List.of(
+                new KeywordWithType("문화", KeywordType.GENERAL),
+                new KeywordWithType("예술", KeywordType.GENERAL)
+        );
+
+        List<KeywordWithType> itKeywords = List.of(
+                new KeywordWithType("기술", KeywordType.GENERAL),
+                new KeywordWithType("IT", KeywordType.GENERAL)
+        );
+
+        return new KeywordGenerationResDto(
+                societyKeywords,
+                economyKeywords,
+                politicsKeywords,
+                cultureKeywords,
+                itKeywords
+        );
     }
 
     private void validatekeywords(KeywordGenerationResDto result) {

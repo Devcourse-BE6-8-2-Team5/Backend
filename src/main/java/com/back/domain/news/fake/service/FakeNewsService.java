@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
@@ -44,8 +45,6 @@ public class FakeNewsService {
     @Autowired
     @Qualifier("newsExecutor")
     private Executor executor;
-
-
 
     @Async("newsExecutor")
     public CompletableFuture<List<FakeNewsDto>> generateFakeNewsBatch(List<RealNewsDto> realNewsDtos) {
@@ -83,10 +82,8 @@ public class FakeNewsService {
                 .toList();;
 
         return completedFuture(results);
-
     }
 
-    @Transactional
     public List<FakeNewsDto> generateAndSaveAllFakeNews(List<RealNewsDto> realNewsDtos){
         try{
             List<FakeNewsDto> fakeNewsDtos = generateFakeNewsBatch(realNewsDtos).get();
@@ -97,11 +94,11 @@ public class FakeNewsService {
             }
 
             saveAllFakeNews(fakeNewsDtos);
-
             return fakeNewsDtos;
+
         } catch (Exception e){
             log.error("가짜 뉴스 생성 및 저장 실패: {}", e.getMessage());
-            throw new RuntimeException("가짜 뉴스 생성 및 저장 실패", e);
+            return Collections.emptyList();
         }
     }
 
