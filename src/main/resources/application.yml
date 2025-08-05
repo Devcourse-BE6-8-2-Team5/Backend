@@ -16,7 +16,7 @@ spring:
       chat:
         base-url: "https://generativelanguage.googleapis.com/v1beta/openai/"
         options:
-          model: "gemini-2.0-flash"
+          model: "gemini-2.5-flash"
           temperature: 0.5 # 모델의 출력 다양성 조절 (0.0 ~ 1.0)
         completions-path: "/chat/completions"
   security:

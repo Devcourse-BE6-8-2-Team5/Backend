@@ -192,38 +192,6 @@ public class FakeNewsService {
         }
     }
 
-    @Transactional(readOnly = true)
-    public FakeNewsDto getFakeNewsByRealNewsId(Long realNewsId) {
-
-        return fakeNewsRepository.findById(realNewsId)
-                .map(fakeNews -> new FakeNewsDto(
-                        fakeNews.getRealNews().getId(),
-                        fakeNews.getContent()))
-                .orElseThrow(() -> new IllegalArgumentException("Fake news not found for real news id: " + realNewsId));
-
-    }
-
-    //가짜뉴스 단건 생성
-    public FakeNewsDto generateFakeNews(RealNewsDto realNewsDto) {
-        FakeNewsGeneratorProcessor processor = new FakeNewsGeneratorProcessor(realNewsDto, objectMapper);
-        return aiService.process(processor);
-    }
-
-
-    //단건 저장
-    @Transactional
-    public void saveFakeNews(FakeNewsDto fakeNewsDto) {
-        RealNews mappingNews = realNewsRepository.findById(fakeNewsDto.realNewsId())
-                .orElseThrow(() -> new IllegalArgumentException("Real news not found with id: " + fakeNewsDto.realNewsId()));
-
-        FakeNews fakeNews = FakeNews.builder()
-                .realNews(mappingNews)
-                .content(fakeNewsDto.content())
-                .build();
-
-        fakeNewsRepository.save(fakeNews);
-    }
-
     public int count() {
         return (int) fakeNewsRepository.count();
     }

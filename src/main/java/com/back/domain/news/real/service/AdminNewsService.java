@@ -39,7 +39,7 @@ public class AdminNewsService {
 
         List<String> newsKeywordsAfterAdd = newsDataService.addKeywords(keywords, STATIC_KEYWORD);
         // 테스트시 앞줄 주석처리하고 밑줄 활성화
-//        List<String> newsKeywordsAfterAdd = List.of("AI","정치","경제");
+//        List<String> newsKeywordsAfterAdd = List.of("AI","정치");
 
         List<NaverNewsDto> newsMetaData = newsDataService.collectMetaDataFromNaver(newsKeywordsAfterAdd);
 
