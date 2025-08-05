@@ -100,23 +100,16 @@ public class DailyQuizService {
         }
 
         for (DetailQuiz quiz : quizzes) {
-//            boolean alreadyExists = todayNews.getTodayQuizzes().stream()
-//                    .anyMatch(dq -> dq.getDetailQuiz().getId().equals(quiz.getId()));
-//
-//            if (!alreadyExists) {
-//                DailyQuiz dailyQuiz = new DailyQuiz(todayNews, quiz);
-//                todayNews.getTodayQuizzes().add(dailyQuiz);
-//            } else {
-//                log.warn("이미 존재하는 DetailQuiz 기반 DailyQuiz입니다. id = {}", quiz.getId());
-//            }
+            boolean alreadyExists = dailyQuizRepository.existsByDetailQuiz(quiz);
+
+            if (alreadyExists) {
+                log.warn("이미 존재하는 DetailQuiz 기반 DailyQuiz입니다. id = {}", quiz.getId());
+                continue; // 중복이면 건너뜀
+            }
 
             DailyQuiz dailyQuiz = new DailyQuiz(todayNews, quiz);
             todayNews.getTodayQuizzes().add(dailyQuiz);
         }
-    }
-
-    public long count() {
-        return dailyQuizRepository.count();
     }
 
     @Transactional
@@ -139,9 +132,20 @@ public class DailyQuizService {
         }
 
         for (DetailQuiz quiz : quizzes) {
+            boolean alreadyExists = dailyQuizRepository.existsByDetailQuiz(quiz);
+
+            if (alreadyExists) {
+                log.warn("이미 존재하는 DetailQuiz 기반 DailyQuiz입니다. id = {}", quiz.getId());
+                continue; // 중복이면 건너뜀
+            }
+
             DailyQuiz dailyQuiz = new DailyQuiz(todayNews, quiz);
             todayNews.getTodayQuizzes().add(dailyQuiz);
         }
+    }
+
+    public long count() {
+        return dailyQuizRepository.count();
     }
 
     @Transactional
