@@ -9,6 +9,19 @@
 
 ---
 
+## 👥 팀원 및 역할
+
+|-------------|-------------------|----------------------------------------------|
+| 이예진(팀장) | Backend / Frontend |  작성해주세요                                |
+| 김성철(PM)  | Backend / Frontend | 작성해주세요                                 |
+| 김율희      | Backend / Frontend | 작성해주세요                                 |
+| 이광현      | Frontend          | 작성해주세요                                 |
+| 최승욱      | Backend           | 뉴스 도메인 전반, 뉴스 생성 및 데이터 수집·전처리 담당 |
+
+*각 팀원은 맡은 영역에서 협업하며, 전체 시스템 안정성과 기능 확장을 위해 소통하고 있습니다.*
+
+---
+
 ## 🛠 기술 스택
 - **Backend**: Java 23, Spring Boot 3.x
 - **Database**: MySQL 8.x / JPA
@@ -173,9 +186,9 @@ graph TB
     GEMINI -->|16.가짜뉴스 반환| GENERATE
     GENERATE -->|17.저장| FAKE_DB
     GENERATE -->|18.FakeNewsCreatedEvent 발행| EVENTBUS
-    EVENTBUS -->|19.이벤트 전달 (비동기)| QUIZ
+    EVENTBUS -->|19.비동기 이벤트 전달| QUIZ
     QUIZ -->|20.진짜뉴스/가짜뉴스 조회| REAL_DB & FAKE_DB
-    QUIZ -->|21.AI/알고리즘 기반 퀴즈 생성 (OX, 상세형)| QUIZ_DB
+    QUIZ -->|21.AI/알고리즘 기반 퀴즈 생성 - OX, 상세형| QUIZ_DB
     QUIZ -->|22.퀴즈 저장 및 완료 이벤트 발행| EVENTBUS
     
     %% 스타일링
