@@ -34,13 +34,16 @@ public class AdminNewsService {
     @Scheduled(cron = "0 0 0 * * *") // 매일 자정에 실행
     @Transactional
     public void dailyNewsProcess(){
+
         List<String> keywords = keywordGenerationService.generateTodaysKeywords().getKeywords();
 
-        List<String> newsKeywords = newsDataService.addKeywords(keywords, STATIC_KEYWORD);
+        List<String> newsKeywordsAfterAdd = newsDataService.addKeywords(keywords, STATIC_KEYWORD);
+        // 테스트시 앞줄 주석처리하고 밑줄 활성화
+//        List<String> newsKeywordsAfterAdd = List.of("AI","정치","경제");
 
-        List<NaverNewsDto> newsKeywordsAfterAdd = newsDataService.collectMetaDataFromNaver(newsKeywords);
+        List<NaverNewsDto> newsMetaData = newsDataService.collectMetaDataFromNaver(newsKeywordsAfterAdd);
 
-        List<RealNewsDto> newsAfterCrwal = newsDataService.createRealNewsDtoByCrawl(newsKeywordsAfterAdd);
+        List<RealNewsDto> newsAfterCrwal = newsDataService.createRealNewsDtoByCrawl(newsMetaData);
 
         List<AnalyzedNewsDto> newsAfterFilter = newsAnalysisService.filterAndScoreNews(newsAfterCrwal);
 
