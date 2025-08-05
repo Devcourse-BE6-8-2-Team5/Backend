@@ -169,7 +169,6 @@ public class FakeNewsService {
 
                     savedCount++;
                     log.info("FakeNews 저장 성공 - ID: {}", dto.realNewsId());
-                    log.info("FakeNews 저장 성공 - ID: {}", dto.realNewsId());
 
                 } catch (DataIntegrityViolationException e) {
                     // 동시성으로 인한 중복 키 에러
