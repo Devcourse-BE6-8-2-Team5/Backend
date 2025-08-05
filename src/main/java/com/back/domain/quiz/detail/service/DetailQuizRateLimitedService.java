@@ -17,7 +17,7 @@ public class DetailQuizRateLimitedService {
     private final Bucket bucket;
 
     public List<DetailQuizDto> generatedQuizzesWithRateLimit(Long newsId) throws InterruptedException {
-        int maxRetries = 3; // 최대 재시도 횟수
+        int maxRetries = 5; // 최대 재시도 횟수
         int retryDelay = 60000; // 재시도 대기 시간 (밀리초 단위)
 
         for(int i=0; i<maxRetries; i++){
