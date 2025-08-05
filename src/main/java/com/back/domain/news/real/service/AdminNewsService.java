@@ -2,7 +2,6 @@ package com.back.domain.news.real.service;
 
 import com.back.domain.news.common.dto.AnalyzedNewsDto;
 import com.back.domain.news.common.dto.NaverNewsDto;
-import com.back.domain.news.common.service.AnalysisNewsService;
 import com.back.domain.news.common.service.KeywordGenerationService;
 import com.back.domain.news.real.dto.RealNewsDto;
 import com.back.domain.news.real.event.RealNewsCreatedEvent;
@@ -26,7 +25,7 @@ public class AdminNewsService {
 
     private final NewsDataService newsDataService;
     private final KeywordGenerationService keywordGenerationService;
-    private final AnalysisNewsService analysisNewsService;
+    private final NewsAnalysisService newsAnalysisService;
     private final static List<String> STATIC_KEYWORD = Arrays.asList("속보", "긴급", "단독");
     private final ApplicationEventPublisher publisher;
 
@@ -43,7 +42,7 @@ public class AdminNewsService {
 
         List<RealNewsDto> newsAfterCrwal = newsDataService.createRealNewsDtoByCrawl(newsKeywordsAfterAdd);
 
-        List<AnalyzedNewsDto> newsAfterFilter = analysisNewsService.filterAndScoreNews(newsAfterCrwal);
+        List<AnalyzedNewsDto> newsAfterFilter = newsAnalysisService.filterAndScoreNews(newsAfterCrwal);
 
         List<RealNewsDto> selectedNews = newsDataService.selectNewsByScore(newsAfterFilter);
 

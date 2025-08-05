@@ -1,4 +1,4 @@
-package com.back.domain.news.common.service;
+package com.back.domain.news.real.service;
 
 import com.back.domain.news.common.dto.AnalyzedNewsDto;
 import com.back.domain.news.real.dto.RealNewsDto;

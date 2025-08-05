@@ -3,27 +3,20 @@ package com.back.domain.news.common.test.controller;
 import com.back.domain.news.common.dto.AnalyzedNewsDto;
 import com.back.domain.news.common.dto.KeywordGenerationResDto;
 import com.back.domain.news.common.dto.NaverNewsDto;
-import com.back.domain.news.common.enums.NewsCategory;
 import com.back.domain.news.common.service.KeywordCleanupService;
 import com.back.domain.news.common.service.KeywordGenerationService;
-import com.back.domain.news.common.service.AnalysisNewsService;
+import com.back.domain.news.real.service.NewsAnalysisService;
 import com.back.domain.news.fake.dto.FakeNewsDto;
 import com.back.domain.news.fake.service.FakeNewsService;
 import com.back.domain.news.real.dto.RealNewsDto;
-import com.back.domain.news.real.entity.RealNews;
-import com.back.domain.news.real.repository.RealNewsRepository;
 import com.back.domain.news.real.service.AdminNewsService;
 import com.back.domain.news.real.service.NewsDataService;
 import com.back.domain.news.real.service.RealNewsService;
 import com.back.global.rsData.RsData;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
@@ -38,7 +31,7 @@ public class TestController {
     private final FakeNewsService fakeNewsService;
     private final RealNewsService realNewsService;
     private final NewsDataService newsDataService;
-    private final AnalysisNewsService analysisNewsService;
+    private final NewsAnalysisService newsAnalysisService;
     private final AdminNewsService adminNewsService;
 
     @GetMapping("/keywords")
@@ -61,7 +54,7 @@ public class TestController {
 
             List<RealNewsDto> newsAfterCrwal = newsDataService.createRealNewsDtoByCrawl(newsKeywordsAfterAdd);
 
-            List<AnalyzedNewsDto> newsAfterFilter = analysisNewsService.filterAndScoreNews(newsAfterCrwal);
+            List<AnalyzedNewsDto> newsAfterFilter = newsAnalysisService.filterAndScoreNews(newsAfterCrwal);
 
             List<RealNewsDto> selectedNews = newsDataService.selectNewsByScore(newsAfterFilter);
 

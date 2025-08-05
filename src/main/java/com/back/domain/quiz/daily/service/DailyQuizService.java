@@ -6,7 +6,7 @@ import com.back.domain.member.quizhistory.entity.QuizHistory;
 import com.back.domain.member.quizhistory.repository.QuizHistoryRepository;
 import com.back.domain.member.quizhistory.service.QuizHistoryService;
 import com.back.domain.news.real.entity.RealNews;
-import com.back.domain.news.real.repository.TodayNewsRepository;
+import com.back.domain.news.today.repository.TodayNewsRepository;
 import com.back.domain.news.today.entity.TodayNews;
 import com.back.domain.quiz.QuizType;
 import com.back.domain.quiz.daily.dto.DailyQuizAnswerDto;
