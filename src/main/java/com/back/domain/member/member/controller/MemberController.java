@@ -56,7 +56,7 @@ public class MemberController {
     public RsData<MemberDto> join(@RequestBody @Valid JoinReqBody reqBody) {
 
         memberService.findByEmail(reqBody.email())
-                .ifPresent(_ -> {
+                .ifPresent(member -> {
                     throw new ServiceException(409, "이미 존재하는 이메일입니다.");
                 });
 
