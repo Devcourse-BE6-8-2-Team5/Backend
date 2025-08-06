@@ -1,57 +1,36 @@
-# flyctl launch added from .gitignore
-**\HELP.md
-**\.gradle
-**\build
-!**\gradle\wrapper\gradle-wrapper.jar
-!**\**\src\main\**\build
-!**\**\src\test\**\build
+# Gradle 캐시 및 불필요한 빌드 폴더 제외
+**/.gradle
+**/build
+!**/build/libs
 
-### STS ###
-**\.apt_generated
-**\.classpath
-**\.factorypath
-**\.project
-**\.settings
-**\.springBeans
-**\.sts4-cache
-**\bin
-!**\**\src\main\**\bin
-!**\**\src\test\**\bin
+# IDE 관련
+**/.apt_generated
+**/.classpath
+**/.factorypath
+**/.project
+**/.settings
+**/.springBeans
+**/.sts4-cache
+**/bin
+!**/src/main/**/bin
+!**/src/test/**/bin
 
-### IntelliJ IDEA ###
-**\.idea
-**\*.iws
-**\*.iml
-**\*.ipr
-**\out
-!**\**\src\main\**\out
-!**\**\src\test\**\out
+# IntelliJ IDEA
+**/.idea
+**/*.iws
+**/*.iml
+**/*.ipr
+**/out
+!**/src/main/**/out
+!**/src/test/**/out
 
-### NetBeans ###
-nbproject\private
-nbbuild
-dist
-nbdist
-.nb-gradle
+# VS Code
+**/.vscode
 
-### VS Code ###
-**\.vscode
+# 데이터베이스 & 환경 변수 파일
+**/db_dev.mv.db
+**/db_dev.trace.db
+**/.env
 
-### Custom ###
-**\db_dev.mv.db
-**\db_dev.trace.db
-
-**\.env
-
-# flyctl launch added from .idea\.gitignore
-# Default ignored files
-.idea\shelf
-.idea\workspace.xml
-# Editor-based HTTP Client requests
-.idea\httpRequests
-# Environment-dependent path to Maven home directory
-.idea\mavenHomeManager.xml
-# Datasource local storage ignored files
-.idea\dataSources
-.idea\dataSources.local.xml
+# Fly.io config
 fly.toml
