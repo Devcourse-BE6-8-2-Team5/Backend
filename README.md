@@ -13,7 +13,7 @@
 
 | 팀원 | 역할 | 담당 업무 |
 |------|------|-----------|
-| 이예진(팀장) | Backend / Frontend | 작성해주세요 |
+| 이예진(팀장) | Backend / Frontend | 인증/인가, 소셜로그인 |
 | 김성철(PM) | Backend / Frontend | 작성해주세요 |
 | 김율희 | Backend | 퀴즈 도메인 전반, AI 호출 관리 담당 |
 | 이광현 | Backend / Frontend | 작성해주세요 |
