@@ -19,7 +19,7 @@ public class KeywordCleanupService {
     @Value("${keyword.cleanup.retention-days}")
     private int retentionDays;
 
-    @Scheduled(cron = "0 2 * * * ?") // 매일 새벽 2시에 실행
+    @Scheduled(cron = "0 0 2 * * ?", zone = "Asia/Seoul") // 매일 새벽 2시에 실행
     @Transactional
     public void cleanupKeywords(){
         // 현재 날짜에서 retentionDays 만큼 이전 날짜 계산(7이면 7일 이전 데이터 삭제)

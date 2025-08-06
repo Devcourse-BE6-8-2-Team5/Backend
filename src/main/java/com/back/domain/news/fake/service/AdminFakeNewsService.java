@@ -23,7 +23,7 @@ public class AdminFakeNewsService {
     private final ApplicationEventPublisher publisher;
 
 
-    @Scheduled(cron = "0 0 1 * * *") // 매일 새벽 1시에 실행
+    @Scheduled(cron = "0 0 1 * * *", zone = "Asia/Seoul") // 매일 새벽 1시에 실행
     public void dailyFakeNewsProcess() {
         try {
             List<RealNewsDto> realNewsDtos = realNewsService.getRealNewsListCreatedToday();
