@@ -1,18 +1,21 @@
-# Java 기반 이미지 사용
 FROM openjdk:23-jdk-slim
 
-# 작업 디렉토리 설정
 WORKDIR /app
 
-# Gradle wrapper와 소스코드 복사
+# Gradle wrapper 및 설정 먼저 복사 (캐시 최적화)
+COPY gradlew .
+COPY gradle gradle
+COPY build.gradle settings.gradle ./
+
+RUN chmod +x gradlew
+RUN ./gradlew dependencies --no-daemon
+
+# 나머지 소스 복사 후 빌드
 COPY . .
 
-# 실행 권한 부여 및 빌드
-RUN chmod +x ./gradlew
-RUN ./gradlew build -x test
+RUN ./gradlew bootJar -x test --no-daemon && \
+    echo "빌드 완료, jar 파일:" && ls -l build/libs
 
-# 8080 포트 노출
 EXPOSE 8080
 
-# Spring Boot 앱 실행
-ENTRYPOINT ["java", "-jar", "build/libs/*.jar"]
+ENTRYPOINT ["java", "-jar", "build/libs/Backend-0.0.1-SNAPSHOT.jar"]
