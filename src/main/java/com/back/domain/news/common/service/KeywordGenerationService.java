@@ -24,7 +24,7 @@ public class KeywordGenerationService {
     private final AiService aiService;
     private final ObjectMapper objectMapper;
     private final KeywordHistoryService keywordHistoryService;
-
+    private final KeywordCleanupService keywordCleanupService;
     @Value("${keyword.overuse.days}")
     private int overuseDays;
 
@@ -45,10 +45,16 @@ public class KeywordGenerationService {
         List<String> excludeKeywords = getExcludeKeywords();
         List<String> recentKeywords = keywordHistoryService.getRecentKeywords(recentDays);
 
+        try{
+            keywordCleanupService.cleanupKeywords();
+        } catch(Exception e){
+            log.warn("키워드 정리 중 오류 발생: {}", e.getMessage(), e);
+        }
         KeywordGenerationReqDto keywordGenerationReqDto = new KeywordGenerationReqDto(today,recentKeywords, excludeKeywords);
         log.info("키워드 생성 요청 - 날짜 :  {} , 제외 키워드 : {}", today, excludeKeywords);
 
         try{
+
             KeywordGeneratorProcessor processor = new KeywordGeneratorProcessor(keywordGenerationReqDto, objectMapper);
             KeywordGenerationResDto result = aiService.process(processor);
 
