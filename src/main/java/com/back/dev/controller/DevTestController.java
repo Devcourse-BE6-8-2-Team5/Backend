@@ -20,8 +20,7 @@ public class DevTestController {
 
     private final DevTestNewsService devTestNewsService;
 
-    @GetMapping
-    @RequestMapping("/news")
+    @GetMapping("/news")
     public RsData<List<RealNewsDto>> testCreateNews(){
 
         List<RealNewsDto> testNews;

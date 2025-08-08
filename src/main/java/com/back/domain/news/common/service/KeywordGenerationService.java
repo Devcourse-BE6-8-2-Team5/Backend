@@ -45,7 +45,11 @@ public class KeywordGenerationService {
         List<String> excludeKeywords = getExcludeKeywords();
         List<String> recentKeywords = keywordHistoryService.getRecentKeywords(recentDays);
 
-        keywordCleanupService.cleanupKeywords();
+        try{
+            keywordCleanupService.cleanupKeywords();
+        } catch(Exception e){
+            log.warn("키워드 정리 중 오류 발생: {}", e.getMessage(), e);
+        }
         KeywordGenerationReqDto keywordGenerationReqDto = new KeywordGenerationReqDto(today,recentKeywords, excludeKeywords);
         log.info("키워드 생성 요청 - 날짜 :  {} , 제외 키워드 : {}", today, excludeKeywords);
 
