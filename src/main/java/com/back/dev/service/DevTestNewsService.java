@@ -11,14 +11,22 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.openkoreantext.processor.OpenKoreanTextProcessorJava;
+import org.openkoreantext.processor.tokenizer.KoreanTokenizer;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+import scala.collection.JavaConverters;
+import scala.collection.Seq;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
+
+import static org.openkoreantext.processor.OpenKoreanTextProcessorJava.*;
+import static org.openkoreantext.processor.tokenizer.KoreanTokenizer.*;
+import static scala.collection.JavaConverters.*;
 
 @Slf4j
 @Profile("!prod")
@@ -61,6 +69,51 @@ public class DevTestNewsService {
         List<RealNewsDto> savedNews = newsDataService.saveAllRealNews(selectedNews);
 
         return savedNews;
+    }
+
+
+    // 단순하지만 실용적인 키워드 추출
+    public Set<String> extractKeywords(String text) {
+        try {
+            // HTML 태그 제거
+            String cleanText = text.replaceAll("<[^>]*>", "");
+
+            Set<String> keywords = new HashSet<>();
+
+            // 1. OpenKoreanTextProcessor로 조사 제거
+            CharSequence normalized = normalize(cleanText);
+            Seq<KoreanToken> tokens = tokenize(normalized);
+
+            StringBuilder processedText = new StringBuilder();
+            for (KoreanToken token : seqAsJavaList(tokens)) {
+                String pos = token.pos().toString();
+
+                // 조사, 어미, 구두점만 제외하고 나머지는 모두 포함
+                if (!pos.contains("Josa") && !pos.contains("Eomi") &&
+                        !pos.contains("Punctuation") && !pos.contains("Space")) {
+                    processedText.append(token.text()).append(" ");
+                }
+            }
+
+            // 2. 조사가 제거된 텍스트를 공백 기준으로 분리
+            String[] words = processedText.toString().trim().split("\\s+");
+
+            for (String word : words) {
+                // 길이 2 이상이고, 완전 숫자가 아닌 것만 포함
+                if (word.length() >= 2 && !word.matches("^[0-9]+$")) {
+                    keywords.add(word.trim());
+                }
+            }
+
+            return keywords;
+
+        } catch (Exception e) {
+            // 형태소 분석 실패 시 단순 공백 기준 분리 (조사 포함)
+            return Arrays.stream(text.replaceAll("<[^>]*>", "").split("\\s+"))
+                    .filter(word -> word.length() >= 2)
+                    .filter(word -> !word.matches("^[0-9]+$"))
+                    .collect(Collectors.toSet());
+        }
     }
 
     public List<NaverNewsDto> fetchNews(String query) {
@@ -124,4 +177,5 @@ public class DevTestNewsService {
 
         return newsMetaDataList;
     }
+
 }

@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 @Profile("!prod")
 @RequiredArgsConstructor
@@ -35,10 +36,15 @@ public class DevTestController {
     }
 
     @GetMapping("/fetch")
-    @ResponseStatus(HttpStatus.OK)
     public RsData<List<NaverNewsDto>> testFetch(@RequestParam String query){
         List<NaverNewsDto> testNews = devTestNewsService.fetchNews(query);
 
         return RsData.of(200, "테스트 뉴스 메타데이터 생성 완료", testNews);
+    }
+
+    @GetMapping("/keyword")
+    public Set<String> getExtractedWord(@RequestParam String keyword){
+
+        return devTestNewsService.extractKeywords(keyword);
     }
 }
