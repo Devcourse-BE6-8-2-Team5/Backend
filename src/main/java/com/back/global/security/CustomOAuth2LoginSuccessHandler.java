@@ -7,6 +7,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseCookie;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
@@ -30,7 +31,7 @@ public class CustomOAuth2LoginSuccessHandler implements AuthenticationSuccessHan
         String accessToken = memberService.genAccessToken(actor);
         String refreshToken = actor.getApiKey();
 
-        // 쿠키 설정
+        // Rq의 헬퍼 메서드를 사용하여 쿠키 설정
         rq.setCrossDomainCookie("accessToken", accessToken, (int) TimeUnit.MINUTES.toSeconds(20));
         rq.setCrossDomainCookie("refreshToken", refreshToken, (int) TimeUnit.DAYS.toSeconds(7));
 

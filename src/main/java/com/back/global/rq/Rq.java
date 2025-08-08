@@ -8,6 +8,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
+import org.springframework.http.ResponseCookie;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
@@ -75,40 +76,19 @@ public class Rq {
                 .orElse(defaultValue);
     }
 
-    // 로컬 개발 환경용 쿠키 설정 (Same-Domain)
-    public void setCookie(String name, String value) {
-        if (value == null) value = "";
-
-        Cookie cookie = new Cookie(name, value);
-        cookie.setPath("/");
-        // 로컬에서는 HttpOnly만 설정
-        cookie.setHttpOnly(true);
-
-        if (value.isBlank()) cookie.setMaxAge(0);
-        else cookie.setMaxAge(60 * 60 * 24 * 365);
-
-        resp.addCookie(cookie);
+    public void setCrossDomainCookie(String name, String value, int maxAge) {
+        ResponseCookie cookie = ResponseCookie.from(name, value)
+                .path("/")
+                .maxAge(maxAge)
+                .secure(true)
+                .sameSite("None")
+                .httpOnly(true)
+                .build();
+        resp.addHeader("Set-Cookie", cookie.toString());
     }
 
-    // 운영 환경용 쿠키 설정 (Cross-Domain)
-    public void setCrossDomainCookie(String name, String value, int maxAgeInSeconds) {
-        if (value == null) value = "";
-
-        Cookie cookie = new Cookie(name, value);
-        cookie.setPath("/");
-        cookie.setHttpOnly(true); // JavaScript 접근 방지
-        cookie.setSecure(true); // HTTPS 강제
-        cookie.setAttribute("SameSite", "None"); // 크로스 도메인 허용
-
-        if (value.isBlank()) cookie.setMaxAge(0);
-        else cookie.setMaxAge(maxAgeInSeconds);
-
-        resp.addCookie(cookie);
-    }
-
-
-    public void deleteCookie(String name) {
-        setCookie(name, null);
+    public void deleteCrossDomainCookie(String name) {
+        setCrossDomainCookie(name, "", 0);
     }
 
     @SneakyThrows
