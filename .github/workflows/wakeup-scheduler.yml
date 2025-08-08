@@ -9,4 +9,4 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Wake up app
-        run: curl -f https://news-ox.fly.dev/
+        run: curl -f https://news-ox.fly.dev/health

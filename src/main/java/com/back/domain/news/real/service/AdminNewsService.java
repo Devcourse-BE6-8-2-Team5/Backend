@@ -37,7 +37,7 @@ public class AdminNewsService {
     private final RestTemplate restTemplate;
     private final TaskScheduler taskScheduler;
 
-    @Scheduled(cron = "0 15 1 * * *", zone = "Asia/Seoul") // 매일 자정에 실행
+    @Scheduled(cron = "0 0 0 * * *", zone = "Asia/Seoul") // 매일 자정에 실행
     @Transactional
     public void dailyNewsProcess(){
 
@@ -78,8 +78,7 @@ public class AdminNewsService {
             });
         } catch (Exception e) {
             log.error("뉴스 처리 중 오류 발생", e);
-        }
-        finally {
+        } finally {
             keepAliveTask.cancel(true);
             log.info("Keep-alive 작업 중지됨");
         }
