@@ -110,8 +110,8 @@ public class MemberController {
         String accessToken = memberService.genAccessToken(member);
 
         // 쿠키 설정
-        rq.setCookie("accessToken", accessToken);
-        rq.setCookie("apiKey", member.getApiKey());
+        rq.setCrossDomainCookie("accessToken", accessToken, 60 * 20);
+        rq.setCrossDomainCookie("apiKey", member.getApiKey(), 60 * 60 * 24 * 7);
 
         return new RsData<>(
                 200,
@@ -128,8 +128,8 @@ public class MemberController {
     @DeleteMapping("/logout")
     public RsData<Void> logout() {
 
-        rq.deleteCookie("accessToken");
-        rq.deleteCookie("apiKey");
+        rq.deleteCrossDomainCookie("accessToken");
+        rq.deleteCrossDomainCookie("apiKey");
 
         return new RsData<>(
                 200,
@@ -212,8 +212,8 @@ public class MemberController {
 
         memberService.withdraw(member);
 
-        rq.deleteCookie("apiKey");
-        rq.deleteCookie("accessToken");
+        rq.deleteCrossDomainCookie("apiKey");
+        rq.deleteCrossDomainCookie("accessToken");
 
         return new RsData<>(
                 200,

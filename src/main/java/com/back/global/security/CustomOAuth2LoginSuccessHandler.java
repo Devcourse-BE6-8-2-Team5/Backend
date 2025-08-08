@@ -7,14 +7,15 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseCookie;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
-import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
+import java.util.concurrent.TimeUnit;
 
 @Component
 @RequiredArgsConstructor
@@ -24,39 +25,29 @@ public class CustomOAuth2LoginSuccessHandler implements AuthenticationSuccessHan
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
-        // 로그인된 사용자 정보 가져오기
         Member actor = rq.getActorFromDb();
 
-        // Access Token 생성
+        // Access Token과 Refresh Token(apiKey) 생성
         String accessToken = memberService.genAccessToken(actor);
-        // Refresh Token으로 apiKey를 사용
         String refreshToken = actor.getApiKey();
 
-        // 기본 리다이렉트 URL (프론트엔드 주소)
+        // Rq의 헬퍼 메서드를 사용하여 쿠키 설정
+        rq.setCrossDomainCookie("accessToken", accessToken, (int) TimeUnit.MINUTES.toSeconds(20));
+        rq.setCrossDomainCookie("refreshToken", refreshToken, (int) TimeUnit.DAYS.toSeconds(7));
+
+        // state 값에서 프론트엔드 리다이렉트 주소 복원
         String redirectUrl = "https://news-ox.vercel.app/";
-
-        // OAuth2 인증 요청 시 저장했던 state 값을 읽어옴
         String state = request.getParameter("state");
-
         if (state != null && !state.isBlank()) {
             try {
-                // state 값은 프론트엔드 주소가 Base64로 인코딩된 것
                 String decodedUrl = new String(Base64.getUrlDecoder().decode(state), StandardCharsets.UTF_8);
                 redirectUrl = decodedUrl;
             } catch (IllegalArgumentException e) {
-                // Base64 디코딩에 실패하면 기본 URL을 사용합니다.
+                // 디코딩 실패 시 기본 URL 사용
             }
         }
 
-        // 최종 리다이렉트 URL에 토큰들을 쿼리 파라미터로 추가
-        String finalUrl = UriComponentsBuilder.fromUriString(redirectUrl)
-                .queryParam("accessToken", accessToken)
-                .queryParam("refreshToken", refreshToken)
-                .build()
-                .encode(StandardCharsets.UTF_8)
-                .toUriString();
-
-        // 최종적으로 프론트엔드로 리다이렉트
-        response.sendRedirect(finalUrl);
+        // 토큰 정보가 담기지 않은 URL로 프론트엔드에 리다이렉트
+        rq.sendRedirect(redirectUrl);
     }
 }
