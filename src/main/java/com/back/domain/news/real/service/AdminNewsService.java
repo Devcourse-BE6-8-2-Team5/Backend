@@ -8,15 +8,21 @@ import com.back.domain.news.real.event.RealNewsCreatedEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.client.RestTemplate;
 
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.ScheduledFuture;
 
 @Slf4j
 @Service
@@ -28,48 +34,66 @@ public class AdminNewsService {
     private final NewsAnalysisService newsAnalysisService;
     private final static List<String> STATIC_KEYWORD = Arrays.asList("속보", "긴급", "단독");
     private final ApplicationEventPublisher publisher;
+    private final RestTemplate restTemplate;
+    private final TaskScheduler taskScheduler;
 
-
-
-    @Scheduled(cron = "0 0 0 * * *", zone = "Asia/Seoul") // 매일 자정에 실행
+    @Scheduled(cron = "0 0 1 * * *", zone = "Asia/Seoul") // 매일 자정에 실행
     @Transactional
     public void dailyNewsProcess(){
 
-        List<String> keywords = keywordGenerationService.generateTodaysKeywords().getKeywords();
+        ScheduledFuture<?> keepAliveTask = startKeepAlive();
 
-        List<String> newsKeywordsAfterAdd = newsDataService.addKeywords(keywords, STATIC_KEYWORD);
-        // 테스트시 앞줄 주석처리하고 밑줄 활성화
-//        List<String> newsKeywordsAfterAdd = List.of("AI","정치");
+        try{
+            List<String> keywords = keywordGenerationService.generateTodaysKeywords().getKeywords();
 
-        List<NaverNewsDto> newsMetaData = newsDataService.collectMetaDataFromNaver(newsKeywordsAfterAdd);
+            List<String> newsKeywordsAfterAdd = newsDataService.addKeywords(keywords, STATIC_KEYWORD);
 
-        List<RealNewsDto> newsAfterCrwal = newsDataService.createRealNewsDtoByCrawl(newsMetaData);
+            List<NaverNewsDto> newsMetaData = newsDataService.collectMetaDataFromNaver(newsKeywordsAfterAdd);
 
-        List<AnalyzedNewsDto> newsAfterFilter = newsAnalysisService.filterAndScoreNews(newsAfterCrwal);
+            List<RealNewsDto> newsAfterCrwal = newsDataService.createRealNewsDtoByCrawl(newsMetaData);
 
-        List<RealNewsDto> selectedNews = newsDataService.selectNewsByScore(newsAfterFilter);
+            List<AnalyzedNewsDto> newsAfterFilter = newsAnalysisService.filterAndScoreNews(newsAfterCrwal);
 
-        List<RealNewsDto> savedNews = newsDataService.saveAllRealNews(selectedNews);
+            List<RealNewsDto> selectedNews = newsDataService.selectNewsByScore(newsAfterFilter);
 
-        if(savedNews.isEmpty()) {
-            log.warn("저장된 뉴스가 없습니다. 오늘의 뉴스 수집이 실패했을 수 있습니다.");
-            return;
-        }
-        newsDataService.setTodayNews(savedNews.getFirst().id());
+            List<RealNewsDto> savedNews = newsDataService.saveAllRealNews(selectedNews);
 
-        List<Long> realNewsIds = savedNews.stream()
-                .map(RealNewsDto::id)
-                .filter(Objects::nonNull) // null 체크
-                .toList();
-
-        // 트랜잭션 커밋 이후에 이벤트 발행
-        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
-            @Override
-            public void afterCommit() {
-                publisher.publishEvent(new RealNewsCreatedEvent(realNewsIds));
+            if(savedNews.isEmpty()) {
+                log.warn("저장된 뉴스가 없습니다. 오늘의 뉴스 수집이 실패했을 수 있습니다.");
+                return;
             }
-        });
+            newsDataService.setTodayNews(savedNews.getFirst().id());
 
+            List<Long> realNewsIds = savedNews.stream()
+                    .map(RealNewsDto::id)
+                    .filter(Objects::nonNull) // null 체크
+                    .toList();
+
+            // 트랜잭션 커밋 이후에 이벤트 발행
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    publisher.publishEvent(new RealNewsCreatedEvent(realNewsIds));
+                }
+            });
+        } catch (Exception e) {
+            log.error("뉴스 처리 중 오류 발생", e);
+        }
+        finally {
+            keepAliveTask.cancel(true);
+            log.info("Keep-alive 작업 중지됨");
+        }
     }
 
+    private ScheduledFuture<?> startKeepAlive() {
+        log.info("Keep-alive 시작됨");
+        return taskScheduler.scheduleAtFixedRate(() -> {
+            try {
+                restTemplate.getForObject("https://news-ox.fly.dev/health", String.class);
+                log.debug("start aliive 핑");
+            } catch (Exception e) {
+                log.warn("Keep-alive 실패", e);
+            }
+        }, Duration.ofMinutes(4));
+    }
 }

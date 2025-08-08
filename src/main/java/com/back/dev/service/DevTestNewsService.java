@@ -5,12 +5,29 @@ import com.back.domain.news.common.dto.NaverNewsDto;
 import com.back.domain.news.real.dto.RealNewsDto;
 import com.back.domain.news.real.service.NewsAnalysisService;
 import com.back.domain.news.real.service.NewsDataService;
+import com.back.global.util.HtmlEntityDecoder;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.openkoreantext.processor.KoreanTokenJava;
+import org.openkoreantext.processor.OpenKoreanTextProcessorJava;
+import org.openkoreantext.processor.tokenizer.KoreanTokenizer;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
+import scala.collection.JavaConverters;
+import scala.collection.Seq;
 
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
+
+import static org.openkoreantext.processor.OpenKoreanTextProcessorJava.*;
+import static org.openkoreantext.processor.tokenizer.KoreanTokenizer.*;
+import static scala.collection.JavaConverters.*;
 
 @Slf4j
 @Profile("!prod")
@@ -19,6 +36,25 @@ import java.util.List;
 public class DevTestNewsService {
     private final NewsDataService newsDataService;
     private final NewsAnalysisService newsAnalysisService;
+    private final RestTemplate restTemplate;
+
+    @Value("${NAVER_CLIENT_ID}")
+    private String clientId;
+
+    @Value("${NAVER_CLIENT_SECRET}")
+    private String clientSecret;
+
+    @Value("${naver.news.display}")
+    private int newsDisplayCount;
+
+    @Value("${naver.news.sort:sim}")
+    private String newsSortOrder;
+
+    @Value("${naver.crawling.delay}")
+    private int crawlingDelay;
+
+    @Value("${naver.base-url}")
+    private String naverUrl;
 
     public List<RealNewsDto> testNewsDataService() {
         List<String> newsKeywordsAfterAdd = List.of("AI");
@@ -35,4 +71,154 @@ public class DevTestNewsService {
 
         return savedNews;
     }
+
+    public List<String> extractKeywords(String text) {
+        try {
+
+            List<String> keywords = new ArrayList<>();
+
+            // OpenKoreanTextProcessor로 중복 체크
+            String normalized = normalize(text).toString();
+            List<KoreanTokenJava> tokenList = tokensToJavaKoreanTokenList(
+                    tokenize(normalized)
+            );
+
+            for (KoreanTokenJava token : tokenList) {
+                String pos = token.getPos().toString();
+                System.out.printf("토큰: %s, 품사: %s\n", token.getText(), pos);
+
+                // 조사, 어미, 구두점만 제외하고 나머지는 모두 포함
+                if (!pos.contains("Josa") && !pos.contains("Eomi") &&
+                        !pos.contains("Punctuation") && !pos.contains("Space")) {
+
+                    if(pos.equals("Adjective") || pos.equals("Verb")) {
+                        // Adjective, Verb, Adverb 이고 기본형이 있는 경우
+                        String stem = token.getStem();
+                        if (stem != null) {
+                            System.out.println("기본형: " + stem);
+                            // 같은 offset을 가진 토큰은 하나로 묶기
+                            keywords.add(stem);
+                            continue;
+                        }else{
+                            System.out.println("기본형 없음, 원본 토큰 사용: " + token.getText());
+                        }
+                    }
+
+                    keywords.add(token.getText());
+                }
+            }
+            return keywords;
+
+        } catch (Exception e) {
+            // 형태소 분석 실패 시 단순 공백 기준 분리 (조사 포함)
+            return List.of(text.split("\\s+"));
+        }
+    }
+
+    // 단순하지만 실용적인 키워드 추출
+//    public Set<String> extractKeywords(String text) {
+//        try {
+//
+//            Set<String> keywords = new HashSet<>();
+//
+//            // 1. OpenKoreanTextProcessor로 조사 제거
+//            String normalized = normalize(text).toString();
+//            List<String> tokens = tokensToJavaStringList(tokenize(normalized));
+//            List<KoreanTokenJava> tokenList = tokensToJavaKoreanTokenList(
+//                    tokenize(normalized)
+//            );
+//            StringBuilder processedText = new StringBuilder();
+//            for (KoreanTokenJava token : tokenList) {
+//                String pos = token.getPos().toString();
+//
+//                // 조사, 어미, 구두점만 제외하고 나머지는 모두 포함
+//                if (!pos.contains("Josa") && !pos.contains("Eomi") &&
+//                        !pos.contains("Punctuation") && !pos.contains("Space")) {
+//                    processedText.append(token.getText()).append(" ");
+//                }
+//            }
+//
+//            // 2. 조사가 제거된 텍스트를 공백 기준으로 분리
+//            String[] words = processedText.toString().trim().split("\\s+");
+//
+//            for (String word : words) {
+//                // 길이 2 이상이고, 완전 숫자가 아닌 것만 포함
+//                if (word.length() >= 2 && !word.matches("^[0-9]+$")) {
+//                    keywords.add(word.trim());
+//                }
+//            }
+//
+//            return keywords;
+//
+//        } catch (Exception e) {
+//            // 형태소 분석 실패 시 단순 공백 기준 분리 (조사 포함)
+//            return Arrays.stream(text.replaceAll("<[^>]*>", "").split("\\s+"))
+//                    .filter(word -> word.length() >= 2)
+//                    .filter(word -> !word.matches("^[0-9]+$"))
+//                    .collect(Collectors.toSet());
+//        }
+//    }
+
+    public List<NaverNewsDto> fetchNews(String query) {
+
+        try {
+            //display는 한 번에 보여줄 뉴스의 개수, sort는 정렬 기준 (date: 최신순, sim: 정확도순)
+            //일단 3건 패치하도록 해놨습니다. yml 에서 작성해서 사용하세요(10건 이상 x)
+            String url = naverUrl + query + "&display=" + newsDisplayCount + "&sort=" + newsSortOrder;
+
+            // http 요청 헤더 설정 (아래는 네이버 디폴트 형식)
+            HttpHeaders headers = new HttpHeaders();
+            headers.set("X-Naver-Client-Id", clientId);
+            headers.set("X-Naver-Client-Secret", clientSecret);
+
+            // http 요청 엔티티(헤더+바디) 생성
+            // get이라 본문은 없고 헤더만 포함 -> 아래에서 string = null로 설정
+            HttpEntity<String> entity = new HttpEntity<>(headers);
+
+            //http 요청 수행
+            ResponseEntity<String> response = restTemplate.exchange(
+                    url, HttpMethod.GET, entity, String.class, query);
+
+            if (response.getStatusCode() == HttpStatus.OK) {
+                // JsonNode: json 구조를 트리 형태로 표현. json의 중첩 구조를 탐색할 때 사용
+                // readTree(): json 문자열을 JsonNode 트리로 변환
+                ObjectMapper mapper = new ObjectMapper();
+                JsonNode items = mapper.readTree(response.getBody()).get("items");
+
+                if (items != null) {
+                    return getNewsMetaDataFromNaverApi(items);
+                }
+                return new ArrayList<>();
+            }
+            throw new RuntimeException("네이버 API 요청 실패");
+        }
+        catch (JsonProcessingException e) {
+            throw new RuntimeException("JSON 파싱 실패");
+        }
+    }
+
+    private List<NaverNewsDto> getNewsMetaDataFromNaverApi(JsonNode items){
+        List<NaverNewsDto> newsMetaDataList = new ArrayList<>();
+
+        for (JsonNode item : items) {
+            String rawTitle = item.get("title").asText("");
+            String originallink = item.get("originallink").asText("");
+            String link = item.get("link").asText("");
+            String rawDdscription = item.get("description").asText("");
+            String pubDate = item.get("pubDate").asText("");
+
+            String cleanedTitle = HtmlEntityDecoder.decode(rawTitle); // HTML 태그 제거
+            String cleanDescription = HtmlEntityDecoder.decode(rawDdscription); // HTML 태그 제거
+
+            //한 필드라도 비어있으면 건너뜀
+            if(cleanedTitle.isEmpty()|| originallink.isEmpty() || link.isEmpty() || cleanDescription.isEmpty() || pubDate.isEmpty())
+                continue;
+            //팩토리 메서드 사용
+            NaverNewsDto newsDto = NaverNewsDto.of(cleanedTitle, originallink, link, cleanDescription, pubDate);
+            newsMetaDataList.add(newsDto);
+        }
+
+        return newsMetaDataList;
+    }
+
 }
