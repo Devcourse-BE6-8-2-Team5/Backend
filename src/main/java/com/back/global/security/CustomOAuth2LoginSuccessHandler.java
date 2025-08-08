@@ -7,6 +7,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseCookie;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
@@ -14,6 +15,7 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
+import java.util.concurrent.TimeUnit;
 
 @Component
 @RequiredArgsConstructor
@@ -25,26 +27,27 @@ public class CustomOAuth2LoginSuccessHandler implements AuthenticationSuccessHan
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
         Member actor = rq.getActorFromDb();
 
+        // Access Token과 Refresh Token(apiKey) 생성
         String accessToken = memberService.genAccessToken(actor);
+        String refreshToken = actor.getApiKey();
 
-        rq.setCookie("apiKey", actor.getApiKey());
-        rq.setCookie("accessToken", accessToken);
+        // Rq의 헬퍼 메서드를 사용하여 쿠키 설정
+        rq.setCrossDomainCookie("accessToken", accessToken, (int) TimeUnit.MINUTES.toSeconds(20));
+        rq.setCrossDomainCookie("refreshToken", refreshToken, (int) TimeUnit.DAYS.toSeconds(7));
 
-        // 기본 리다이렉트 URL
-        String redirectUrl = "/";
-
-        // state 파라미터 확인
-        String stateParam = request.getParameter("state");
-
-        if (stateParam != null) {
-            // Base64 URL-safe 디코딩
-            String decodedStateParam = new String(Base64.getUrlDecoder().decode(stateParam), StandardCharsets.UTF_8);
-
-            // '#' 앞은 redirectUrl, 뒤는 originState
-            redirectUrl = decodedStateParam.split("#", 2)[0];
+        // state 값에서 프론트엔드 리다이렉트 주소 복원
+        String redirectUrl = "https://news-ox.vercel.app/";
+        String state = request.getParameter("state");
+        if (state != null && !state.isBlank()) {
+            try {
+                String decodedUrl = new String(Base64.getUrlDecoder().decode(state), StandardCharsets.UTF_8);
+                redirectUrl = decodedUrl;
+            } catch (IllegalArgumentException e) {
+                // 디코딩 실패 시 기본 URL 사용
+            }
         }
 
-        // 최종 리다이렉트
+        // 토큰 정보가 담기지 않은 URL로 프론트엔드에 리다이렉트
         rq.sendRedirect(redirectUrl);
     }
 }
