@@ -1,6 +1,7 @@
 package com.back.backend.global.rq;
 
 import com.back.domain.member.member.entity.Member;
+import com.back.domain.member.member.service.MemberService;
 import com.back.global.rq.Rq;
 
 public class TestRq extends Rq {
@@ -27,8 +28,8 @@ public class TestRq extends Rq {
     @Override
     public String getCookieValue(String name, String defaultValue) { return defaultValue; }
     @Override
-    public void setCookie(String name, String value) { }
+    public void setCrossDomainCookie(String name, String value, int maxAge) { }
     @Override
-    public void deleteCookie(String name) { }
+    public void deleteCrossDomainCookie(String name) { }
 }
 

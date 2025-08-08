@@ -8,6 +8,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
+import org.springframework.http.ResponseCookie;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
@@ -75,24 +76,19 @@ public class Rq {
                 .orElse(defaultValue);
     }
 
-    public void setCookie(String name, String value) {
-        if (value == null) value = "";
-
-        Cookie cookie = new Cookie(name, value);
-        cookie.setPath("/");
-        cookie.setHttpOnly(true);
-        //cookie.setDomain("localhost");
-        cookie.setSecure(false);
-        cookie.setAttribute("SameSite", "Lax");
-
-        if (value.isBlank()) cookie.setMaxAge(0);
-        else cookie.setMaxAge(60 * 60 * 24 * 365);
-
-        resp.addCookie(cookie);
+    public void setCrossDomainCookie(String name, String value, int maxAge) {
+        ResponseCookie cookie = ResponseCookie.from(name, value)
+                .path("/")
+                .maxAge(maxAge)
+                .secure(true)
+                .sameSite("None")
+                .httpOnly(true)
+                .build();
+        resp.addHeader("Set-Cookie", cookie.toString());
     }
 
-    public void deleteCookie(String name) {
-        setCookie(name, null);
+    public void deleteCrossDomainCookie(String name) {
+        setCrossDomainCookie(name, "", 0);
     }
 
     @SneakyThrows

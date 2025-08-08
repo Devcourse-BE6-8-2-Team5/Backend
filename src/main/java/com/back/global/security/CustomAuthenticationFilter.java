@@ -145,7 +145,7 @@ public class CustomAuthenticationFilter extends OncePerRequestFilter {
         if (isAccessTokenExists && !isAccessTokenValid) {
             String actorAccessToken = memberService.genAccessToken(member);
 
-            rq.setCookie("accessToken", actorAccessToken);
+            rq.setCrossDomainCookie("accessToken", actorAccessToken, 60 * 20);
             rq.setHeader("Authorization", actorAccessToken);
         }
 
