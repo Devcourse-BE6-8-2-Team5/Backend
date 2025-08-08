@@ -97,41 +97,6 @@ public class NewsDataService {
         }
     }
 
-    // RealNewsDto를 생성하는 메서드 for test
-    @Transactional
-    public List<RealNewsDto> createRealNewsDto(String query) {
-
-        try {
-            CompletableFuture<List<NaverNewsDto>> future = fetchNews(query);
-            List<NaverNewsDto> naverMetaDataList = future.get();
-            List<RealNewsDto> realNewsDtoList = new ArrayList<>();
-
-            for (NaverNewsDto naverMetaData : naverMetaDataList) {
-                Optional<NewsDetailDto> newsDetailData = crawladditionalInfo(naverMetaData.link());
-
-                if (newsDetailData.isEmpty()) {
-                    // 크롤링 실패 시 해당 뉴스는 건너뜀
-                    continue;
-                }
-
-                RealNewsDto realNewsDto = makeRealNewsFromInfo(naverMetaData, newsDetailData.get());
-
-                // 중복된 뉴스 제목이 있는지 확인
-                if (!realNewsRepository.existsByTitle(realNewsDto.title())) {
-                    realNewsDtoList.add(realNewsDto);
-                }
-
-                Thread.sleep(crawlingDelay);
-            }
-            return saveAllRealNews(realNewsDtoList);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw new RuntimeException("런타임 인터럽트 발생");
-        } catch (ExecutionException e) {
-            throw new RuntimeException("뉴스 조회 중 오류 발생", e.getCause());
-        }
-    }
-
     @Transactional
     public List<RealNewsDto> createRealNewsDtoByCrawl(List<NaverNewsDto> MetaDataList) {
 

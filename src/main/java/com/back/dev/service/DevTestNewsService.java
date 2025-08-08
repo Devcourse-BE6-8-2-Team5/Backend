@@ -5,6 +5,7 @@ import com.back.domain.news.common.dto.NaverNewsDto;
 import com.back.domain.news.real.dto.RealNewsDto;
 import com.back.domain.news.real.service.NewsAnalysisService;
 import com.back.domain.news.real.service.NewsDataService;
+import com.back.global.util.HtmlEntityDecoder;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -98,5 +99,29 @@ public class DevTestNewsService {
         catch (JsonProcessingException e) {
             throw new RuntimeException("JSON 파싱 실패");
         }
+    }
+
+    private List<NaverNewsDto> getNewsMetaDataFromNaverApi(JsonNode items){
+        List<NaverNewsDto> newsMetaDataList = new ArrayList<>();
+
+        for (JsonNode item : items) {
+            String rawTitle = item.get("title").asText("");
+            String originallink = item.get("originallink").asText("");
+            String link = item.get("link").asText("");
+            String rawDdscription = item.get("description").asText("");
+            String pubDate = item.get("pubDate").asText("");
+
+            String cleanedTitle = HtmlEntityDecoder.decode(rawTitle); // HTML 태그 제거
+            String cleanDescription = HtmlEntityDecoder.decode(rawDdscription); // HTML 태그 제거
+
+            //한 필드라도 비어있으면 건너뜀
+            if(cleanedTitle.isEmpty()|| originallink.isEmpty() || link.isEmpty() || cleanDescription.isEmpty() || pubDate.isEmpty())
+                continue;
+            //팩토리 메서드 사용
+            NaverNewsDto newsDto = NaverNewsDto.of(cleanedTitle, originallink, link, cleanDescription, pubDate);
+            newsMetaDataList.add(newsDto);
+        }
+
+        return newsMetaDataList;
     }
 }
