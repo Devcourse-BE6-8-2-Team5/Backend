@@ -37,7 +37,7 @@ public class AdminNewsService {
     private final RestTemplate restTemplate;
     private final TaskScheduler taskScheduler;
 
-    @Scheduled(cron = "0 0 1 * * *", zone = "Asia/Seoul") // 매일 자정에 실행
+    @Scheduled(cron = "0 15 1 * * *", zone = "Asia/Seoul") // 매일 자정에 실행
     @Transactional
     public void dailyNewsProcess(){
 
