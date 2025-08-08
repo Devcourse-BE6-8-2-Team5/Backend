@@ -38,7 +38,6 @@ public class AdminNewsController {
     private final RealNewsService realNewsService;
     private final NewsPageService newsPageService;
 
-
     // 오늘의 뉴스 설정용 뉴스 조회
     @GetMapping("/all")
     @Operation(summary = "전체 뉴스 조회 (관리자용)", description = "오늘의 뉴스를 포함한 모든 뉴스를 조회합니다")

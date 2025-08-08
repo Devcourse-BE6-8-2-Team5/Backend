@@ -8,10 +8,14 @@ import com.back.global.exception.ServiceException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
+import java.time.Duration;
 import java.util.List;
+import java.util.concurrent.ScheduledFuture;
 
 @Slf4j
 @Service
@@ -21,10 +25,15 @@ public class AdminFakeNewsService {
     private final FakeNewsService fakeNewsService;
     private final RealNewsService realNewsService;
     private final ApplicationEventPublisher publisher;
+    private final RestTemplate restTemplate;
+    private final TaskScheduler taskScheduler;
 
 
-    @Scheduled(cron = "0 0 1 * * *", zone = "Asia/Seoul") // 매일 새벽 1시에 실행
+    @Scheduled(cron = "0 40 1 * * *", zone = "Asia/Seoul") // 매일 새벽 1시에 실행
     public void dailyFakeNewsProcess() {
+
+        ScheduledFuture<?> keepAliveTask = startKeepAlive();
+
         try {
             List<RealNewsDto> realNewsDtos = realNewsService.getRealNewsListCreatedToday();
 
@@ -50,6 +59,21 @@ public class AdminFakeNewsService {
 
         } catch (ServiceException e) {
             log.error("가짜 뉴스 생성 중 오류 발생: {}", e.getMessage());
+        } finally {
+            keepAliveTask.cancel(true);
+            log.info("Keep-alive 작업 중지됨");
         }
+    }
+
+    private ScheduledFuture<?> startKeepAlive() {
+        log.info("Keep-alive 시작됨");
+        return taskScheduler.scheduleAtFixedRate(() -> {
+            try {
+                restTemplate.getForObject("https://news-ox.fly.dev/health", String.class);
+                log.debug("start aliive 핑");
+            } catch (Exception e) {
+                log.warn("Keep-alive 실패", e);
+            }
+        }, Duration.ofMinutes(4));
     }
 }

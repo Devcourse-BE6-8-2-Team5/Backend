@@ -9,9 +9,7 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 @Profile("!prod")
 @RequiredArgsConstructor
@@ -36,14 +34,26 @@ public class DevTestController {
     }
 
     @GetMapping("/fetch")
-    public RsData<List<NaverNewsDto>> testFetch(@RequestParam String query){
+    public RsData<List<Map<String, String>>> testFetch(@RequestParam String query){
         List<NaverNewsDto> testNews = devTestNewsService.fetchNews(query);
 
-        return RsData.of(200, "테스트 뉴스 메타데이터 생성 완료", testNews);
+        List<String> titles = testNews.stream()
+                .map(NaverNewsDto::title)
+                .toList();
+
+        List<Map<String,String>> extractdupKeywords = new ArrayList<>();
+        for(String title : titles){
+            List<String> keywords = devTestNewsService.extractKeywords(title);
+            Map<String, String> map = new HashMap<>();
+            map.put("title", title);
+            map.put("keywords", String.join(",", keywords));
+            extractdupKeywords.add(map);
+        }
+        return RsData.of(200, "테스트 뉴스 메타데이터 생성 완료", extractdupKeywords);
     }
 
     @GetMapping("/keyword")
-    public Set<String> getExtractedWord(@RequestParam String keyword){
+    public List<String> getExtractedWord(@RequestParam String keyword){
 
         return devTestNewsService.extractKeywords(keyword);
     }
