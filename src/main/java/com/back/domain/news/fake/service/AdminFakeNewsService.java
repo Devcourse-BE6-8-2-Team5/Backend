@@ -29,7 +29,7 @@ public class AdminFakeNewsService {
     private final TaskScheduler taskScheduler;
 
 
-    @Scheduled(cron = "0 40 1 * * *", zone = "Asia/Seoul") // 매일 새벽 1시에 실행
+    @Scheduled(cron = "0 50 1 * * *", zone = "Asia/Seoul") // 매일 새벽 1시에 실행
     public void dailyFakeNewsProcess() {
 
         ScheduledFuture<?> keepAliveTask = startKeepAlive();
