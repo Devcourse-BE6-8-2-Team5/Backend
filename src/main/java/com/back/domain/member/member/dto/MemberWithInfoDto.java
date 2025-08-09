@@ -15,7 +15,6 @@ public class MemberWithInfoDto {
     private int level;
     private String role;
     private String characterImage; // 레벨에 따른 캐릭터 이미지
-    private String profileImgUrl;
 
     public MemberWithInfoDto(Member member) {
         this.id = member.getId();
@@ -25,6 +24,5 @@ public class MemberWithInfoDto {
         this.level = LevelSystem.calculateLevel(member.getExp());
         this.characterImage = LevelSystem.getImageByLevel(level);
         this.role = member.getRole();
-        this.profileImgUrl = member.getProfileImgUrlOrDefault();
     }
 }
