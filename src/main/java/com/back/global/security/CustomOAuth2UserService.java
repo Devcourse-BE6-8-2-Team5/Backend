@@ -29,7 +29,6 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         String oauthUserId = "";
         String providerTypeCode = userRequest.getClientRegistration().getRegistrationId().toUpperCase();
         String nickname = "";
-        String profileImgUrl = "";
 
         switch (providerTypeCode) {
             case "KAKAO" -> {
@@ -38,12 +37,10 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
                 oauthUserId = oAuth2User.getName();
                 nickname = (String) attributesProperties.get("nickname");
-                profileImgUrl = (String) attributesProperties.get("profile_image");
             }
             case "GOOGLE" -> {
                 oauthUserId = oAuth2User.getName();
                 nickname = (String) oAuth2User.getAttributes().get("name");
-                profileImgUrl = (String) oAuth2User.getAttributes().get("picture");
             }
             case "NAVER" -> {
                 Map<String, Object> attributes = oAuth2User.getAttributes();
@@ -51,13 +48,12 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
                 oauthUserId = (String) attributesProperties.get("id");
                 nickname = (String) attributesProperties.get("nickname");
-                profileImgUrl = (String) attributesProperties.get("profile_image");
             }
         }
 
         String email = oauthUserId + "@" + providerTypeCode.toLowerCase() + ".com";
 
-        Member member = memberService.modifyOrJoin(oauthUserId, email, nickname, profileImgUrl).data();
+        Member member = memberService.modifyOrJoin(oauthUserId, email, nickname).data(); // profileImgUrl 대신 null 전달
 
         // securityContext
         return new SecurityUser(

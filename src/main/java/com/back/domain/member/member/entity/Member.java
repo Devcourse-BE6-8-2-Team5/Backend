@@ -48,7 +48,7 @@ public class Member {
     @Column(nullable = false, unique = true)
     private String apiKey; // 리프레시 토큰
 
-    private String profileImgUrl;
+    
 
     @Column(unique = true, nullable = true)
     private String oauthId; // 소셜 로그인용 고유 oauthId
@@ -94,11 +94,5 @@ public class Member {
                 .toList();
     }
 
-    // 소셜로그인 프사
-    public String getProfileImgUrlOrDefault() {
-        if (profileImgUrl == null)
-            return "https://placehold.co/600x600?text=U_U";
-
-        return profileImgUrl;
-    }
+    
 }
