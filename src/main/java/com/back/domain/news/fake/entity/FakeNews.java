@@ -2,6 +2,7 @@ package com.back.domain.news.fake.entity;
 
 import com.back.domain.news.real.entity.RealNews;
 import com.back.domain.quiz.fact.entity.FactQuiz;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -36,12 +37,14 @@ public class FakeNews {
     @OneToOne
     @MapsId // 진짜뉴스의 ID를 이 엔티티의 PK로 사용
     @JoinColumn(name = "real_news_id")
+    @JsonIgnore
     private RealNews realNews;
 
     @Lob
     private String content;
 
     @OneToMany(mappedBy = "fakeNews", cascade = ALL, orphanRemoval = true)
+    @JsonIgnore
     private List<FactQuiz> factQuizzes = new ArrayList<>();
 
 }

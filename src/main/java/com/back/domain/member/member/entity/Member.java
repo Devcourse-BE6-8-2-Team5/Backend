@@ -1,6 +1,7 @@
 package com.back.domain.member.member.entity;
 
 import com.back.domain.member.quizhistory.entity.QuizHistory;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Min;
 import lombok.*;
@@ -55,6 +56,7 @@ public class Member {
 
     // 유저가 푼 퀴즈 기록을 저장하는 리스트 일단 엔티티 없어서 주석
     @OneToMany(mappedBy = "member", fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.REMOVE}, orphanRemoval = true)
+    @JsonIgnore
     private List<QuizHistory> quizHistories = new ArrayList<>(); //유저가 퀴즈를 푼 기록
 
 

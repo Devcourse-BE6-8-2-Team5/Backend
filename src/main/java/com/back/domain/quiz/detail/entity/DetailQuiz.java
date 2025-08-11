@@ -4,6 +4,7 @@ import com.back.domain.news.real.entity.RealNews;
 import com.back.domain.quiz.QuizType;
 import com.back.domain.quiz.daily.entity.DailyQuiz;
 import com.back.domain.quiz.detail.dto.DetailQuizDto;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -36,6 +37,7 @@ public class DetailQuiz {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "real_news_id")
+    @JsonIgnore
     private RealNews realNews;
 
     @Enumerated(EnumType.STRING)
@@ -44,6 +46,7 @@ public class DetailQuiz {
 
     // 오늘의 퀴즈와 1:1 관계 설정
     @OneToOne(mappedBy = "detailQuiz", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
     private DailyQuiz dailyQuiz;
 
 
