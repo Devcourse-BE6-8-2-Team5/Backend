@@ -5,6 +5,7 @@ import com.back.domain.news.common.enums.NewsCategory;
 import com.back.domain.news.fake.entity.FakeNews;
 import com.back.domain.quiz.detail.entity.DetailQuiz;
 import com.back.domain.quiz.fact.entity.FactQuiz;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
@@ -45,12 +46,15 @@ public class RealNews {
 
     // 상세 퀴즈와 1:N 관계 설정 (RealNews 하나 당 3개의 DetailQuiz가 생성됩니다.)
     @OneToMany(mappedBy = "realNews", cascade = ALL, orphanRemoval = true)
+    @JsonIgnore
     private List<DetailQuiz> detailQuizzes = new ArrayList<>();
 
     @OneToMany(mappedBy = "realNews", cascade = ALL, orphanRemoval = true)
+    @JsonIgnore
     private List<FactQuiz> factQuizzes = new ArrayList<>();
 
     @OneToOne(mappedBy = "realNews", cascade = ALL, fetch = LAZY)
+    @JsonIgnore
     private FakeNews fakeNews;
 
     @Enumerated(EnumType.STRING)

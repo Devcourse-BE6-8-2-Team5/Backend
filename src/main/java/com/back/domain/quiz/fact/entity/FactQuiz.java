@@ -3,6 +3,7 @@ package com.back.domain.quiz.fact.entity;
 import com.back.domain.news.fake.entity.FakeNews;
 import com.back.domain.news.real.entity.RealNews;
 import com.back.domain.quiz.QuizType;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -27,11 +28,13 @@ public class FactQuiz {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "real_news_id", nullable = false)
+    @JsonIgnore
     @NotNull
     private RealNews realNews;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "fake_news_id", nullable = false)
+    @JsonIgnore
     @NotNull
     private FakeNews fakeNews;
 
