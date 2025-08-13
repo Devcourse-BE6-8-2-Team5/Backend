@@ -14,7 +14,7 @@ jobs:
         run: |
           for i in {1..7}; do
             curl -f https://news-ox.fly.dev/health
-            echo "Ping $i/6 sent"
+            echo "Ping $i/7 sent"
             if [ $i -lt 7 ]; then
               sleep 300  # 5분 대기
             fi
