@@ -120,6 +120,10 @@ public class RealNewsService {
                 pageable.getPageSize()
         );
 
+        if(todayNewsId.isPresent()) {
+
+        }
+
         Page<RealNews> page = realNewsRepository.findByTitleExcludingNthCategoryRank(
                 title,
                 todayNewsId.orElse(null),

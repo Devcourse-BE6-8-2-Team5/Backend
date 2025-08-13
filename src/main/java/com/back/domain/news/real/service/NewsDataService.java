@@ -36,6 +36,7 @@ import org.springframework.web.client.RestTemplate;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -386,7 +387,7 @@ public class NewsDataService {
         RealNews realNews = realNewsRepository.findById(id).
                 orElseThrow(() -> new IllegalArgumentException("해당 ID의 뉴스가 존재하지 않습니다. ID: " + id));
 
-        LocalDate today = LocalDate.now();
+        LocalDate today = LocalDate.now(ZoneId.of("Asia/Seoul"));
         todayNewsRepository.deleteBySelectedDate(today);
 
         // 5. 새로운 오늘의 뉴스 생성

@@ -29,18 +29,19 @@ public interface RealNewsRepository extends JpaRepository<RealNews, Long> {
     List<RealNews> findByCreatedDateBetween(LocalDateTime start, LocalDateTime end);
 
     // 제목 검색 (Fulltext) + N번째 제외 (카테고리별 랭킹 제외)
+    // 제목 검색 (Fulltext) + N번째 제외 (카테고리별 랭킹 제외)
     @Query(value = """
     WITH ranked AS (
         SELECT id,
                ROW_NUMBER() OVER (PARTITION BY news_category ORDER BY created_date DESC) AS category_rank
         FROM real_news
         WHERE title_tsv @@ plainto_tsquery(:title)
-          AND (:excludedId IS NULL OR id != :excludedId)
+          AND id != :excludedId
     )
     SELECT rn.*
     FROM real_news rn
     WHERE rn.title_tsv @@ plainto_tsquery(:title)
-      AND (:excludedId IS NULL OR rn.id != :excludedId)
+      AND rn.id != :excludedId
       AND NOT EXISTS (
           SELECT 1
           FROM ranked
@@ -53,7 +54,7 @@ public interface RealNewsRepository extends JpaRepository<RealNews, Long> {
     SELECT COUNT(*)
     FROM real_news rn
     WHERE rn.title_tsv @@ plainto_tsquery(:title)
-      AND (:excludedId IS NULL OR rn.id != :excludedId)
+      AND rn.id != :excludedId
     """,
             nativeQuery = true)
     Page<RealNews> findByTitleExcludingNthCategoryRank(
@@ -64,26 +65,26 @@ public interface RealNewsRepository extends JpaRepository<RealNews, Long> {
 
     // 전체 조회에서 카테고리별 N번째 제외
     @Query(value = """
+    WITH ranked AS (
+        SELECT id,
+               ROW_NUMBER() OVER (PARTITION BY news_category ORDER BY created_date DESC) AS category_rank
+        FROM real_news
+        WHERE id != :excludedId
+    )
     SELECT rn.*
     FROM real_news rn
-    WHERE (:excludedId IS NULL OR rn.id != :excludedId)
+    WHERE rn.id != :excludedId
       AND NOT EXISTS (
-          SELECT 1 
-          FROM (
-              SELECT id, 
-                     ROW_NUMBER() OVER (PARTITION BY news_category ORDER BY created_date DESC) as category_rank
-              FROM real_news
-              WHERE (:excludedId IS NULL OR id != :excludedId)
-          ) ranked
-          WHERE ranked.id = rn.id 
+          SELECT 1 FROM ranked
+          WHERE ranked.id = rn.id
             AND ranked.category_rank = :excludedRank
       )
     ORDER BY rn.created_date DESC
     """,
-            countQuery = """
+                countQuery = """
     SELECT COUNT(*)
     FROM real_news rn
-    WHERE (:excludedId IS NULL OR rn.id != :excludedId)
+    WHERE rn.id != :excludedId
     """,
             nativeQuery = true)
     Page<RealNews> findAllExcludingNth(
@@ -98,12 +99,11 @@ public interface RealNewsRepository extends JpaRepository<RealNews, Long> {
                ROW_NUMBER() OVER (ORDER BY created_date DESC) AS rank_num
         FROM real_news
         WHERE news_category = :#{#category.name()}
-          AND (:excludedId IS NULL OR id != :excludedId)
+          AND id != :excludedId
     )
     SELECT rn.*
     FROM real_news rn
     WHERE rn.news_category = :#{#category.name()}
-      AND (:excludedId IS NULL OR rn.id != :excludedId)
       AND rn.id != COALESCE((
           SELECT r.id
           FROM ranked_news r
@@ -111,11 +111,11 @@ public interface RealNewsRepository extends JpaRepository<RealNews, Long> {
       ), 0)
     ORDER BY rn.created_date DESC
     """,
-            countQuery = """
+                countQuery = """
     SELECT COUNT(*)
     FROM real_news rn
     WHERE rn.news_category = :#{#category.name()}
-      AND (:excludedId IS NULL OR rn.id != :excludedId)
+      AND rn.id != :excludedId
     """,
             nativeQuery = true)
     Page<RealNews> findByCategoryExcludingNth(
@@ -128,7 +128,7 @@ public interface RealNewsRepository extends JpaRepository<RealNews, Long> {
     @Query(value = """
     SELECT rn.*
     FROM (
-        SELECT *,
+        SELECT id,
                ROW_NUMBER() OVER (PARTITION BY news_category ORDER BY created_date DESC) AS rn
         FROM real_news
     ) AS sub
@@ -136,14 +136,14 @@ public interface RealNewsRepository extends JpaRepository<RealNews, Long> {
     WHERE sub.rn = :targetRank
     ORDER BY rn.created_date DESC
     """,
-            nativeQuery = true)
-    List<RealNews> findNthRankByAllCategories(@Param("targetRank") int targetRank);
+                nativeQuery = true)
+        List<RealNews> findNthRankByAllCategories(@Param("targetRank") int targetRank);
 
-    // 특정 카테고리에서 N번째 순위 뉴스 조회
-    @Query(value = """
+        // 특정 카테고리에서 N번째 순위 뉴스 조회
+        @Query(value = """
     SELECT rn.*
     FROM (
-        SELECT *,
+        SELECT id,
                ROW_NUMBER() OVER (ORDER BY created_date DESC) AS rn
         FROM real_news
         WHERE news_category = :#{#category.name()}
