@@ -36,9 +36,8 @@ import static jakarta.persistence.GenerationType.IDENTITY;
         @Index(name = "idx_real_news_origin_created_date_desc",
                 columnList = "origin_created_date DESC"),
 
-        // 제목 검색용
-        @Index(name = "idx_real_news_title",
-                columnList = "title"),
+        @Index(name = "idx_real_news_category_origin_created_date_desc",
+                columnList = "news_category, origin_created_date DESC")
 
 })
 @NoArgsConstructor
