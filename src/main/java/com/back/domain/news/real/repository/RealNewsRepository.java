@@ -13,22 +13,7 @@ import java.util.Optional;
 
 
 public interface RealNewsRepository extends JpaRepository<RealNews, Long> {
-    Page<RealNews> findByTitleContaining(String title, Pageable pageable);
 
-    Page<RealNews> findByNewsCategory(NewsCategory category, Pageable pageable);
-
-    Page<RealNews> findByTitleContainingAndIdNot(String title, Long excludedId, Pageable pageable);
-
-    Page<RealNews> findByIdNot(Long excludedId, Pageable pageable);
-
-    Page<RealNews> findByNewsCategoryAndIdNot(NewsCategory category, Long excludedId, Pageable pageable);
-
-
-    boolean existsByLink(String url);
-
-    List<RealNews> findByCreatedDateBetween(LocalDateTime start, LocalDateTime end);
-
-    // 제목 검색 (Fulltext) + N번째 제외 (카테고리별 랭킹 제외)
     // 제목 검색 (Fulltext) + N번째 제외 (카테고리별 랭킹 제외)
     @Query(value = """
     WITH ranked AS (
@@ -165,15 +150,6 @@ public interface RealNewsRepository extends JpaRepository<RealNews, Long> {
     Page<RealNews> findByIdNotOrderByCreatedDateDesc(Long excludedId, Pageable pageable);
     Page<RealNews> findByNewsCategoryAndIdNotOrderByCreatedDateDesc(NewsCategory category, Long excludedId, Pageable pageable);
     Page<RealNews> findByTitleContainingAndIdNotOrderByCreatedDateDesc(String title, Long excludedId, Pageable pageable);
-
-    // 제목 검색 - 대소문자 무시 + 정렬 (인덱스: idx_real_news_title 활용)
-    @Query("SELECT rn FROM RealNews rn WHERE LOWER(rn.title) LIKE LOWER(CONCAT('%', :title, '%')) ORDER BY rn.createdDate DESC")
-    Page<RealNews> findByTitleContainingIgnoreCaseOrderByCreatedDateDesc(@Param("title") String title, Pageable pageable);
-
-
-    // 관리자용 원본 날짜순 조회 (인덱스: idx_real_news_origin_created_date_desc)
-    @Query("SELECT rn FROM RealNews rn ORDER BY rn.originCreatedDate DESC")
-    Page<RealNews> findAllByOriginCreatedDateDesc(Pageable pageable);
 
     // 날짜 범위 조회 - 정렬 추가로 인덱스 활용 개선
     @Query("SELECT rn FROM RealNews rn WHERE rn.createdDate BETWEEN :start AND :end ORDER BY rn.createdDate DESC")

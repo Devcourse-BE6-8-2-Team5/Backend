@@ -141,10 +141,9 @@ public class AdminNewsController {
             return RsData.of(400, "잘못된 뉴스 ID입니다. 1 이상의 숫자를 입력해주세요.");
         }
 
-        Optional<Long> todayNewsId = realNewsService.getTodayNews()
-                .map(RealNewsDto::id);
+        Long todayNewsId = realNewsService.getTodayNewsOrRecent();
 
-        if (todayNewsId.isPresent() && newsId.equals(todayNewsId.get())) {
+        if (todayNewsId != -1L && newsId.equals(todayNewsId)) {
             return RsData.of(403, "오늘의 뉴스는 탭을 통해 조회해주세요.");
         }
 
@@ -154,7 +153,6 @@ public class AdminNewsController {
             return RsData.of(404,
                     String.format("ID %d에 해당하는 뉴스를 찾을 수 없습니다. 올바른 뉴스 ID인지 확인해주세요.", newsId));
         }
-
 
         return newsPageService.getSingleNews(realNewsDto, NewsType.REAL, newsId);
     }
@@ -167,11 +165,13 @@ public class AdminNewsController {
     })
     @GetMapping("/today")
     public RsData<RealNewsDto> getTodayNews() {
-        Optional<RealNewsDto> todayNews = realNewsService.getTodayNews();
+        Long todayNewsId = realNewsService.getTodayNewsOrRecent();
 
-        if (todayNews.isEmpty()) {
+        if (todayNewsId== -1L) {
             return RsData.of(404, "조회할 뉴스가 없습니다.");
         }
+
+        Optional<RealNewsDto> todayNews = realNewsService.getRealNewsDtoById(todayNewsId);
 
         return newsPageService.getSingleNews(todayNews, NewsType.REAL, todayNews.get().id());
     }
