@@ -174,11 +174,11 @@ public interface RealNewsRepository extends JpaRepository<RealNews, Long> {
 
     // 특정 카테고리에서 N번째 순위 뉴스 조회
     @Query(value = """
-    SELECT *
+    SELECT /*+ USE_INDEX(idx_real_news_category_created_date) */ *
     FROM (
         SELECT *,
                ROW_NUMBER() OVER (ORDER BY created_date DESC) AS rn
-        FROM real_news
+        FROM real_news /*+ USE_INDEX(idx_real_news_category_created_date) */
         WHERE news_category = :#{#category.name()}
     ) AS sub
     WHERE rn = :targetRank
@@ -189,7 +189,6 @@ public interface RealNewsRepository extends JpaRepository<RealNews, Long> {
             @Param("targetRank") int targetRank
     );
 
-    // ===== 🚀 새로 추가된 최적화 메서드들 =====
 
     // 기본 전체 조회 (인덱스: idx_real_news_created_date_desc 직접 활용)
     Page<RealNews> findAllByOrderByCreatedDateDesc(Pageable pageable);
@@ -209,14 +208,6 @@ public interface RealNewsRepository extends JpaRepository<RealNews, Long> {
     // 관리자용 원본 날짜순 조회 (인덱스: idx_real_news_origin_created_date_desc)
     @Query("SELECT rn FROM RealNews rn ORDER BY rn.originCreatedDate DESC")
     Page<RealNews> findAllByOriginCreatedDateDesc(Pageable pageable);
-
-    // 오늘의 뉴스 조회 (캐시 가능)
-    @Query("SELECT rn FROM RealNews rn WHERE DATE(rn.createdDate) = CURRENT_DATE ORDER BY rn.createdDate DESC")
-    Optional<RealNews> findTodayNews();
-
-    // ===== 필수 유틸리티 메서드들 =====
-
-    boolean existsByTitle(String title);
 
     // 날짜 범위 조회 - 정렬 추가로 인덱스 활용 개선
     @Query("SELECT rn FROM RealNews rn WHERE rn.createdDate BETWEEN :start AND :end ORDER BY rn.createdDate DESC")
