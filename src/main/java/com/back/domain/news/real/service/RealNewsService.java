@@ -118,9 +118,11 @@ public class RealNewsService {
         return page.map(realNewsMapper::toDto);
     }
 
+    @Transactional(readOnly = true)
     public Long getTodayNewsOrRecent() {
         return todayNewsRepository.findTopByOrderBySelectedDateDesc()
-                .map(todayNews -> todayNews.getRealNews().getId())
+                .map(TodayNews::getRealNews)
+                .map(RealNews::getId)
                 .orElse(-1L);
     }
 }
