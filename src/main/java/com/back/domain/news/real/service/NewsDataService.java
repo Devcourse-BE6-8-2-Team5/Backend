@@ -8,9 +8,9 @@ import com.back.domain.news.real.dto.RealNewsDto;
 import com.back.domain.news.real.entity.RealNews;
 import com.back.domain.news.real.mapper.RealNewsMapper;
 import com.back.domain.news.real.repository.RealNewsRepository;
-import com.back.domain.news.today.repository.TodayNewsRepository;
 import com.back.domain.news.today.entity.TodayNews;
 import com.back.domain.news.today.event.TodayNewsCreatedEvent;
+import com.back.domain.news.today.repository.TodayNewsRepository;
 import com.back.global.exception.ServiceException;
 import com.back.global.rateLimiter.RateLimiter;
 import com.back.global.util.HtmlEntityDecoder;
@@ -82,10 +82,10 @@ public class NewsDataService {
     @Value("${naver.base-url}")
     private String naverUrl;
 
-    @Value("#{0.15}") // 요약본 임계값
+    @Value("${news.dedup.description.threshold}") // 요약본 임계값
     private double descriptionSimilarityThreshold;
 
-    @Value("#{0.2}") // 제목 임계값
+    @Value("${news.dedup.title.threshold}") // 제목 임계값
     private double titleSimilarityThreshold;
 
     // 서비스 초기화 시 설정값 검증
@@ -112,35 +112,22 @@ public class NewsDataService {
     public List<RealNewsDto> createRealNewsDtoByCrawl(List<NaverNewsDto> MetaDataList) {
 
         List<RealNewsDto> allRealNewsDtos = new ArrayList<>();
-        Set<String> processedUrls = new HashSet<>();
 
         try {
             for (NaverNewsDto metaData : MetaDataList) {
                 String url = metaData.link();
-
-                //중복체크
-                if (processedUrls.contains(url) || realNewsRepository.existsByLink(url)) {
-                    log.debug("스킵: {}", url);
-                    continue;
-                }
 
                 Optional<NewsDetailDto> newsDetailData = crawladditionalInfo(metaData.link());
 
                 if (newsDetailData.isEmpty()) {
                     // 크롤링 실패 시 해당 뉴스는 건너뜀
                     log.warn("크롤링 실패: {}", metaData.link());
-                    processedUrls.add(url); // 실패한 URL도 기록
                     continue;
-
-                } else {
-                    log.info("크롤링 성공: {}", metaData.link());
-
                 }
 
                 RealNewsDto realNewsDto = makeRealNewsFromInfo(metaData, newsDetailData.get());
                 log.info("새 뉴스 생성 - ID: {}, 제목: {}", realNewsDto.id(), realNewsDto.title());
                 allRealNewsDtos.add(realNewsDto);
-                processedUrls.add(url);
 
                 Thread.sleep(crawlingDelay);
             }
@@ -230,8 +217,6 @@ public class NewsDataService {
         // 3. BitSet 기반 유사도 비교 및 제거
         List<NaverNewsDto> filteredNews = new ArrayList<>();
         boolean[] removed = new boolean[metaDataList.size()];
-        double[] scores = new double[metaDataList.size()];
-
 
         for (int i = 0; i < newsBitSets.size(); i++) {
             if (removed[i]) continue;
@@ -250,12 +235,11 @@ public class NewsDataService {
                 union.or(newsBitSets.get(j));
                 int unionCount = union.cardinality();
 
-                double result = (double) interCount / unionCount;
+                double result = (unionCount == 0) ? 0.0 : (double) interCount / unionCount;
 
                 if (result > similarityThreshold) {
 //                    log.info("\n\n{}\n{}\n유사도zzz: {}\n", fieldExtractor.apply(metaDataList.get(i)), fieldExtractor.apply(metaDataList.get(j)), result);
                     removed[j] = true;
-                    scores[j] = result;
                 }
 
             }
@@ -277,22 +261,19 @@ public class NewsDataService {
 
             for (KoreanTokenJava token : tokenList) {
                 String pos = token.getPos().toString();
-//                System.out.printf("토큰: %s, 품사: %s (%s) \n", token.getText(), pos, Pos.getKorean(pos));
+                //System.out.printf("토큰: %s, 품사: %s\n", token.getText(), pos);
 
                 // 조사, 어미, 구두점만 제외하고 나머지는 모두 포함
                 if (!pos.contains("Josa") && !pos.contains("Eomi") &&
                         !pos.contains("Punctuation") && !pos.contains("Space")) {
 
                     if(pos.equals("Adjective") || pos.equals("Verb")) {
-                        // Adjective, Verb, Adverb 이고 기본형이 있는 경우
+                        // Adjective, Verb 이고 기본형이 있는 경우
                         String stem = token.getStem();
                         if (stem != null) {
-//                            System.out.println("기본형: " + stem);
-                            // 같은 offset을 가진 토큰은 하나로 묶기
+                            //System.out.println("기본형: " + stem);
                             keywords.add(stem);
                             continue;
-                        }else{
-                            System.out.println("기본형 없음, 원본 토큰 사용: " + token.getText());
                         }
                     }
 
