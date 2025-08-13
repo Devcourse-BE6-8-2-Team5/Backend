@@ -35,7 +35,6 @@ import static scala.collection.JavaConverters.*;
 @Service
 public class DevTestNewsService {
     private final NewsDataService newsDataService;
-    private final NewsAnalysisService newsAnalysisService;
     private final RestTemplate restTemplate;
 
     @Value("${NAVER_CLIENT_ID}")
@@ -56,108 +55,20 @@ public class DevTestNewsService {
     @Value("${naver.base-url}")
     private String naverUrl;
 
-    public List<RealNewsDto> testNewsDataService() {
-        List<String> newsKeywordsAfterAdd = List.of("AI");
+    public List<NaverNewsDto> testNewsDataService() {
+        List<String> newsKeywordsAfterAdd = List.of("AI", "사고");
+        List<NaverNewsDto> newsAfterRemoveDup = newsDataService.collectMetaDataFromNaver(newsKeywordsAfterAdd);
 
-        List<NaverNewsDto> newsMetaData = newsDataService.collectMetaDataFromNaver(newsKeywordsAfterAdd);
+//        List<RealNewsDto> newsAfterCrwal = newsDataService.createRealNewsDtoByCrawl(newsAfterRemoveDup);
+//
+//        List<AnalyzedNewsDto> newsAfterFilter = newsAnalysisService.filterAndScoreNews(newsAfterCrwal);
+//
+//        List<RealNewsDto> selectedNews = newsDataService.selectNewsByScore(newsAfterFilter);
+//
+//        List<RealNewsDto> savedNews = newsDataService.saveAllRealNews(selectedNews);
 
-        List<RealNewsDto> newsAfterCrwal = newsDataService.createRealNewsDtoByCrawl(newsMetaData);
-
-        List<AnalyzedNewsDto> newsAfterFilter = newsAnalysisService.filterAndScoreNews(newsAfterCrwal);
-
-        List<RealNewsDto> selectedNews = newsDataService.selectNewsByScore(newsAfterFilter);
-
-        List<RealNewsDto> savedNews = newsDataService.saveAllRealNews(selectedNews);
-
-        return savedNews;
+        return newsAfterRemoveDup;
     }
-
-    public List<String> extractKeywords(String text) {
-        try {
-
-            List<String> keywords = new ArrayList<>();
-
-            // OpenKoreanTextProcessor로 중복 체크
-            String normalized = normalize(text).toString();
-            List<KoreanTokenJava> tokenList = tokensToJavaKoreanTokenList(
-                    tokenize(normalized)
-            );
-
-            for (KoreanTokenJava token : tokenList) {
-                String pos = token.getPos().toString();
-                System.out.printf("토큰: %s, 품사: %s\n", token.getText(), pos);
-
-                // 조사, 어미, 구두점만 제외하고 나머지는 모두 포함
-                if (!pos.contains("Josa") && !pos.contains("Eomi") &&
-                        !pos.contains("Punctuation") && !pos.contains("Space")) {
-
-                    if(pos.equals("Adjective") || pos.equals("Verb")) {
-                        // Adjective, Verb, Adverb 이고 기본형이 있는 경우
-                        String stem = token.getStem();
-                        if (stem != null) {
-                            System.out.println("기본형: " + stem);
-                            // 같은 offset을 가진 토큰은 하나로 묶기
-                            keywords.add(stem);
-                            continue;
-                        }else{
-                            System.out.println("기본형 없음, 원본 토큰 사용: " + token.getText());
-                        }
-                    }
-
-                    keywords.add(token.getText());
-                }
-            }
-            return keywords;
-
-        } catch (Exception e) {
-            // 형태소 분석 실패 시 단순 공백 기준 분리 (조사 포함)
-            return List.of(text.split("\\s+"));
-        }
-    }
-
-    // 단순하지만 실용적인 키워드 추출
-//    public Set<String> extractKeywords(String text) {
-//        try {
-//
-//            Set<String> keywords = new HashSet<>();
-//
-//            // 1. OpenKoreanTextProcessor로 조사 제거
-//            String normalized = normalize(text).toString();
-//            List<String> tokens = tokensToJavaStringList(tokenize(normalized));
-//            List<KoreanTokenJava> tokenList = tokensToJavaKoreanTokenList(
-//                    tokenize(normalized)
-//            );
-//            StringBuilder processedText = new StringBuilder();
-//            for (KoreanTokenJava token : tokenList) {
-//                String pos = token.getPos().toString();
-//
-//                // 조사, 어미, 구두점만 제외하고 나머지는 모두 포함
-//                if (!pos.contains("Josa") && !pos.contains("Eomi") &&
-//                        !pos.contains("Punctuation") && !pos.contains("Space")) {
-//                    processedText.append(token.getText()).append(" ");
-//                }
-//            }
-//
-//            // 2. 조사가 제거된 텍스트를 공백 기준으로 분리
-//            String[] words = processedText.toString().trim().split("\\s+");
-//
-//            for (String word : words) {
-//                // 길이 2 이상이고, 완전 숫자가 아닌 것만 포함
-//                if (word.length() >= 2 && !word.matches("^[0-9]+$")) {
-//                    keywords.add(word.trim());
-//                }
-//            }
-//
-//            return keywords;
-//
-//        } catch (Exception e) {
-//            // 형태소 분석 실패 시 단순 공백 기준 분리 (조사 포함)
-//            return Arrays.stream(text.replaceAll("<[^>]*>", "").split("\\s+"))
-//                    .filter(word -> word.length() >= 2)
-//                    .filter(word -> !word.matches("^[0-9]+$"))
-//                    .collect(Collectors.toSet());
-//        }
-//    }
 
     public List<NaverNewsDto> fetchNews(String query) {
 
@@ -184,6 +95,7 @@ public class DevTestNewsService {
                 // readTree(): json 문자열을 JsonNode 트리로 변환
                 ObjectMapper mapper = new ObjectMapper();
                 JsonNode items = mapper.readTree(response.getBody()).get("items");
+
 
                 if (items != null) {
                     return getNewsMetaDataFromNaverApi(items);

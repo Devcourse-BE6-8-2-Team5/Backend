@@ -71,7 +71,7 @@ naver:
   client-secret: ${NAVER_CLIENT_SECRET}
   base-url: "https://openapi.naver.com/v1/search/news?query="
   news:
-    display: 10
+    display: 50
     sort: sim
   crawling:
     delay: 1000 # 줄이지 말아주세요

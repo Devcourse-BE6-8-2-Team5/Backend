@@ -23,6 +23,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
+import org.openkoreantext.processor.KoreanTokenJava;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
@@ -42,8 +43,11 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import static org.openkoreantext.processor.OpenKoreanTextProcessorJava.*;
 
 @Slf4j
 @Service
@@ -78,6 +82,12 @@ public class NewsDataService {
     @Value("${naver.base-url}")
     private String naverUrl;
 
+    @Value("#{0.15}") // 요약본 임계값
+    private double descriptionSimilarityThreshold;
+
+    @Value("#{0.2}") // 제목 임계값
+    private double titleSimilarityThreshold;
+
     // 서비스 초기화 시 설정값 검증
     @PostConstruct
     public void validateConfig() {
@@ -87,8 +97,8 @@ public class NewsDataService {
         if (clientSecret == null || clientSecret.isEmpty()) {
             throw new IllegalArgumentException("NAVER_CLIENT_SECRET가 설정되지 않았습니다.");
         }
-        if (newsDisplayCount < 1 || newsDisplayCount > 10) {
-            throw new IllegalArgumentException("NAVER_NEWS_DISPLAY_COUNT는 1에서 10 사이의 값이어야 합니다.");
+        if (newsDisplayCount < 1 || newsDisplayCount >= 100) {
+            throw new IllegalArgumentException("NAVER_NEWS_DISPLAY_COUNT는 100이하의 값이어야 합니다.");
         }
         if (crawlingDelay < 0) {
             throw new IllegalArgumentException("NAVER_CRAWLING_DELAY는 0 이상이어야 합니다.");
@@ -171,8 +181,8 @@ public class NewsDataService {
         try {
             CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).get();
 
-            for (int i = 0; i < futures.size(); i++) {
-                List<NaverNewsDto> news = futures.get(i).get();
+            for (CompletableFuture<List<NaverNewsDto>> future : futures) {
+                List<NaverNewsDto> news = future.get();
 
                 List<NaverNewsDto> naverOnly = news.stream()
                         .filter(dto -> dto.link().contains("n.news.naver.com"))
@@ -188,31 +198,115 @@ public class NewsDataService {
             throw new RuntimeException("뉴스 조회 중 오류 발생", e.getCause());
         }
 
-        //API 응답 받은 후 바로 URL 기준 중복 제거
-        List<NaverNewsDto> uniqueNews = removeDuplicateUrls(allNews);
-
-        log.info("API 호출 완료: {}건 → 중복 제거 후: {}건", allNews.size(), uniqueNews.size());
-        return uniqueNews;
-
+        return allNews;
     }
 
-    private List<NaverNewsDto> removeDuplicateUrls(List<NaverNewsDto> newsList) {
-        Map<String, NaverNewsDto> uniqueByUrl = new LinkedHashMap<>();
+    public List<NaverNewsDto> removeDuplicateByBitSetByField(List<NaverNewsDto> metaDataList, Function<NaverNewsDto, String> fieldExtractor, double similarityThreshold) {
+        // 전체 키워드에 인덱스 부여 (존재하는 키워드에 대해 인덱스 부여)
+        Map<String, Integer> keywordIndexMap = new HashMap<>();
+        int idx = 0;
+        List<Set<String>> newsKeywordSets = new ArrayList<>();
 
-        for (NaverNewsDto news : newsList) {
-            String url = news.link();
-            if (!uniqueByUrl.containsKey(url)) {
-                uniqueByUrl.put(url, news);
-            } else {
-                log.debug("중복 URL 제거: {}", url);
+        for (NaverNewsDto news : metaDataList) {
+            Set<String> keywords = extractKeywords(fieldExtractor.apply(news));
+            newsKeywordSets.add(keywords);
+            for (String kw : keywords) {
+                if (!keywordIndexMap.containsKey(kw)) {
+                    keywordIndexMap.put(kw, idx++);
+                }
             }
         }
 
-        return new ArrayList<>(uniqueByUrl.values());
+        // 뉴스 키워드  BitSet 변환(키워드의 인덱스에 대해 BitSet 설정)
+        List<BitSet> newsBitSets = new ArrayList<>();
+        for (Set<String> keywords : newsKeywordSets) {
+            BitSet bs = new BitSet(keywordIndexMap.size());
+            for (String kw : keywords) {
+                bs.set(keywordIndexMap.get(kw));
+            }
+            newsBitSets.add(bs);
+        }
+
+        // 3. BitSet 기반 유사도 비교 및 제거
+        List<NaverNewsDto> filteredNews = new ArrayList<>();
+        boolean[] removed = new boolean[metaDataList.size()];
+        double[] scores = new double[metaDataList.size()];
+
+
+        for (int i = 0; i < newsBitSets.size(); i++) {
+            if (removed[i]) continue;
+            filteredNews.add(metaDataList.get(i));
+
+            for (int j = i + 1; j < newsBitSets.size(); j++) {
+                if (removed[j]) continue;
+
+                // 교집합
+                BitSet intersection = (BitSet) newsBitSets.get(i).clone();
+                intersection.and(newsBitSets.get(j));
+                int interCount = intersection.cardinality();
+
+                // 합집합
+                BitSet union = (BitSet) newsBitSets.get(i).clone();
+                union.or(newsBitSets.get(j));
+                int unionCount = union.cardinality();
+
+                double result = (double) interCount / unionCount;
+
+                if (result > similarityThreshold) {
+//                    log.info("\n\n{}\n{}\n유사도zzz: {}\n", fieldExtractor.apply(metaDataList.get(i)), fieldExtractor.apply(metaDataList.get(j)), result);
+                    removed[j] = true;
+                    scores[j] = result;
+                }
+
+            }
+        }
+
+        log.info("중복 제거 전 : {}개, 중복 제거 후 : {}개",metaDataList.size(), filteredNews.size());
+        return filteredNews;
     }
 
 
-    //
+    public Set<String> extractKeywords(String text) {
+        try {
+            Set<String> keywords = new HashSet<>();
+            // OpenKoreanTextProcessor로 중복 체크
+            String normalized = normalize(text).toString();
+            List<KoreanTokenJava> tokenList = tokensToJavaKoreanTokenList(
+                    tokenize(normalized)
+            );
+
+            for (KoreanTokenJava token : tokenList) {
+                String pos = token.getPos().toString();
+//                System.out.printf("토큰: %s, 품사: %s (%s) \n", token.getText(), pos, Pos.getKorean(pos));
+
+                // 조사, 어미, 구두점만 제외하고 나머지는 모두 포함
+                if (!pos.contains("Josa") && !pos.contains("Eomi") &&
+                        !pos.contains("Punctuation") && !pos.contains("Space")) {
+
+                    if(pos.equals("Adjective") || pos.equals("Verb")) {
+                        // Adjective, Verb, Adverb 이고 기본형이 있는 경우
+                        String stem = token.getStem();
+                        if (stem != null) {
+//                            System.out.println("기본형: " + stem);
+                            // 같은 offset을 가진 토큰은 하나로 묶기
+                            keywords.add(stem);
+                            continue;
+                        }else{
+                            System.out.println("기본형 없음, 원본 토큰 사용: " + token.getText());
+                        }
+                    }
+
+                    keywords.add(token.getText());
+                }
+            }
+            return keywords;
+
+        } catch (Exception e) {
+            // 형태소 분석 실패 시 단순 공백 기준 분리 (조사 포함)
+            return Set.of(text.split("\\s+"));
+        }
+    }
+
     @Async("newsExecutor")
     public CompletableFuture<List<NaverNewsDto>> fetchNews(String keyword) {
         try {
@@ -239,7 +333,29 @@ public class NewsDataService {
                 JsonNode items = objectMapper.readTree(response.getBody()).get("items");
 
                 if (items != null) {
-                    return CompletableFuture.completedFuture(getNewsMetaDataFromNaverApi(items));
+                    List<NaverNewsDto> rawNews = getNewsMetaDataFromNaverApi(items);
+
+                    // 네이버 뉴스만 필터링
+                    List<NaverNewsDto> naverOnly = rawNews.stream()
+                            .filter(dto -> dto.link().contains("n.news.naver.com"))
+                            .toList();
+
+                    // 키워드별로 중복 제거 수행
+                    List<NaverNewsDto> dedupTitle = removeDuplicateByBitSetByField(
+                            naverOnly, NaverNewsDto::title, titleSimilarityThreshold);
+
+                    List<NaverNewsDto> dedupDescription = removeDuplicateByBitSetByField(
+                            dedupTitle, NaverNewsDto::description, descriptionSimilarityThreshold);
+
+                    // 12개로 제한
+                    List<NaverNewsDto> limited = dedupDescription.stream()
+                            .limit(12)
+                            .toList();
+
+                    log.info("키워드 '{}': 원본 {}개 → 중복제거 후 {}개 → 제한 후 {}개",
+                            keyword, naverOnly.size(), dedupDescription.size(), limited.size());
+
+                    return CompletableFuture.completedFuture(limited);
                 }
                 return CompletableFuture.completedFuture(new ArrayList<>());
             }
