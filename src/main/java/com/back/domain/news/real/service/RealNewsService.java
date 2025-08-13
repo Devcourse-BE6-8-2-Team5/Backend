@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -62,7 +63,7 @@ public class RealNewsService {
 
     @Transactional(readOnly = true)
     public Optional<RealNewsDto> getTodayNews() {
-        LocalDate today = LocalDate.now();
+        LocalDate today = LocalDate.now(ZoneId.of("Asia/Seoul"));
         return todayNewsRepository.findBySelectedDate(today)
                 .map(TodayNews::getRealNews)        // TodayNews -> RealNews
                 .map(realNewsMapper::toDto);
