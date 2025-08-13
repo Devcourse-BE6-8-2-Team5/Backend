@@ -6,6 +6,7 @@ import com.back.domain.news.common.service.NewsPageService;
 import com.back.domain.news.real.dto.RealNewsDto;
 import com.back.domain.news.real.service.NewsDataService;
 import com.back.domain.news.real.service.RealNewsService;
+import com.back.domain.news.today.entity.TodayNews;
 import com.back.global.rsData.RsData;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -49,10 +50,9 @@ public class RealNewsController {
             return RsData.of(400, "잘못된 뉴스 ID입니다. 1 이상의 숫자를 입력해주세요.");
         }
 
-        Optional<Long> todayNewsId = realNewsService.getTodayNews()
-                .map(RealNewsDto::id);
+        Long todayNewsId = realNewsService.getTodayNewsOrRecent();
 
-        if (todayNewsId.isPresent() && newsId.equals(todayNewsId.get())) {
+        if (todayNewsId!= -1L && newsId.equals(todayNewsId)) {
             return RsData.of(403, "오늘의 뉴스는 탭을 통해 조회해주세요.");
         }
 
@@ -74,7 +74,8 @@ public class RealNewsController {
     })
     @GetMapping("/today")
     public RsData<RealNewsDto> getTodayNews() {
-        Optional<RealNewsDto> todayNews = realNewsService.getTodayNews();
+        Long todayNewsId = realNewsService.getTodayNewsOrRecent();
+        Optional<RealNewsDto> todayNews = realNewsService.getRealNewsDtoById(todayNewsId);
 
         if (todayNews.isEmpty()) {
             return RsData.of(404, "조회할 뉴스가 없습니다.");

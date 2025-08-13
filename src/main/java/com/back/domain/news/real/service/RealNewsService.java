@@ -1,11 +1,11 @@
 package com.back.domain.news.real.service;
 
-
 import com.back.domain.news.common.enums.NewsCategory;
 import com.back.domain.news.real.dto.RealNewsDto;
 import com.back.domain.news.real.entity.RealNews;
 import com.back.domain.news.real.mapper.RealNewsMapper;
 import com.back.domain.news.real.repository.RealNewsRepository;
+import com.back.domain.news.today.entity.TodayNews;
 import com.back.domain.news.today.repository.TodayNewsRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -16,11 +16,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.util.*;
+import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
-
-import com.back.domain.news.today.entity.TodayNews;
 
 @Service
 @RequiredArgsConstructor
@@ -36,38 +34,11 @@ public class RealNewsService {
     }
 
     @Transactional(readOnly = true)
-    public Page<RealNewsDto> getRealNewsList(Pageable pageable) {
-        Optional<Long> todayNewsId = getTodayNews().map(RealNewsDto::id);
-
-        if (todayNewsId.isPresent()) {
-            // 오늘 뉴스가 있다면, 해당 뉴스는 제외하고 나머지 뉴스만 조회
-            return realNewsRepository.findByIdNotOrderByCreatedDateDesc(todayNewsId.get(), pageable)
-                    .map(realNewsMapper::toDto);
-        }
-
-        return realNewsRepository.findAllByOrderByCreatedDateDesc(pageable)
-                .map(realNewsMapper::toDto);
-    }
-
-    @Transactional(readOnly = true)
     public Page<RealNewsDto> searchRealNewsByTitle(String title, Pageable pageable) {
-        Optional<Long> todayNewsId = getTodayNews().map(RealNewsDto::id);
-        if (todayNewsId.isPresent()) {
-            return realNewsRepository.findByTitleContainingAndIdNotOrderByCreatedDateDesc(title, todayNewsId.get(), pageable)
-                    .map(realNewsMapper::toDto);
-        }
+        Long excludedId = getTodayNewsOrRecent();
 
-        return realNewsRepository.findByTitleContainingIgnoreCaseOrderByCreatedDateDesc(title, pageable)
+        return realNewsRepository.findByTitleContainingAndIdNotOrderByCreatedDateDesc(title, excludedId, pageable)
                 .map(realNewsMapper::toDto);
-    }
-
-    @Transactional(readOnly = true)
-    public Optional<RealNewsDto> getTodayNews() {
-        LocalDate today = LocalDate.now(ZoneId.of("Asia/Seoul"));
-        return todayNewsRepository.findBySelectedDate(today)
-                .map(TodayNews::getRealNews)        // TodayNews -> RealNews
-                .map(realNewsMapper::toDto);
-
     }
 
     @Transactional(readOnly = true)
@@ -83,20 +54,17 @@ public class RealNewsService {
 
     @Transactional(readOnly = true)
     public Page<RealNewsDto> getAllRealNewsByCategory(NewsCategory category, Pageable pageable) {
-        Optional<Long> todayNewsId = getTodayNews().map(RealNewsDto::id);
+        Long excludedId = getTodayNewsOrRecent();
 
-        if (todayNewsId.isPresent()) {
-            // 오늘 뉴스가 있다면, 해당 뉴스는 제외하고 나머지 뉴스만 조회
-            return realNewsRepository.findByNewsCategoryAndIdNotOrderByCreatedDateDesc(category, todayNewsId.get(), pageable)
-                    .map(realNewsMapper::toDto);
-        }
-        return realNewsRepository.findByNewsCategoryOrderByCreatedDateDesc(category, pageable)
+        return realNewsRepository.findByNewsCategoryAndIdNotOrderByCreatedDateDesc(category, excludedId, pageable)
                 .map(realNewsMapper::toDto);
+
+
     }
 
     @Transactional(readOnly = true)
     public Page<RealNewsDto> getRealNewsListExcludingNth(Pageable pageable, int n) {
-        Optional<Long> todayNewsId = getTodayNews().map(RealNewsDto::id);
+        Long excludedId = getTodayNewsOrRecent();
 
         Pageable unsortedPageable = PageRequest.of(
                 pageable.getPageNumber(),
@@ -104,29 +72,26 @@ public class RealNewsService {
         );
 
         Page<RealNews> realNewsPage = realNewsRepository.findAllExcludingNth(
-                todayNewsId.orElse(null), // 오늘 뉴스 ID가 있다면 제외
+                excludedId,
                 n + 1,
                 unsortedPageable);
+
         return realNewsPage.map(realNewsMapper::toDto);
 
     }
 
     @Transactional(readOnly = true)
     public Page<RealNewsDto> searchRealNewsByTitleExcludingNth(String title, Pageable pageable, int n) {
-        Optional<Long> todayNewsId = getTodayNews().map(RealNewsDto::id);
+        Long excludedId = getTodayNewsOrRecent();
 
         Pageable unsortedPageable = PageRequest.of(
                 pageable.getPageNumber(),
                 pageable.getPageSize()
         );
 
-        if(todayNewsId.isPresent()) {
-
-        }
-
         Page<RealNews> page = realNewsRepository.findByTitleExcludingNthCategoryRank(
                 title,
-                todayNewsId.orElse(null),
+                excludedId,
                 n + 1,
                 unsortedPageable
         );
@@ -136,7 +101,7 @@ public class RealNewsService {
 
     @Transactional(readOnly = true)
     public Page<RealNewsDto> getRealNewsListByCategoryExcludingNth(NewsCategory category, Pageable pageable, int n) {
-        Optional<Long> todayNewsId = getTodayNews().map(RealNewsDto::id);
+        Long excludedId = getTodayNewsOrRecent();
 
         Pageable unsortedPageable = PageRequest.of(
                 pageable.getPageNumber(),
@@ -145,11 +110,19 @@ public class RealNewsService {
 
         Page<RealNews> page = realNewsRepository.findByCategoryExcludingNth(
                 category,
-                todayNewsId.orElse(null),
+                excludedId,
                 n + 1,
                 unsortedPageable
         );
 
         return page.map(realNewsMapper::toDto);
+    }
+
+    @Transactional(readOnly = true)
+    public Long getTodayNewsOrRecent() {
+        return todayNewsRepository.findTopByOrderBySelectedDateDesc()
+                .map(TodayNews::getRealNews)
+                .map(RealNews::getId)
+                .orElse(-1L);
     }
 }
