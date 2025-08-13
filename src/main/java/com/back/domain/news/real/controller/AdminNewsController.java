@@ -14,6 +14,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.dialect.OracleXmlJdbcType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -199,7 +200,7 @@ public class AdminNewsController {
         Sort sortBy = Sort.by(sortDirection, "originCreatedDate");
 
         Pageable pageable = PageRequest.of(page-1, size, sortBy);
-        Page<RealNewsDto> realNewsPage = realNewsService.getRealNewsList(pageable);
+        Page<RealNewsDto> realNewsPage = realNewsService.getRealNewsListExcludingNth(pageable, 1);
 
         return newsPageService.getPagedNews(realNewsPage, NewsType.REAL);
     }

@@ -23,6 +23,23 @@ import static jakarta.persistence.GenerationType.IDENTITY;
 
 @Entity
 @Getter
+@Table(name = "real_news", indexes = {
+        // 윈도우 함수용 복합 인덱스
+        @Index(name = "idx_real_news_category_created_date",
+                columnList = "news_category, created_date DESC"),
+
+        // 기본 날짜 정렬용
+        @Index(name = "idx_real_news_created_date_desc",
+                columnList = "created_date DESC"),
+
+        // 관리자 all API용
+        @Index(name = "idx_real_news_origin_created_date_desc",
+                columnList = "origin_created_date DESC"),
+
+        @Index(name = "idx_real_news_category_origin_created_date_desc",
+                columnList = "news_category, origin_created_date DESC")
+
+})
 @NoArgsConstructor
 public class RealNews {
 
