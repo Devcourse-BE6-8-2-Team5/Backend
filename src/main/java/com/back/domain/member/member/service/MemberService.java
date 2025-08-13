@@ -39,7 +39,6 @@ public class MemberService {
                 .level(1)
                 .role(role) //기본 권한 USER. 관리자면 "ADMIN"으로 설정하시면 됩니다
                 .apiKey(UUID.randomUUID().toString())
-                .profileImgUrl(null)
                 .oauthId(null)
                 .build();
 
@@ -47,23 +46,23 @@ public class MemberService {
     }
 
     // 소셜로그인으로 회원가입 & 회원 정보 수정
-    public RsData<Member> modifyOrJoin(String oauthId, String email, String nickname,String profileImgUrl) {
+    public RsData<Member> modifyOrJoin(String oauthId, String email, String nickname) {
 
         //oauthId로 기존 회원인지 확인
         Member member = memberRepository.findByOauthId(oauthId).orElse(null);
 
         // 기존 회원이 아니면 소셜로그인으로 회원가입 진행
         if(member == null) {
-            member = joinSocial(oauthId, email, nickname, profileImgUrl);
+            member = joinSocial(oauthId, email, nickname);
             return new RsData<>(201, "회원가입이 완료되었습니다.", member);
         }
 
         // 기존 회원이면 회원 정보 수정
-        modifySocial(member, nickname, profileImgUrl);
+        modifySocial(member, nickname);
         return new RsData<>(200, "회원 정보가 수정되었습니다.", member);
     }
 
-    public Member joinSocial(String oauthId, String email, String nickname, String profileImgUrl){
+    public Member joinSocial(String oauthId, String email, String nickname){
         memberRepository.findByOauthId(oauthId)
                 .ifPresent(_member -> {
                     throw new ServiceException(409, "이미 존재하는 계정입니다.");
@@ -77,16 +76,14 @@ public class MemberService {
                 .level(1)
                 .role("USER") //기본 권한 USER. 관리자면 "ADMIN"으로 설정하시면 됩니다
                 .apiKey(UUID.randomUUID().toString())
-                .profileImgUrl(profileImgUrl)
                 .oauthId(oauthId)
                 .build();
 
         return memberRepository.save(member);
     }
 
-    public void modifySocial(Member member, String nickname, String profileImgUrl){
+    public void modifySocial(Member member, String nickname){
         member.setName(nickname);
-        member.setProfileImgUrl(profileImgUrl);
         memberRepository.save(member);
     }
 
@@ -112,10 +109,6 @@ public class MemberService {
 
     public String genAccessToken(Member member) {
         return authTokenService.genAccessToken(member);
-    }
-
-    public Member save(Member member) {
-        return memberRepository.save(member);
     }
 
     @Transactional

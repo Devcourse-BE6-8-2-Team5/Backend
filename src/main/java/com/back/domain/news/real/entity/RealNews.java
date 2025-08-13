@@ -5,6 +5,7 @@ import com.back.domain.news.common.enums.NewsCategory;
 import com.back.domain.news.fake.entity.FakeNews;
 import com.back.domain.quiz.detail.entity.DetailQuiz;
 import com.back.domain.quiz.fact.entity.FactQuiz;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
@@ -22,6 +23,23 @@ import static jakarta.persistence.GenerationType.IDENTITY;
 
 @Entity
 @Getter
+@Table(name = "real_news", indexes = {
+        // 윈도우 함수용 복합 인덱스
+        @Index(name = "idx_real_news_category_created_date",
+                columnList = "news_category, created_date DESC"),
+
+        // 기본 날짜 정렬용
+        @Index(name = "idx_real_news_created_date_desc",
+                columnList = "created_date DESC"),
+
+        // 관리자 all API용
+        @Index(name = "idx_real_news_origin_created_date_desc",
+                columnList = "origin_created_date DESC"),
+
+        @Index(name = "idx_real_news_category_origin_created_date_desc",
+                columnList = "news_category, origin_created_date DESC")
+
+})
 @NoArgsConstructor
 public class RealNews {
 
@@ -45,12 +63,15 @@ public class RealNews {
 
     // 상세 퀴즈와 1:N 관계 설정 (RealNews 하나 당 3개의 DetailQuiz가 생성됩니다.)
     @OneToMany(mappedBy = "realNews", cascade = ALL, orphanRemoval = true)
+    @JsonIgnore
     private List<DetailQuiz> detailQuizzes = new ArrayList<>();
 
     @OneToMany(mappedBy = "realNews", cascade = ALL, orphanRemoval = true)
+    @JsonIgnore
     private List<FactQuiz> factQuizzes = new ArrayList<>();
 
     @OneToOne(mappedBy = "realNews", cascade = ALL, fetch = LAZY)
+    @JsonIgnore
     private FakeNews fakeNews;
 
     @Enumerated(EnumType.STRING)

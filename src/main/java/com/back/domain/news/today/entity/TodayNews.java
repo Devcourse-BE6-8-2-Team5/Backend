@@ -2,6 +2,7 @@ package com.back.domain.news.today.entity;
 
 import com.back.domain.news.real.entity.RealNews;
 import com.back.domain.quiz.daily.entity.DailyQuiz;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
@@ -23,10 +24,12 @@ public class TodayNews {
     @OneToOne
     @MapsId
     @JoinColumn(name = "real_news_id")
+    @JsonIgnore
     private RealNews realNews;
 
     // 오늘의 퀴즈와 1:N 관계 설정
     @OneToMany(mappedBy = "todayNews", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
     private List<DailyQuiz> todayQuizzes = new ArrayList<>();
 
 

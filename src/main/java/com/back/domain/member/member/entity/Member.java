@@ -1,6 +1,7 @@
 package com.back.domain.member.member.entity;
 
 import com.back.domain.member.quizhistory.entity.QuizHistory;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Min;
 import lombok.*;
@@ -48,13 +49,14 @@ public class Member {
     @Column(nullable = false, unique = true)
     private String apiKey; // 리프레시 토큰
 
-    private String profileImgUrl;
+    
 
     @Column(unique = true, nullable = true)
     private String oauthId; // 소셜 로그인용 고유 oauthId
 
     // 유저가 푼 퀴즈 기록을 저장하는 리스트 일단 엔티티 없어서 주석
     @OneToMany(mappedBy = "member", fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.REMOVE}, orphanRemoval = true)
+    @JsonIgnore
     private List<QuizHistory> quizHistories = new ArrayList<>(); //유저가 퀴즈를 푼 기록
 
 
@@ -94,11 +96,5 @@ public class Member {
                 .toList();
     }
 
-    // 소셜로그인 프사
-    public String getProfileImgUrlOrDefault() {
-        if (profileImgUrl == null)
-            return "https://placehold.co/600x600?text=U_U";
-
-        return profileImgUrl;
-    }
+    
 }
