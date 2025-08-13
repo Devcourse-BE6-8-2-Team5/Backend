@@ -1,5 +1,6 @@
 package com.back.domain.news.fake.service;
 
+import com.back.domain.news.common.service.KeepAliveMonitoringService;
 import com.back.domain.news.fake.dto.FakeNewsDto;
 import com.back.domain.news.fake.event.FakeNewsCreatedEvent;
 import com.back.domain.news.real.dto.RealNewsDto;
@@ -8,14 +9,10 @@ import com.back.global.exception.ServiceException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
 
-import java.time.Duration;
 import java.util.List;
-import java.util.concurrent.ScheduledFuture;
 
 @Slf4j
 @Service
@@ -25,14 +22,12 @@ public class AdminFakeNewsService {
     private final FakeNewsService fakeNewsService;
     private final RealNewsService realNewsService;
     private final ApplicationEventPublisher publisher;
-    private final RestTemplate restTemplate;
-    private final TaskScheduler taskScheduler;
-
+    private final KeepAliveMonitoringService keepAliveMonitoringService;
 
     @Scheduled(cron = "0 0 1 * * *", zone = "Asia/Seoul") // 매일 새벽 1시에 실행
     public void dailyFakeNewsProcess() {
 
-        ScheduledFuture<?> keepAliveTask = startKeepAlive();
+        keepAliveMonitoringService.startBatchKeepAlive();
 
         try {
             List<RealNewsDto> realNewsDtos = realNewsService.getRealNewsListCreatedToday();
@@ -46,7 +41,7 @@ public class AdminFakeNewsService {
             List<FakeNewsDto> fakeNewsDtos = fakeNewsService.generateAndSaveAllFakeNews(realNewsDtos);
 
             List<Long> successRealNewsIds = fakeNewsDtos.stream()
-                    .map(fakeNews -> fakeNews.realNewsId())
+                    .map(FakeNewsDto::realNewsId)
                     .toList();
 
             publisher.publishEvent(new FakeNewsCreatedEvent(successRealNewsIds));
@@ -60,20 +55,7 @@ public class AdminFakeNewsService {
         } catch (ServiceException e) {
             log.error("가짜 뉴스 생성 중 오류 발생: {}", e.getMessage());
         } finally {
-            keepAliveTask.cancel(true);
-            log.info("Keep-alive 작업 중지됨");
+            keepAliveMonitoringService.stopBatchKeepAlive();
         }
-    }
-
-    private ScheduledFuture<?> startKeepAlive() {
-        log.info("Keep-alive 시작됨");
-        return taskScheduler.scheduleAtFixedRate(() -> {
-            try {
-                restTemplate.getForObject("https://news-ox.fly.dev/health", String.class);
-                log.debug("start aliive 핑");
-            } catch (Exception e) {
-                log.warn("Keep-alive 실패", e);
-            }
-        }, Duration.ofMinutes(4));
     }
 }

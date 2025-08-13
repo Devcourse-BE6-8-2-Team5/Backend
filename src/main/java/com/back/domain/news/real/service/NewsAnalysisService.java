@@ -5,6 +5,7 @@ import com.back.domain.news.real.dto.RealNewsDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.task.TaskRejectedException;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -52,6 +53,11 @@ public class NewsAnalysisService {
                         })
                         .exceptionally(throwable -> {
                             log.error("배치 처리 실패", throwable);
+
+                            // TaskRejectedException 특별 처리
+                            if (isTaskRejectionException(throwable)) {
+                                log.error("스레드풀 용량 부족 - 스레드 크기 확인 필요");
+                            }
                             return null;
                         }))
                 .toList();
@@ -64,13 +70,26 @@ public class NewsAnalysisService {
             Throwable cause = e.getCause();
             if (cause instanceof InterruptedException) {
                 Thread.currentThread().interrupt();
-                throw new RuntimeException("뉴스 분석이 중단되었습니다", cause);
+                log.error("뉴스 분석 작업이 인터럽트됨", cause);
             }
             log.error("뉴스 분석 중 일부 오류 발생했지만 계속 진행", cause);
         }
 
         log.info("뉴스 필터링 완료 - 최종 결과: {}개", allResults.size());
         return new ArrayList<>(allResults);
+    }
+
+    // TaskRejectedException 감지
+    private boolean isTaskRejectionException(Throwable throwable) {
+        Throwable current = throwable;
+        while (current != null) {
+            if (current instanceof TaskRejectedException ||
+                    current.getClass().getSimpleName().contains("TaskReject")) {
+                return true;
+            }
+            current = current.getCause();
+        }
+        return false;
     }
 
 }
