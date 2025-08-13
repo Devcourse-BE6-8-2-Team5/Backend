@@ -2,11 +2,20 @@ name: wakeup-scheduler.yml
 
 on:
   schedule:
-    - cron: '57 14 * * *'  # UTC 기준 14:57 -> KST 23:57 (RealNews 스케줄러 시작 3분 전)
-    - cron: '57 15 * * *'  # UTC 기준 15:57 -> KST 00:57 (FakeNews 스케줄러 시작 3분 전)
+    - cron: '50 14 * * *'
+    - cron: '50 15 * * *'
+
+
 jobs:
   wakeup:
     runs-on: ubuntu-latest
     steps:
       - name: Wake up app
-        run: curl -f https://news-ox.fly.dev/health
+        run: |
+          for i in {1..7}; do
+            curl -f https://news-ox.fly.dev/health
+            echo "Ping $i/7 sent"
+            if [ $i -lt 7 ]; then
+              sleep 300  # 5분 대기
+            fi
+          done

@@ -133,9 +133,9 @@ public class NewsDataService {
             return allRealNewsDtos;
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt(); // 인터럽트 상태 복원
-            throw new ServiceException(500, "뉴스 크롤링이 중단되었습니다");
+            log.error("크롤링 중 인터럽트 발생", e);
+            return Collections.emptyList();
         }
-
     }
 
     @Transactional
@@ -149,7 +149,7 @@ public class NewsDataService {
         List<RealNews> savedEntities = realNewsRepository.saveAll(realNewsList); // 저장된 결과 받기
 
         for (RealNews saved : savedEntities) {
-            log.info("저장 완료 - 생성된 ID: {}, 제목: {}", saved.getId(), saved.getTitle());
+            log.info("저장 완료 -  제목: {}", saved.getTitle());
         }
         // Entity → DTO 변환해서 반환
         return realNewsMapper.toDtoList(savedEntities);
@@ -178,10 +178,9 @@ public class NewsDataService {
             }
 
         } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw new RuntimeException("런타임 인터럽트 발생");
+            log.error("뉴스 조회가 인터럽트됨", e);
         } catch (ExecutionException e) {
-            throw new RuntimeException("뉴스 조회 중 오류 발생", e.getCause());
+            log.error("뉴스 조회 중 오류 발생", e.getCause());
         }
 
         return allNews;
