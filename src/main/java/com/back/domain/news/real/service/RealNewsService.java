@@ -120,7 +120,7 @@ public class RealNewsService {
 
     public Long getTodayNewsOrRecent() {
         return todayNewsRepository.findTopByOrderBySelectedDateDesc()
-                .map(TodayNews::getId)
+                .map(todayNews -> todayNews.getRealNews().getId())
                 .orElse(-1L);
     }
 }
