@@ -115,7 +115,6 @@ public class NewsDataService {
 
         try {
             for (NaverNewsDto metaData : MetaDataList) {
-                String url = metaData.link();
 
                 Optional<NewsDetailDto> newsDetailData = crawladditionalInfo(metaData.link());
 
