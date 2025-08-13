@@ -40,11 +40,11 @@ public class RealNewsService {
 
         if (todayNewsId.isPresent()) {
             // 오늘 뉴스가 있다면, 해당 뉴스는 제외하고 나머지 뉴스만 조회
-            return realNewsRepository.findByIdNot(todayNewsId.get(), pageable)
+            return realNewsRepository.findByIdNotOrderByCreatedDateDesc(todayNewsId.get(), pageable)
                     .map(realNewsMapper::toDto);
         }
 
-        return realNewsRepository.findAll(pageable)
+        return realNewsRepository.findAllByOrderByCreatedDateDesc(pageable)
                 .map(realNewsMapper::toDto);
     }
 
@@ -52,11 +52,11 @@ public class RealNewsService {
     public Page<RealNewsDto> searchRealNewsByTitle(String title, Pageable pageable) {
         Optional<Long> todayNewsId = getTodayNews().map(RealNewsDto::id);
         if (todayNewsId.isPresent()) {
-            return realNewsRepository.findByTitleContainingAndIdNot(title, todayNewsId.get(), pageable)
+            return realNewsRepository.findByTitleContainingAndIdNotOrderByCreatedDateDesc(title, todayNewsId.get(), pageable)
                     .map(realNewsMapper::toDto);
         }
 
-        return realNewsRepository.findByTitleContaining(title, pageable)
+        return realNewsRepository.findByTitleContainingIgnoreCaseOrderByCreatedDateDesc(title, pageable)
                 .map(realNewsMapper::toDto);
     }
 
@@ -74,7 +74,7 @@ public class RealNewsService {
         LocalDateTime start = LocalDate.now().atStartOfDay();
         LocalDateTime end = LocalDateTime.now();
 
-        List<RealNews> realNewsList = realNewsRepository.findByCreatedDateBetween(start, end);
+        List<RealNews> realNewsList = realNewsRepository.findByCreatedDateBetweenOrderByCreatedDateDesc(start, end);
         return realNewsList.stream()
                 .map(realNewsMapper::toDto)
                 .collect(Collectors.toList());
@@ -86,10 +86,10 @@ public class RealNewsService {
 
         if (todayNewsId.isPresent()) {
             // 오늘 뉴스가 있다면, 해당 뉴스는 제외하고 나머지 뉴스만 조회
-            return realNewsRepository.findByNewsCategoryAndIdNot(category, todayNewsId.get(), pageable)
+            return realNewsRepository.findByNewsCategoryAndIdNotOrderByCreatedDateDesc(category, todayNewsId.get(), pageable)
                     .map(realNewsMapper::toDto);
         }
-        return realNewsRepository.findByNewsCategory(category, pageable)
+        return realNewsRepository.findByNewsCategoryOrderByCreatedDateDesc(category, pageable)
                 .map(realNewsMapper::toDto);
     }
 

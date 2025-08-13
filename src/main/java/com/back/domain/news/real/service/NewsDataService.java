@@ -426,7 +426,7 @@ public class NewsDataService {
 
     @Transactional(readOnly = true)
     public Page<RealNewsDto> getAllRealNewsList(Pageable pageable) {
-        return realNewsRepository.findAll(pageable)
+        return realNewsRepository.findAllByOrderByCreatedDateDesc(pageable)
                 .map(realNewsMapper::toDto);
     }
 
