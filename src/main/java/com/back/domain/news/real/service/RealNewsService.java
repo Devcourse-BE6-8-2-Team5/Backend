@@ -1,11 +1,11 @@
 package com.back.domain.news.real.service;
 
-
 import com.back.domain.news.common.enums.NewsCategory;
 import com.back.domain.news.real.dto.RealNewsDto;
 import com.back.domain.news.real.entity.RealNews;
 import com.back.domain.news.real.mapper.RealNewsMapper;
 import com.back.domain.news.real.repository.RealNewsRepository;
+import com.back.domain.news.today.entity.TodayNews;
 import com.back.domain.news.today.repository.TodayNewsRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -16,11 +16,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.util.*;
+import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
-
-import com.back.domain.news.today.entity.TodayNews;
 
 @Service
 @RequiredArgsConstructor
@@ -36,28 +34,11 @@ public class RealNewsService {
     }
 
     @Transactional(readOnly = true)
-    public Page<RealNewsDto> getRealNewsList(Pageable pageable) {
-        Long excludedId = getTodayNewsOrRecent();
-
-        return realNewsRepository.findByIdNotOrderByCreatedDateDesc(excludedId, pageable)
-                .map(realNewsMapper::toDto);
-    }
-
-    @Transactional(readOnly = true)
     public Page<RealNewsDto> searchRealNewsByTitle(String title, Pageable pageable) {
         Long excludedId = getTodayNewsOrRecent();
 
         return realNewsRepository.findByTitleContainingAndIdNotOrderByCreatedDateDesc(title, excludedId, pageable)
                 .map(realNewsMapper::toDto);
-    }
-
-    @Transactional(readOnly = true)
-    public Optional<RealNewsDto> getTodayNews() {
-        LocalDate today = LocalDate.now(ZoneId.of("Asia/Seoul"));
-        return todayNewsRepository.findBySelectedDate(today)
-                .map(TodayNews::getRealNews)        // TodayNews -> RealNews
-                .map(realNewsMapper::toDto);
-
     }
 
     @Transactional(readOnly = true)
