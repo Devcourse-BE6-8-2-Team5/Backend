@@ -81,7 +81,6 @@ public class Rq {
                 .path("/")
                 .maxAge(maxAge)
                 .secure(true)
-                .sameSite("None")
                 .httpOnly(true)
                 .build();
         resp.addHeader("Set-Cookie", cookie.toString());
