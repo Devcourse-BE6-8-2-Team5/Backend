@@ -19,7 +19,7 @@
 
 | 팀원 | 역할 | 담당 업무 |
 |------|------|-----------|
-| 이예진(팀장) | Backend / Frontend | 인증/인가, 소셜로그인 |
+| 이예진(팀장) | Backend / Frontend | 인증/인가, 소셜로그인, UI/UX |
 | 김성철(PM) | Backend / Frontend | 프로젝트 관리, 시스템 설계 |
 | 김율희 | Backend | 퀴즈 도메인 전반, AI 호출 관리 담당 |
 | 이광현 | Backend / Frontend | 사용자 인터페이스, 백엔드 API 개발 |
